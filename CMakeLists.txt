@@ -70,7 +70,6 @@ add_subdirectory(neo/libs)
 add_subdirectory(neo/idlib)
 add_subdirectory(neo/TypeInfo)
 add_subdirectory(neo/game)
-add_subdirectory(neo/d3xp)
 
 file( GLOB src_engine
 	"${ENGINE_SOURCE}/cm/*.cpp"
