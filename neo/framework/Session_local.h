@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -114,16 +114,6 @@ public:
 
 	virtual void		TimeHitch( int msec );
 
-	virtual void		ReadCDKey( void );
-	virtual void		WriteCDKey( void );
-	virtual const char *GetCDKey( bool xp );
-	virtual bool		CheckKey( const char *key, bool netConnect, bool offline_valid[ 2 ] );
-	virtual bool		CDKeysAreValid( bool strict );
-	virtual void		ClearCDKey( bool valid[ 2 ] );
-	virtual void		SetCDKeyGuiVars( void );
-	virtual bool		WaitingForGameAuth( void );
-	virtual void		CDKeysAuthReply( bool valid, const char *auth_msg );
-
 	virtual int			GetSaveGameVersion( void );
 
 	virtual const char *GetCurrentMapName();
@@ -136,10 +126,6 @@ public:
 
 	// loads a map and starts a new game on it
 	void				StartNewGame( const char *mapName, bool devmap = false );
-	void				PlayIntroGui();
-
-	void				LoadSession( const char *name );
-	void				SaveSession( const char *name );
 
 	// called by Draw when the scene to scene wipe is still running
 	void				DrawWipeModel();
@@ -155,8 +141,6 @@ public:
 	bool				LoadGame(const char *saveName);
 	bool				SaveGame(const char *saveName, bool autosave = false);
 
-	const char			*GetAuthMsg( void );
-
 	//=====================================
 
 	static idCVar		com_showAngles;
@@ -165,10 +149,6 @@ public:
 	static idCVar		com_fixedTic;
 	static idCVar		com_showDemo;
 	static idCVar		com_skipGameDraw;
-	static idCVar		com_aviDemoWidth;
-	static idCVar		com_aviDemoHeight;
-	static idCVar		com_aviDemoSamples;
-	static idCVar		com_aviDemoTics;
 	static idCVar		com_wipeSeconds;
 	static idCVar		com_guid;
 
@@ -181,7 +161,7 @@ public:
 
 	bool				insideExecuteMapChange;	// draw loading screen and update
 												// screen on prints
-	int					bytesNeededForMapLoad;	// 
+	int					bytesNeededForMapLoad;	//
 
 	// we don't want to redraw the loading screen for every single
 	// console print that happens
@@ -215,18 +195,12 @@ public:
 	int					lastDemoTic;
 	bool				syncNextGameFrame;
 
-
-	bool				aviCaptureMode;		// if true, screenshots will be taken and sound captured
-	idStr				aviDemoShortName;	// 
-	float				aviDemoFrameCount;
-	int					aviTicStart;
-
 	timeDemo_t			timeDemo;
 	int					timeDemoStartTime;
 	int					numDemoFrames;		// for timeDemo and demoShot
 	int					demoTimeOffset;
 	renderView_t		currentDemoRenderView;
-	// the next one will be read when 
+	// the next one will be read when
 	// com_frameTime + demoTimeOffset > currentDemoRenderView.
 
 	// TODO: make this private (after sync networking removal and idnet tweaks)
@@ -241,15 +215,14 @@ public:
 	idUserInterface *	guiIntro;
 	idUserInterface *	guiGameOver;
 	idUserInterface *	guiTest;
-	idUserInterface *	guiTakeNotes;
-	
+
 	idUserInterface *	guiMsg;
 	idUserInterface *	guiMsgRestore;				// store the calling GUI for restore
 	idStr				msgFireBack[ 2 ];
 	bool				msgRunning;
 	int					msgRetIndex;
 	bool				msgIgnoreButtons;
-	
+
 	bool				waitingOnBind;
 
 	const idMaterial *	whiteMaterial;
@@ -280,15 +253,10 @@ public:
 	void				StopPlayingRenderDemo();
 	void				CompressDemoFile( const char *scheme, const char *name );
 	void				TimeRenderDemo( const char *name, bool twice = false );
-	void				AVIRenderDemo( const char *name );
-	void				AVICmdDemo( const char *name );
-	void				AVIGame( const char *name );
-	void				BeginAVICapture( const char *name );
-	void				EndAVICapture();
 
 	void				AdvanceRenderDemo( bool singleFrameOnly );
 	void				RunGameTic();
-	
+
 	void				FinishCmdLoad();
 	void				LoadLoadingGui(const char *mapName);
 
@@ -301,9 +269,6 @@ public:
 
 	void				ExecuteMapChange( bool noFadeWipe = false );
 	void				UnloadMap();
-
-	// return true if we actually waiting on an auth reply
-	bool				MaybeWaitOnCDKey( void );
 
 	//------------------
 	// Session_menu.cpp
@@ -322,40 +287,16 @@ public:
 	void				HandleIntroMenuCommands( const char *menuCommand );
 	void				HandleRestartMenuCommands( const char *menuCommand );
 	void				HandleMsgCommands( const char *menuCommand );
-	void				HandleNoteCommands( const char *menuCommand );
 	void				GetSaveGameList( idStrList &fileList, idList<fileTIME_T> &fileTimes );
-	void				TakeNotes( const char * p, bool extended = false );
 	void				UpdateMPLevelShot( void );
 
 	void				SetSaveGameGuiVars( void );
 	void				SetMainMenuGuiVars( void );
 	void				SetModsMenuGuiVars( void );
 	void				SetMainMenuSkin( void );
-	void				SetPbMenuGuiVars( void );
-	
+
 private:
 	bool				BoxDialogSanityCheck( void );
-	void				EmitGameAuth( void );
-	
-	typedef enum {
-		CDKEY_UNKNOWN,	// need to perform checks on the key
-		CDKEY_INVALID,	// that key is wrong
-		CDKEY_OK,		// valid
-		CDKEY_CHECKING, // sent a check request ( gameAuth only )
-		CDKEY_NA		// does not apply, xp key when xp is not present
-	} cdKeyState_t;
-
-	static const int	CDKEY_BUF_LEN = 17;
-	static const int	CDKEY_AUTH_TIMEOUT = 5000;
-
-	char				cdkey[ CDKEY_BUF_LEN ];
-	cdKeyState_t		cdkey_state;
-	char				xpkey[ CDKEY_BUF_LEN ];
-	cdKeyState_t		xpkey_state;
-	int					authEmitTimeout;
-	bool				authWaitBox;
-
-	idStr				authMsg;
 };
 
 extern idSessionLocal	sessLocal;

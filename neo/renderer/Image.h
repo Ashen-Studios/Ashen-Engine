@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -37,20 +37,20 @@ No texture is ever used that does not have a corresponding idImage.
 
 no code outside this unit should call any of these OpenGL functions:
 
-qglGenTextures
-qglDeleteTextures
-qglBindTexture
+glGenTextures
+glDeleteTextures
+glBindTexture
 
-qglTexParameter
+glTexParameter
 
-qglTexImage
-qglTexSubImage
+glTexImage
+glTexSubImage
 
-qglCopyTexImage
-qglCopyTexSubImage
+glCopyTexImage
+glCopyTexSubImage
 
-qglEnable( GL_TEXTURE_* )
-qglDisable( GL_TEXTURE_* )
+glEnable( GL_TEXTURE_* )
+glDisable( GL_TEXTURE_* )
 
 ====================================================================
 */
@@ -163,14 +163,14 @@ public:
 	// data goes from the bottom to the top line of the image, as OpenGL expects it
 	// These perform an implicit Bind() on the current texture unit
 	// FIXME: should we implement cinematics this way, instead of with explicit calls?
-	void		GenerateImage( const byte *pic, int width, int height, 
-					   textureFilter_t filter, bool allowDownSize, 
+	void		GenerateImage( const byte *pic, int width, int height,
+					   textureFilter_t filter, bool allowDownSize,
 					   textureRepeat_t repeat, textureDepth_t depth );
 	void		Generate3DImage( const byte *pic, int width, int height, int depth,
-						textureFilter_t filter, bool allowDownSize, 
+						textureFilter_t filter, bool allowDownSize,
 						textureRepeat_t repeat, textureDepth_t minDepth );
-	void		GenerateCubeImage( const byte *pic[6], int size, 
-						textureFilter_t filter, bool allowDownSize, 
+	void		GenerateCubeImage( const byte *pic[6], int size,
+						textureFilter_t filter, bool allowDownSize,
 						textureDepth_t depth );
 
 	void		CopyFramebuffer( int x, int y, int width, int height, bool useOversizedBuffer );
@@ -408,11 +408,10 @@ public:
 	idImage *			currentRenderImage;			// for SS_POST_PROCESS shaders
 	idImage *			scratchCubeMapImage;
 	idImage *			specularTableImage;			// 1D intensity texture with our specular function
-	idImage *			specular2DTableImage;		// 2D intensity texture with our specular function with variable specularity
 	idImage *			borderClampImage;			// white inside, black outside
 
 	//--------------------------------------------------------
-	
+
 	idImage *			AllocImage( const char *name );
 	void				SetNormalPalette();
 	void				ChangeTextureFilter();
@@ -455,9 +454,9 @@ FIXME: make an "imageBlock" type to hold byte*,width,height?
 ====================================================================
 */
 
-byte *R_Dropsample( const byte *in, int inwidth, int inheight,  
+byte *R_Dropsample( const byte *in, int inwidth, int inheight,
 							int outwidth, int outheight );
-byte *R_ResampleTexture( const byte *in, int inwidth, int inheight,  
+byte *R_ResampleTexture( const byte *in, int inwidth, int inheight,
 							int outwidth, int outheight );
 byte *R_MipMapWithAlphaSpecularity( const byte *in, int width, int height );
 byte *R_MipMap( const byte *in, int width, int height, bool preserveBorder );

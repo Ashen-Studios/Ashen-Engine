@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ typedef enum {
 
 	MOVE_TO_ENEMY = NUM_NONMOVING_COMMANDS,
 	MOVE_TO_ENEMYHEIGHT,
-	MOVE_TO_ENTITY, 
+	MOVE_TO_ENTITY,
 	MOVE_OUT_OF_RANGE,
 	MOVE_TO_ATTACK_POSITION,
 	MOVE_TO_COVER,
@@ -112,9 +112,9 @@ typedef struct obstaclePath_s {
 	idVec3				seekPos;					// seek position avoiding obstacles
 	idEntity *			firstObstacle;				// if != NULL the first obstacle along the path
 	idVec3				startPosOutsideObstacles;	// start position outside obstacles
-	idEntity *			startPosObstacle;			// if != NULL the obstacle containing the start position 
+	idEntity *			startPosObstacle;			// if != NULL the obstacle containing the start position
 	idVec3				seekPosOutsideObstacles;	// seek position outside obstacles
-	idEntity *			seekPosObstacle;			// if != NULL the obstacle containing the seek position 
+	idEntity *			seekPosObstacle;			// if != NULL the obstacle containing the seek position
 } obstaclePath_t;
 
 // path prediction
@@ -159,6 +159,8 @@ extern const idEventDef AI_EnableGravity;
 extern const idEventDef AI_DisableGravity;
 extern const idEventDef AI_TriggerParticles;
 extern const idEventDef AI_RandomPath;
+extern const idEventDef AI_Vagary_ChooseObjectToThrow;
+extern const idEventDef AI_Vagary_ThrowObjectAtEnemy;
 
 class idPathCorner;
 
@@ -333,7 +335,7 @@ protected:
 	bool					allowHiddenMovement;		// allows character to still move around while hidden
 	bool					disableGravity;				// disables gravity and allows vertical movement by the animation
 	bool					af_push_moveables;			// allow the articulated figure to push moveable objects
-	
+
 	// weapon/attack vars
 	bool					lastHitCheckResult;
 	int						lastHitCheckTime;
@@ -385,7 +387,7 @@ protected:
 	// special fx
 	float					shrivel_rate;
 	int						shrivel_start;
-	
+
 	bool					restartParticles;			// should smoke emissions restart
 	bool					useBoneAxis;				// use the bone vs the model axis
 	idList<particleEmitter_t> particles;				// particle data
@@ -731,6 +733,15 @@ private:
 
 	void				Event_Activate( idEntity *activator );
 	void				Event_MarkUsed( void );
+};
+
+class idAI_Vagary : public idAI {
+public:
+	CLASS_PROTOTYPE( idAI_Vagary );
+
+private:
+	void	Event_ChooseObjectToThrow( const idVec3 &mins, const idVec3 &maxs, float speed, float minDist, float offset );
+	void	Event_ThrowObjectAtEnemy( idEntity *ent, float speed );
 };
 
 #endif /* !__AI_H__ */

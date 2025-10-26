@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -137,7 +137,7 @@ typedef enum {
 } expRegister_t;
 
 typedef struct {
-	expOpType_t		opType;	
+	expOpType_t		opType;
 	int				a, b, c;
 } expOp_t;
 
@@ -152,7 +152,6 @@ typedef enum {
 	TG_SKYBOX_CUBE,
 	TG_WOBBLESKY_CUBE,
 	TG_SCREEN,			// screen aligned, for mirrorRenders and screen space temporaries
-	TG_SCREEN2,
 	TG_GLASSWARP
 } texgen_t;
 
@@ -197,7 +196,7 @@ typedef struct {
 	int					numFragmentProgramImages;
 	idImage *			fragmentProgramImages[MAX_FRAGMENT_IMAGES];
 
-	idMegaTexture		*megaTexture;		// handles all the binding and parameter setting 
+	idMegaTexture		*megaTexture;		// handles all the binding and parameter setting
 } newShaderStage_t;
 
 typedef struct {
@@ -265,7 +264,8 @@ typedef enum {
 	MF_FORCESHADOWS				= BIT(3),
 	MF_NOSELFSHADOW				= BIT(4),
 	MF_NOPORTALFOG				= BIT(5),	// this fog volume won't ever consider a portal fogged out
-	MF_EDITOR_VISIBLE			= BIT(6)	// in use (visible) per editor
+	MF_EDITOR_VISIBLE			= BIT(6),	// in use (visible) per editor
+	MF_UNLIT					= BIT(7)	// receive no lighting
 } materialFlags_t;
 
 // contents flags, NOTE: make sure to keep the defines in doom_defs.script up to date with these!
@@ -398,7 +398,7 @@ public:
 						// returns true if the material will generate interactions with normal lights
 						// Many special effect surfaces don't have any bump/diffuse/specular
 						// stages, and don't interact with lights at all
-	bool				ReceivesLighting( void ) const { return numAmbientStages != numStages; }
+	bool				ReceivesLighting( void ) const { return ( numAmbientStages != numStages ) && ( materialFlags & MF_UNLIT ) == 0; }
 
 						// returns true if the material should generate interactions on sides facing away
 						// from light centers, as with noshadow and noselfshadow options
@@ -508,7 +508,7 @@ public:
 						// get sort order
 	const float			GetSort( void ) const { return sort; }
 						// this is only used by the gui system to force sorting order
-						// on images referenced from tga's instead of materials. 
+						// on images referenced from tga's instead of materials.
 						// this is done this way as there are 2000 tgas the guis use
 	void				SetSort( float s ) const { sort = s; };
 
@@ -575,7 +575,7 @@ public:
 	const int			GetNumRegisters() const { return numRegisters; }
 
 						// regs should point to a float array large enough to hold GetNumRegisters() floats
-	void				EvaluateRegisters( float *regs, const float entityParms[MAX_ENTITY_SHADER_PARMS], 
+	void				EvaluateRegisters( float *regs, const float entityParms[MAX_ENTITY_SHADER_PARMS],
 											const struct viewDef_s *view, idSoundEmitter *soundEmitter = NULL ) const;
 
 						// if a material only uses constants (no entityParm or globalparm references), this
@@ -633,9 +633,9 @@ private:
 	float				polygonOffset;
 
 	int					contentFlags;		// content flags
-	int					surfaceFlags;		// surface flags	
+	int					surfaceFlags;		// surface flags
 	mutable int			materialFlags;		// material flags
-	
+
 	decalInfo_t			decalInfo;
 
 
@@ -649,7 +649,7 @@ private:
 	materialCoverage_t	coverage;
 	cullType_t			cullType;			// CT_FRONT_SIDED, CT_BACK_SIDED, or CT_TWO_SIDED
 	bool				shouldCreateBackSides;
-	
+
 	bool				fogLight;
 	bool				blendLight;
 	bool				ambientLight;
@@ -659,7 +659,7 @@ private:
 
 	int					numOps;
 	expOp_t *			ops;				// evaluate to make expressionRegisters
-																										
+
 	int					numRegisters;																			//
 	float *				expressionRegisters;
 
@@ -667,7 +667,7 @@ private:
 
 	int					numStages;
 	int					numAmbientStages;
-																										
+
 	shaderStage_t *		stages;
 
 	struct mtrParsingData_s	*pd;			// only used during parsing

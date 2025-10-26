@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "DialogPDAEditor.h"
 
-#ifdef ID_DEBUG_MEMORY
+#if defined(ID_DEBUG_MEMORY) && defined(ID_REDIRECT_NEWDELETE)
 #undef new
 #undef DEBUG_NEW
 #define DEBUG_NEW new
@@ -175,10 +175,10 @@ void CDialogPDAEditor::OnDestroy() {
 	return CDialog::OnDestroy();
 }
 
-BOOL CDialogPDAEditor::OnInitDialog() 
+BOOL CDialogPDAEditor::OnInitDialog()
 {
 	CDialog::OnInitDialog();
-	
+
 	// Indicate the PDA dialog is opened
 	com_editors |= EDITOR_PDA;
 
@@ -278,7 +278,7 @@ void CDialogPDAEditor::OnBtnClickedSave()
 		declText += "pda ";
 		declText += pda->GetName();
 		declText += " {\n";
-	
+
 		declText += "\tname    \t\t\"" + shortName + "\"\n";
 		declText += "\tfullname\t\t\"" + fullName + "\"\n";
 		declText += "\ticon    \t\t\"\"\n";
@@ -474,7 +474,7 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // CDialogPDAEditor message handlers
 
-BOOL CDialogPDAEditEmail::OnInitDialog() 
+BOOL CDialogPDAEditEmail::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 

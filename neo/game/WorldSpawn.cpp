@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ Worldspawn class.  Each map has one worldspawn which handles global spawnargs.
 
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "Game_local.h"
@@ -60,8 +60,8 @@ void idWorldspawn::Spawn( void ) {
 	const function_t	*func;
 	const idKeyValue	*kv;
 
-	assert( gameLocal.world == NULL );
-	gameLocal.world = this;
+	assert( GameLocal()->world == NULL );
+	GameLocal()->world = this;
 
 	g_gravity.SetFloat( spawnArgs.GetFloat( "gravity", va( "%f", DEFAULT_GRAVITY ) ) );
 
@@ -71,13 +71,13 @@ void idWorldspawn::Spawn( void ) {
 	}
 
 	// load script
-	scriptname = gameLocal.GetMapName();
+	scriptname = GameLocal()->GetMapName();
 	scriptname.SetFileExtension( ".script" );
 	if ( fileSystem->ReadFile( scriptname, NULL, NULL ) > 0 ) {
-		gameLocal.program.CompileFile( scriptname );
+		GameLocal()->program.CompileFile( scriptname );
 
 		// call the main function by default
-		func = gameLocal.program.FindFunction( "main" );
+		func = GameLocal()->program.FindFunction( "main" );
 		if ( func != NULL ) {
 			thread = new idThread( func );
 			thread->DelayedStart( 0 );
@@ -87,9 +87,9 @@ void idWorldspawn::Spawn( void ) {
 	// call any functions specified in worldspawn
 	kv = spawnArgs.MatchPrefix( "call" );
 	while( kv != NULL ) {
-		func = gameLocal.program.FindFunction( kv->GetValue() );
+		func = GameLocal()->program.FindFunction( kv->GetValue() );
 		if ( func == NULL ) {
-			gameLocal.Error( "Function '%s' not found in script for '%s' key on worldspawn", kv->GetValue().c_str(), kv->GetKey().c_str() );
+			GameLocal()->Error( "Function '%s' not found in script for '%s' key on worldspawn", kv->GetValue().c_str(), kv->GetKey().c_str() );
 		}
 
 		thread = new idThread( func );
@@ -112,7 +112,7 @@ idWorldspawn::Restore
 =================
 */
 void idWorldspawn::Restore( idRestoreGame *savefile ) {
-	assert( gameLocal.world == this );
+	assert( GameLocal()->world == this );
 
 	g_gravity.SetFloat( spawnArgs.GetFloat( "gravity", va( "%f", DEFAULT_GRAVITY ) ) );
 
@@ -128,8 +128,8 @@ idWorldspawn::~idWorldspawn
 ================
 */
 idWorldspawn::~idWorldspawn() {
-	if ( gameLocal.world == this ) {
-		gameLocal.world = NULL;
+	if ( GameLocal()->world == this ) {
+		GameLocal()->world = NULL;
 	}
 }
 
@@ -139,5 +139,5 @@ idWorldspawn::Event_Remove
 ================
 */
 void idWorldspawn::Event_Remove( void ) {
-	gameLocal.Error( "Tried to remove world" );
+	GameLocal()->Error( "Tried to remove world" );
 }

@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "tr_local.h"
@@ -146,7 +146,7 @@ localTrace_t R_LocalTrace( const idVec3 &start, const idVec3 &end, const float r
 		if ( f < 0.0f ) {
 			continue;		// shouldn't happen
 		}
-		
+
 		if ( f >= hit.fraction ) {
 			continue;		// have already hit something closer
 		}
@@ -271,7 +271,7 @@ localTrace_t R_LocalTrace( const idVec3 &start, const idVec3 &end, const float r
 
 #ifdef TEST_TRACE
 	trace_timer.Stop();
-	common->Printf( "testVerts:%i c_testPlanes:%i c_testEdges:%i c_intersect:%i msec:%1.4f\n", 
+	common->Printf( "testVerts:%i c_testPlanes:%i c_testEdges:%i c_intersect:%i msec:%1.4f\n",
 					tri->numVerts, c_testPlanes, c_testEdges, c_intersect, trace_timer.Milliseconds() );
 #endif
 
@@ -309,7 +309,7 @@ void RB_DrawExpandedTriangles( const srfTriangles_t *tri, const float radius, co
 		dir[1].Normalize();
 		dir[2].Normalize();
 
-		qglBegin( GL_LINE_LOOP );
+		glBegin( GL_LINE_LOOP );
 
 		for ( j = 0; j < 3; j++ ) {
 			k = ( j + 1 ) % 3;
@@ -324,22 +324,22 @@ void RB_DrawExpandedTriangles( const srfTriangles_t *tri, const float radius, co
 			dir[5].Normalize();
 
 			point = p[k] + dir[j] * radius;
-			qglVertex3f( point[0], point[1], point[2] );
+			glVertex3f( point[0], point[1], point[2] );
 
 			point = p[k] + dir[3] * radius;
-			qglVertex3f( point[0], point[1], point[2] );
+			glVertex3f( point[0], point[1], point[2] );
 
 			point = p[k] + dir[4] * radius;
-			qglVertex3f( point[0], point[1], point[2] );
+			glVertex3f( point[0], point[1], point[2] );
 
 			point = p[k] + dir[5] * radius;
-			qglVertex3f( point[0], point[1], point[2] );
+			glVertex3f( point[0], point[1], point[2] );
 
 			point = p[k] + dir[k] * radius;
-			qglVertex3f( point[0], point[1], point[2] );
+			glVertex3f( point[0], point[1], point[2] );
 		}
 
-		qglEnd();
+		glEnd();
 	}
 }
 
@@ -374,7 +374,7 @@ void RB_ShowTrace( drawSurf_t **drawSurfs, int numDrawSurfs ) {
 	end = start + 4000 * backEnd.viewDef->renderView.viewaxis[0];
 
 	// check and draw the surfaces
-	qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
+	glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 	GL_TexEnv( GL_MODULATE );
 
 	globalImages->whiteImage->Bind();
@@ -397,30 +397,30 @@ void RB_ShowTrace( drawSurf_t **drawSurfs, int numDrawSurfs ) {
 			continue;
 		}
 
-		qglLoadMatrixf( surf->space->modelViewMatrix );
+		glLoadMatrixf( surf->space->modelViewMatrix );
 
 		// highlight the surface
 		GL_State( GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA );
 
-		qglColor4f( 1, 0, 0, 0.25 );
+		glColor4f( 1, 0, 0, 0.25 );
 		RB_DrawElementsImmediate( tri );
 
 		// draw the bounding box
 		GL_State( GLS_DEPTHFUNC_ALWAYS );
 
-		qglColor4f( 1, 1, 1, 1 );
+		glColor4f( 1, 1, 1, 1 );
 		RB_DrawBounds( tri->bounds );
 
 		if ( radius != 0.0f ) {
 			// draw the expanded triangles
-			qglColor4f( 0.5f, 0.5f, 1.0f, 1.0f );
+			glColor4f( 0.5f, 0.5f, 1.0f, 1.0f );
 			RB_DrawExpandedTriangles( tri, radius, localStart );
 		}
 
 		// check the exact surfaces
 		hit = R_LocalTrace( localStart, localEnd, radius, tri );
 		if ( hit.fraction < 1.0 ) {
-			qglColor4f( 1, 1, 1, 1 );
+			glColor4f( 1, 1, 1, 1 );
 			RB_DrawBounds( idBounds( hit.point ).Expand( 1 ) );
 		}
 	}

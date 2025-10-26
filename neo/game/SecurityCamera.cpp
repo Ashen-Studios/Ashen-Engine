@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ If you have questions concerning this license or the applicable additional terms
 
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "Game_local.h"
@@ -42,7 +42,7 @@ If you have questions concerning this license or the applicable additional terms
 /***********************************************************************
 
   idSecurityCamera
-	
+
 ***********************************************************************/
 
 const idEventDef EV_SecurityCam_ReverseSweep( "<reverseSweep>" );
@@ -71,7 +71,7 @@ void idSecurityCamera::Save( idSaveGame *savefile ) const {
 	savefile->WriteBool( flipAxis );
 	savefile->WriteFloat( scanDist );
 	savefile->WriteFloat( scanFov );
-							
+
 	savefile->WriteFloat( sweepStart );
 	savefile->WriteFloat( sweepEnd );
 	savefile->WriteBool( negativeSweep );
@@ -81,7 +81,7 @@ void idSecurityCamera::Save( idSaveGame *savefile ) const {
 	savefile->WriteFloat( scanFovCos );
 
 	savefile->WriteVec3( viewOffset );
-							
+
 	savefile->WriteInt( pvsArea );
 	savefile->WriteStaticObject( physicsObj );
 	savefile->WriteTraceModel( trm );
@@ -99,7 +99,7 @@ void idSecurityCamera::Restore( idRestoreGame *savefile ) {
 	savefile->ReadBool( flipAxis );
 	savefile->ReadFloat( scanDist );
 	savefile->ReadFloat( scanFov );
-							
+
 	savefile->ReadFloat( sweepStart );
 	savefile->ReadFloat( sweepEnd );
 	savefile->ReadBool( negativeSweep );
@@ -109,7 +109,7 @@ void idSecurityCamera::Restore( idRestoreGame *savefile ) {
 	savefile->ReadFloat( scanFovCos );
 
 	savefile->ReadVec3( viewOffset );
-							
+
 	savefile->ReadInt( pvsArea );
 	savefile->ReadStaticObject( physicsObj );
 	savefile->ReadTraceModel( trm );
@@ -154,7 +154,7 @@ void idSecurityCamera::Spawn( void ) {
 		fl.takedamage = true;
 	}
 
-	pvsArea = gameLocal.pvs.GetPVSArea( GetPhysics()->GetOrigin() );
+	pvsArea = GameLocal()->pvs.GetPVSArea( GetPhysics()->GetOrigin() );
 	// if no target specified use ourself
 	str = spawnArgs.GetString( "cameraTarget" );
 	if ( str.Length() == 0 ) {
@@ -168,7 +168,7 @@ void idSecurityCamera::Spawn( void ) {
 	}
 
 	if ( !collisionModelManager->TrmFromModel( str, trm ) ) {
-		gameLocal.Error( "idSecurityCamera '%s': cannot load collision model %s", name.c_str(), str.c_str() );
+		GameLocal()->Error( "idSecurityCamera '%s': cannot load collision model %s", name.c_str(), str.c_str() );
 		return;
 	}
 
@@ -190,31 +190,31 @@ void idSecurityCamera::Event_AddLight( void ) {
 	float	radius;
 	idVec3	lightOffset;
 	idLight	*spotLight;
-	
+
 	dir = GetAxis();
 	dir.NormalVectors( right, up );
 	target = GetPhysics()->GetOrigin() + dir * scanDist;
-		
+
 	radius = tan( scanFov * idMath::PI / 360.0f );
 	up = dir + up * radius;
 	up.Normalize();
 	up = GetPhysics()->GetOrigin() + up * scanDist;
 	up -= target;
-	
+
 	right = dir + right * radius;
 	right.Normalize();
 	right = GetPhysics()->GetOrigin() + right * scanDist;
 	right -= target;
 
 	spawnArgs.GetVector( "lightOffset", "0 0 0", lightOffset );
-	
+
 	args.Set( "origin", ( GetPhysics()->GetOrigin() + lightOffset ).ToString() );
 	args.Set( "light_target", target.ToString() );
 	args.Set( "light_right", right.ToString() );
 	args.Set( "light_up", up.ToString() );
 	args.SetFloat( "angle", GetPhysics()->GetAxis()[0].ToYaw() );
 
-	spotLight = static_cast<idLight *>( gameLocal.SpawnEntityType( idLight::Type, &args ) );
+	spotLight = static_cast<idLight *>( GameLocal()->SpawnEntityType( idLight::Type, &args ) );
 	spotLight->Bind( this, true );
 	spotLight->UpdateVisuals();
 }
@@ -291,17 +291,17 @@ bool idSecurityCamera::CanSeePlayer( void ) {
 	idVec3 dir;
 	pvsHandle_t handle;
 
-	handle = gameLocal.pvs.SetupCurrentPVS( pvsArea );
+	handle = GameLocal()->pvs.SetupCurrentPVS( pvsArea );
 
-	for ( i = 0; i < gameLocal.numClients; i++ ) {
-		ent = static_cast<idPlayer*>(gameLocal.entities[ i ]);
+	for ( i = 0; i < GameLocal()->numClients; i++ ) {
+		ent = static_cast<idPlayer*>(GameLocal()->entities[ i ]);
 
 		if ( !ent || ( ent->fl.notarget ) ) {
 			continue;
 		}
 
 		// if there is no way we can see this player
-		if ( !gameLocal.pvs.InCurrentPVS( handle, ent->GetPVSAreas(), ent->GetNumPVSAreas() ) ) {
+		if ( !GameLocal()->pvs.InCurrentPVS( handle, ent->GetPVSAreas(), ent->GetNumPVSAreas() ) ) {
 			continue;
 		}
 
@@ -320,14 +320,14 @@ bool idSecurityCamera::CanSeePlayer( void ) {
 
 		eye = ent->EyeOffset();
 
-		gameLocal.clip.TracePoint( tr, GetPhysics()->GetOrigin(), ent->GetPhysics()->GetOrigin() + eye, MASK_OPAQUE, this );
-		if ( tr.fraction == 1.0 || ( gameLocal.GetTraceEntity( tr ) == ent ) ) {
-			gameLocal.pvs.FreeCurrentPVS( handle );
+		GameLocal()->clip.TracePoint( tr, GetPhysics()->GetOrigin(), ent->GetPhysics()->GetOrigin() + eye, MASK_OPAQUE, this );
+		if ( tr.fraction == 1.0 || ( GameLocal()->GetTraceEntity( tr ) == ent ) ) {
+			GameLocal()->pvs.FreeCurrentPVS( handle );
 			return true;
 		}
 	}
 
-	gameLocal.pvs.FreeCurrentPVS( handle );
+	GameLocal()->pvs.FreeCurrentPVS( handle );
 
 	return false;
 }
@@ -374,7 +374,7 @@ void idSecurityCamera::Think( void ) {
 				float	sightTime;
 
 				SetAlertMode(ALERT);
-				stopSweeping = gameLocal.time;
+				stopSweeping = GameLocal()->time;
 				if (sweeping) {
 					CancelEvents( &EV_SecurityCam_Pause );
 				} else {
@@ -393,7 +393,7 @@ void idSecurityCamera::Think( void ) {
 
 				SetAlertMode(LOSINGINTEREST);
 				CancelEvents( &EV_SecurityCam_Alert );
-				
+
 				sightResume = spawnArgs.GetFloat( "sightResume", "1.5" );
 				PostEventSec( &EV_SecurityCam_ContinueSweep, sightResume );
 			}
@@ -401,7 +401,7 @@ void idSecurityCamera::Think( void ) {
 			if ( sweeping ) {
 				idAngles a = GetPhysics()->GetAxis().ToAngles();
 
-				pct = ( gameLocal.time - sweepStart ) / ( sweepEnd - sweepStart );
+				pct = ( GameLocal()->time - sweepStart ) / ( sweepEnd - sweepStart );
 				travel = pct * sweepAngle;
 				if ( negativeSweep ) {
 					a.yaw = angle + travel;
@@ -443,7 +443,7 @@ void idSecurityCamera::StartSweep( void ) {
 	int speed;
 
 	sweeping = true;
-	sweepStart = gameLocal.time;
+	sweepStart = GameLocal()->time;
 	speed = SEC2MS( SweepSpeed() );
 	sweepEnd = sweepStart + speed;
    	PostEventMS( &EV_SecurityCam_Pause, speed );
@@ -457,7 +457,7 @@ idSecurityCamera::Event_ContinueSweep
 */
 void idSecurityCamera::Event_ContinueSweep( void ) {
 	float pct = (stopSweeping - sweepStart) / (sweepEnd - sweepStart);
-	float f = gameLocal.time - (sweepEnd - sweepStart) * pct;
+	float f = GameLocal()->time - (sweepEnd - sweepStart) * pct;
 	int speed;
 
 	sweepStart = f;
@@ -532,7 +532,7 @@ void idSecurityCamera::Killed( idEntity *inflictor, idEntity *attacker, int dama
 	physicsObj.SetAxis( GetPhysics()->GetAxis() );
 	physicsObj.SetBouncyness( 0.2f );
 	physicsObj.SetFriction( 0.6f, 0.6f, 0.2f );
-	physicsObj.SetGravity( gameLocal.GetGravity() );
+	physicsObj.SetGravity( GameLocal()->GetGravity() );
 	physicsObj.SetContents( CONTENTS_SOLID );
 	physicsObj.SetClipMask( MASK_SOLID | CONTENTS_BODY | CONTENTS_CORPSE | CONTENTS_MOVEABLECLIP );
 	SetPhysics( &physicsObj );

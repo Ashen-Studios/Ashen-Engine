@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "Game_local.h"
@@ -67,100 +67,6 @@ CLASS_DECLARATION( idEntity, idLight )
 	EVENT( EV_Light_FadeIn,			idLight::Event_FadeIn )
 END_CLASS
 
-
-/*
-================
-idGameEdit::ParseSpawnArgsToRenderLight
-
-parse the light parameters
-this is the canonical renderLight parm parsing,
-which should be used by dmap and the editor
-================
-*/
-void idGameEdit::ParseSpawnArgsToRenderLight( const idDict *args, renderLight_t *renderLight ) {
-	bool	gotTarget, gotUp, gotRight;
-	const char	*texture;
-	idVec3	color;
-
-	memset( renderLight, 0, sizeof( *renderLight ) );
-
-	if (!args->GetVector("light_origin", "", renderLight->origin)) {
-		args->GetVector( "origin", "", renderLight->origin );
-	}
-
-	gotTarget = args->GetVector( "light_target", "", renderLight->target );
-	gotUp = args->GetVector( "light_up", "", renderLight->up );
-	gotRight = args->GetVector( "light_right", "", renderLight->right );
-	args->GetVector( "light_start", "0 0 0", renderLight->start );
-	if ( !args->GetVector( "light_end", "", renderLight->end ) ) {
-		renderLight->end = renderLight->target;
-	}
-
-	// we should have all of the target/right/up or none of them
-	if ( ( gotTarget || gotUp || gotRight ) != ( gotTarget && gotUp && gotRight ) ) {
-		gameLocal.Printf( "Light at (%f,%f,%f) has bad target info\n",
-			renderLight->origin[0], renderLight->origin[1], renderLight->origin[2] );
-		return;
-	}
-
-	if ( !gotTarget ) {
-		renderLight->pointLight = true;
-
-		// allow an optional relative center of light and shadow offset
-		args->GetVector( "light_center", "0 0 0", renderLight->lightCenter );
-
-		// create a point light
-		if (!args->GetVector( "light_radius", "300 300 300", renderLight->lightRadius ) ) {
-			float radius;
-
-			args->GetFloat( "light", "300", radius );
-			renderLight->lightRadius[0] = renderLight->lightRadius[1] = renderLight->lightRadius[2] = radius;
-		}
-	}
-
-	// get the rotation matrix in either full form, or single angle form
-	idAngles angles;
-	idMat3 mat;
-	if ( !args->GetMatrix( "light_rotation", "1 0 0 0 1 0 0 0 1", mat ) ) {
-		if ( !args->GetMatrix( "rotation", "1 0 0 0 1 0 0 0 1", mat ) ) {
-	   		args->GetFloat( "angle", "0", angles[ 1 ] );
-   			angles[ 0 ] = 0;
-			angles[ 1 ] = idMath::AngleNormalize360( angles[ 1 ] );
-	   		angles[ 2 ] = 0;
-			mat = angles.ToMat3();
-		}
-	}
-
-	// fix degenerate identity matrices
-	mat[0].FixDegenerateNormal();
-	mat[1].FixDegenerateNormal();
-	mat[2].FixDegenerateNormal();
-
-	renderLight->axis = mat;
-
-	// check for other attributes
-	args->GetVector( "_color", "1 1 1", color );
-	renderLight->shaderParms[ SHADERPARM_RED ]		= color[0];
-	renderLight->shaderParms[ SHADERPARM_GREEN ]	= color[1];
-	renderLight->shaderParms[ SHADERPARM_BLUE ]		= color[2];
-	args->GetFloat( "shaderParm3", "1", renderLight->shaderParms[ SHADERPARM_TIMESCALE ] );
-	if ( !args->GetFloat( "shaderParm4", "0", renderLight->shaderParms[ SHADERPARM_TIMEOFFSET ] ) ) {
-		// offset the start time of the shader to sync it to the game time
-		renderLight->shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( gameLocal.time );
-	}
-
-	args->GetFloat( "shaderParm5", "0", renderLight->shaderParms[5] );
-	args->GetFloat( "shaderParm6", "0", renderLight->shaderParms[6] );
-	args->GetFloat( "shaderParm7", "0", renderLight->shaderParms[ SHADERPARM_MODE ] );
-	args->GetBool( "noshadows", "0", renderLight->noShadows );
-	args->GetBool( "nospecular", "0", renderLight->noSpecular );
-	args->GetBool( "parallel", "0", renderLight->parallel );
-
-	args->GetString( "texture", "lights/squarelight1", &texture );
-	// allow this to be NULL
-	renderLight->shader = declManager->FindMaterial( texture, false );
-}
-
 /*
 ================
 idLight::UpdateChangeableSpawnArgs
@@ -174,12 +80,12 @@ void idLight::UpdateChangeableSpawnArgs( const idDict *source ) {
 		source->Print();
 	}
 	FreeSoundEmitter( true );
-	gameEdit->ParseSpawnArgsToRefSound( source ? source : &spawnArgs, &refSound );
+	GameEditLocal()->ParseSpawnArgsToRefSound( source ? source : &spawnArgs, &refSound );
 	if ( refSound.shader && !refSound.waitfortrigger ) {
 		StartSoundShader( refSound.shader, SND_CHANNEL_ANY, 0, false, NULL );
 	}
 
-	gameEdit->ParseSpawnArgsToRenderLight( source ? source : &spawnArgs, &renderLight );
+	GameEditLocal()->ParseSpawnArgsToRenderLight( source ? source : &spawnArgs, &renderLight );
 
 	UpdateVisuals();
 }
@@ -228,7 +134,7 @@ archives object for save game file
 */
 void idLight::Save( idSaveGame *savefile ) const {
 	savefile->WriteRenderLight( renderLight );
-	
+
 	savefile->WriteBool( renderLight.prelightModel != NULL );
 
 	savefile->WriteVec3( localLightOrigin );
@@ -267,12 +173,12 @@ void idLight::Restore( idRestoreGame *savefile ) {
 	renderLight.prelightModel = renderModelManager->CheckModel( va( "_prelight_%s", name.c_str() ) );
 	if ( ( renderLight.prelightModel == NULL ) && hadPrelightModel ) {
 		assert( 0 );
-		if ( developer.GetBool() ) {
+		if ( cvarSystem->GetCVarBool( "developer" ) ) {
 			// we really want to know if this happens
-			gameLocal.Error( "idLight::Restore: prelightModel '_prelight_%s' not found", name.c_str() );
+			GameLocal()->Error( "idLight::Restore: prelightModel '_prelight_%s' not found", name.c_str() );
 		} else {
 			// but let it slide after release
-			gameLocal.Warning( "idLight::Restore: prelightModel '_prelight_%s' not found", name.c_str() );
+			GameLocal()->Warning( "idLight::Restore: prelightModel '_prelight_%s' not found", name.c_str() );
 		}
 	}
 
@@ -311,7 +217,7 @@ void idLight::Spawn( void ) {
 	const char *demonic_shader;
 
 	// do the parsing the same way dmap and the editor do
-	gameEdit->ParseSpawnArgsToRenderLight( &spawnArgs, &renderLight );
+	GameEditLocal()->ParseSpawnArgsToRenderLight( &spawnArgs, &renderLight );
 
 	// we need the origin and axis relative to the physics origin/axis
 	localLightOrigin = ( renderLight.origin - GetPhysics()->GetOrigin() ) * GetPhysics()->GetAxis().Transpose();
@@ -324,7 +230,7 @@ void idLight::Spawn( void ) {
 	spawnArgs.GetInt( "levels", "1", levels );
 	currentLevel = levels;
 	if ( levels <= 0 ) {
-		gameLocal.Error( "Invalid light level set on entity #%d(%s)", entityNumber, name.c_str() );
+		GameLocal()->Error( "Invalid light level set on entity #%d(%s)", entityNumber, name.c_str() );
 	}
 
 	// make sure the demonic shader is cached
@@ -372,7 +278,7 @@ void idLight::Spawn( void ) {
 	if ( health ) {
 		idStr model = spawnArgs.GetString( "model" );		// get the visual model
 		if ( !model.Length() ) {
-			gameLocal.Error( "Breakable light without a model set on entity #%d(%s)", entityNumber, name.c_str() );
+			GameLocal()->Error( "Breakable light without a model set on entity #%d(%s)", entityNumber, name.c_str() );
 		}
 
 		fl.takedamage	= true;
@@ -383,7 +289,7 @@ void idLight::Spawn( void ) {
 			int	pos;
 
 			needBroken = false;
-		
+
 			pos = model.Find( "." );
 			if ( pos < 0 ) {
 				pos = model.Length();
@@ -396,18 +302,18 @@ void idLight::Spawn( void ) {
 				brokenModel += &model[ pos ];
 			}
 		}
-	
+
 		// make sure the model gets cached
 		if ( !renderModelManager->CheckModel( brokenModel ) ) {
 			if ( needBroken ) {
-				gameLocal.Error( "Model '%s' not found for entity %d(%s)", brokenModel.c_str(), entityNumber, name.c_str() );
+				GameLocal()->Error( "Model '%s' not found for entity %d(%s)", brokenModel.c_str(), entityNumber, name.c_str() );
 			} else {
 				brokenModel = "";
 			}
 		}
 
 		GetPhysics()->SetContents( spawnArgs.GetBool( "nonsolid" ) ? 0 : CONTENTS_SOLID );
-	
+
 		// make sure the collision model gets cached
 		idClipModel::CheckModel( brokenModel );
 	}
@@ -501,7 +407,7 @@ idLight::SetLightParm
 */
 void idLight::SetLightParm( int parmnum, float value ) {
 	if ( ( parmnum < 0 ) || ( parmnum >= MAX_ENTITY_SHADER_PARMS ) ) {
-		gameLocal.Error( "shader parm index (%d) out of range", parmnum );
+		GameLocal()->Error( "shader parm index (%d) out of range", parmnum );
 	}
 
 	renderLight.shaderParms[ parmnum ] = value;
@@ -556,7 +462,7 @@ idLight::On
 void idLight::On( void ) {
 	currentLevel = levels;
 	// offset the start time of the shader to sync it to the game time
-	renderLight.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( gameLocal.time );
+	renderLight.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->time );
 	if ( ( soundWasPlaying || refSound.waitfortrigger ) && refSound.shader ) {
 		StartSoundShader( refSound.shader, SND_CHANNEL_ANY, 0, false, NULL );
 		soundWasPlaying = false;
@@ -589,8 +495,8 @@ idLight::Fade
 void idLight::Fade( const idVec4 &to, float fadeTime ) {
 	GetColor( fadeFrom );
 	fadeTo = to;
-	fadeStart = gameLocal.time;
-	fadeEnd = gameLocal.time + SEC2MS( fadeTime );
+	fadeStart = GameLocal()->time;
+	fadeEnd = GameLocal()->time + SEC2MS( fadeTime );
 	BecomeActive( TH_THINK );
 }
 
@@ -649,13 +555,13 @@ void idLight::BecomeBroken( idEntity *activator ) {
 		GetPhysics()->SetContents( 0 );
 	}
 
-	if ( gameLocal.isServer ) {
+	if ( GameLocal()->isServer ) {
 
 		ServerSendEvent( EVENT_BECOMEBROKEN, NULL, true, -1 );
 
 		if ( spawnArgs.GetString( "def_damage", "", &damageDefName ) ) {
 			idVec3 origin = renderEntity.origin + renderEntity.bounds.GetCenter() * renderEntity.axis;
-			gameLocal.RadiusDamage( origin, activator, activator, this, this, damageDefName );
+			GameLocal()->RadiusDamage( origin, activator, activator, this, this, damageDefName );
 		}
 
 	}
@@ -663,8 +569,8 @@ void idLight::BecomeBroken( idEntity *activator ) {
 		ActivateTargets( activator );
 
 	// offset the start time of the shader to sync it to the game time
-	renderEntity.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( gameLocal.time );
-	renderLight.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( gameLocal.time );
+	renderEntity.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->time );
+	renderLight.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->time );
 
 	// set the state parm
 	renderEntity.shaderParms[ SHADERPARM_MODE ] = 1;
@@ -765,8 +671,8 @@ void idLight::Think( void ) {
 
 	if ( thinkFlags & TH_THINK ) {
 		if ( fadeEnd > 0 ) {
-			if ( gameLocal.time < fadeEnd ) {
-				color.Lerp( fadeFrom, fadeTo, ( float )( gameLocal.time - fadeStart ) / ( float )( fadeEnd - fadeStart ) );
+			if ( GameLocal()->time < fadeEnd ) {
+				color.Lerp( fadeFrom, fadeTo, ( float )( GameLocal()->time - fadeStart ) / ( float )( fadeEnd - fadeStart ) );
 			} else {
 				color = fadeTo;
 				fadeEnd = 0;
@@ -848,7 +754,7 @@ idLight::Event_GetLightParm
 */
 void idLight::Event_GetLightParm( int parmnum ) {
 	if ( ( parmnum < 0 ) || ( parmnum >= MAX_ENTITY_SHADER_PARMS ) ) {
-		gameLocal.Error( "shader parm index (%d) out of range", parmnum );
+		GameLocal()->Error( "shader parm index (%d) out of range", parmnum );
 	}
 
 	idThread::ReturnFloat( renderLight.shaderParms[ parmnum ] );
@@ -1088,7 +994,7 @@ void idLight::ReadFromSnapshot( const idBitMsgDelta &msg ) {
 		}
 	}
 	UnpackColor( msg.ReadLong(), baseColor );
-	// lightParentEntityNum = msg.ReadBits( GENTITYNUM_BITS );	
+	// lightParentEntityNum = msg.ReadBits( GENTITYNUM_BITS );
 
 /*	// only helps prediction
 	UnpackColor( msg.ReadLong(), fadeFrom );

@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ Event are used for scheduling tasks and for linking script commands.
 
 */
 
-#include "../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "../Game_local.h"
@@ -70,7 +70,7 @@ idEventDef::idEventDef( const char *command, const char *formatspec, char return
 	if ( !formatspec ) {
 		formatspec = "";
 	}
-	
+
 	this->name = command;
 	this->formatspec = formatspec;
 	this->returnType = returnType;
@@ -245,7 +245,7 @@ idEvent *idEvent::Alloc( const idEventDef *evdef, int numargs, va_list args ) {
 	const char	*materialName;
 
 	if ( FreeEvents.IsListEmpty() ) {
-		gameLocal.Error( "idEvent::Alloc : No more free events" );
+		GameLocal()->Error( "idEvent::Alloc : No more free events" );
 	}
 
 	ev = FreeEvents.Next();
@@ -254,7 +254,7 @@ idEvent *idEvent::Alloc( const idEventDef *evdef, int numargs, va_list args ) {
 	ev->eventdef = evdef;
 
 	if ( numargs != evdef->GetNumArgs() ) {
-		gameLocal.Error( "idEvent::Alloc : Wrong number of args for '%s' event.", evdef->GetName() );
+		GameLocal()->Error( "idEvent::Alloc : Wrong number of args for '%s' event.", evdef->GetName() );
 	}
 
 	size = evdef->GetArgSize();
@@ -271,7 +271,7 @@ idEvent *idEvent::Alloc( const idEventDef *evdef, int numargs, va_list args ) {
 		if ( format[ i ] != arg->type ) {
 			// when NULL is passed in for an entity, it gets cast as an integer 0, so don't give an error when it happens
 			if ( !( ( ( format[ i ] == D_EVENT_TRACE ) || ( format[ i ] == D_EVENT_ENTITY ) ) && ( arg->type == 'd' ) && ( arg->value == 0 ) ) ) {
-				gameLocal.Error( "idEvent::Alloc : Wrong type passed in for arg # %d on '%s' event.", i, evdef->GetName() );
+				GameLocal()->Error( "idEvent::Alloc : Wrong type passed in for arg # %d on '%s' event.", i, evdef->GetName() );
 			}
 		}
 
@@ -318,7 +318,7 @@ idEvent *idEvent::Alloc( const idEventDef *evdef, int numargs, va_list args ) {
 			break;
 
 		default :
-			gameLocal.Error( "idEvent::Alloc : Invalid arg format '%s' string for '%s' event.", format, evdef->GetName() );
+			GameLocal()->Error( "idEvent::Alloc : Invalid arg format '%s' string for '%s' event.", format, evdef->GetName() );
 			break;
 		}
 	}
@@ -338,7 +338,7 @@ void idEvent::CopyArgs( const idEventDef *evdef, int numargs, va_list args, int 
 
 	format = evdef->GetArgFormat();
 	if ( numargs != evdef->GetNumArgs() ) {
-		gameLocal.Error( "idEvent::CopyArgs : Wrong number of args for '%s' event.", evdef->GetName() );
+		GameLocal()->Error( "idEvent::CopyArgs : Wrong number of args for '%s' event.", evdef->GetName() );
 	}
 
 	for( i = 0; i < numargs; i++ ) {
@@ -346,7 +346,7 @@ void idEvent::CopyArgs( const idEventDef *evdef, int numargs, va_list args, int 
 		if ( format[ i ] != arg->type ) {
 			// when NULL is passed in for an entity, it gets cast as an integer 0, so don't give an error when it happens
 			if ( !( ( ( format[ i ] == D_EVENT_TRACE ) || ( format[ i ] == D_EVENT_ENTITY ) ) && ( arg->type == 'd' ) && ( arg->value == 0 ) ) ) {
-				gameLocal.Error( "idEvent::CopyArgs : Wrong type passed in for arg # %d on '%s' event.", i, evdef->GetName() );
+				GameLocal()->Error( "idEvent::CopyArgs : Wrong type passed in for arg # %d on '%s' event.", i, evdef->GetName() );
 			}
 		}
 
@@ -391,7 +391,7 @@ void idEvent::Schedule( idClass *obj, const idTypeInfo *type, int time ) {
 	typeinfo = type;
 
 	// wraps after 24 days...like I care. ;)
-	this->time = gameLocal.time + time;
+	this->time = GameLocal()->time + time;
 
 	eventNode.Remove();
 
@@ -443,8 +443,8 @@ void idEvent::ClearEventList( void ) {
 	//
 	FreeEvents.Clear();
 	EventQueue.Clear();
-   
-	// 
+
+	//
 	// add the events to the free list
 	//
 	for( i = 0; i < MAX_EVENTS; i++ ) {
@@ -475,7 +475,7 @@ void idEvent::ServiceEvents( void ) {
 		event = EventQueue.Next();
 		assert( event );
 
-		if ( event->time > gameLocal.time ) {
+		if ( event->time > GameLocal()->time ) {
 			break;
 		}
 
@@ -521,7 +521,7 @@ void idEvent::ServiceEvents( void ) {
 				break;
 
 			default:
-				gameLocal.Error( "idEvent::ServiceEvents : Invalid arg format '%s' string for '%s' event.", formatspec, ev->GetName() );
+				GameLocal()->Error( "idEvent::ServiceEvents : Invalid arg format '%s' string for '%s' event.", formatspec, ev->GetName() );
 			}
 		}
 
@@ -535,7 +535,7 @@ void idEvent::ServiceEvents( void ) {
 		// event functions may never leave return values on the FPU stack
 		// enable this code to check if any event call left values on the FPU stack
 		if ( !sys->FPU_StackIsEmpty() ) {
-			gameLocal.Error( "idEvent::ServiceEvents %d: %s left a value on the FPU stack\n", num, ev->GetName() );
+			GameLocal()->Error( "idEvent::ServiceEvents %d: %s left a value on the FPU stack\n", num, ev->GetName() );
 		}
 #endif
 
@@ -546,7 +546,7 @@ void idEvent::ServiceEvents( void ) {
 		// of events being processed is evidence of an infinite loop of events.
 		num++;
 		if ( num > MAX_EVENTSPERFRAME ) {
-			gameLocal.Error( "Event overflow.  Possible infinite loop in script." );
+			GameLocal()->Error( "Event overflow.  Possible infinite loop in script." );
 		}
 	}
 }
@@ -557,20 +557,20 @@ idEvent::Init
 ================
 */
 void idEvent::Init( void ) {
-	gameLocal.Printf( "Initializing event system\n" );
+	GameLocal()->Printf( "Initializing event system\n" );
 
 	if ( eventError ) {
-		gameLocal.Error( "%s", eventErrorMsg );
+		GameLocal()->Error( "%s", eventErrorMsg );
 	}
 
 #ifdef CREATE_EVENT_CODE
 	void CreateEventCallbackHandler();
 	CreateEventCallbackHandler();
-	gameLocal.Error( "Wrote event callback handler" );
+	GameLocal()->Error( "Wrote event callback handler" );
 #endif
 
 	if ( initialized ) {
-		gameLocal.Printf( "...already initialized\n" );
+		GameLocal()->Printf( "...already initialized\n" );
 		ClearEventList();
 		return;
 	}
@@ -579,7 +579,7 @@ void idEvent::Init( void ) {
 
 	eventDataAllocator.Init();
 
-	gameLocal.Printf( "...%i event definitions\n", idEventDef::NumEventCommands() );
+	GameLocal()->Printf( "...%i event definitions\n", idEventDef::NumEventCommands() );
 
 	// the event system has started
 	initialized = true;
@@ -591,15 +591,15 @@ idEvent::Shutdown
 ================
 */
 void idEvent::Shutdown( void ) {
-	gameLocal.Printf( "Shutdown event system\n" );
+	GameLocal()->Printf( "Shutdown event system\n" );
 
 	if ( !initialized ) {
-		gameLocal.Printf( "...not started\n" );
+		GameLocal()->Printf( "...not started\n" );
 		return;
 	}
 
 	ClearEventList();
-	
+
 	eventDataAllocator.Shutdown();
 
 	// say it is now shutdown
@@ -687,7 +687,7 @@ void idEvent::Restore( idRestoreGame *savefile ) {
 
 	for ( i = 0; i < num; i++ ) {
 		if ( FreeEvents.IsListEmpty() ) {
-			gameLocal.Error( "idEvent::Restore : No more free events" );
+			GameLocal()->Error( "idEvent::Restore : No more free events" );
 		}
 
 		event = FreeEvents.Next();
@@ -766,7 +766,7 @@ void idEvent::Restore( idRestoreGame *savefile ) {
 /*
  ================
  idEvent::ReadTrace
- 
+
  idRestoreGame has a ReadTrace procedure, but unfortunately idEvent wants the material
  string name at the of the data structure rather than in the middle
  ================
@@ -841,7 +841,7 @@ void CreateEventCallbackHandler( void ) {
 				argString[ k ] = j & ( 1 << k ) ? 'f' : 'i';
 			}
 			argString[ i ] = '\0';
-			
+
 			string1.Empty();
 			string2.Empty();
 

@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -37,29 +37,8 @@ If you have questions concerning this license or the applicable additional terms
 ===============================================================================
 */
 
-#define LAGO_IMG_WIDTH 64
-#define LAGO_IMG_HEIGHT 64
-#define LAGO_WIDTH	64
-#define LAGO_HEIGHT	44
-#define LAGO_MATERIAL	"textures/sfx/lagometer"
-#define LAGO_IMAGE		"textures/sfx/lagometer.tga"
-
-// if set to 1 the server sends the client PVS with snapshots and the client compares against what it sees
-#ifndef ASYNC_WRITE_PVS
-	#define ASYNC_WRITE_PVS 0
-#endif
-
-#ifdef ID_DEBUG_UNINITIALIZED_MEMORY
-// This is real evil but allows the code to inspect arbitrary class variables.
-#define private		public
-#define protected	public
-#endif
-
 extern idRenderWorld *				gameRenderWorld;
 extern idSoundWorld *				gameSoundWorld;
-
-// the "gameversion" client command will print this plus compile date
-#define	GAME_VERSION		"baseDOOM-1"
 
 // classes used by idGameLocal
 class idEntity;
@@ -78,16 +57,11 @@ class idThread;
 class idEditEntities;
 class idLocationEntity;
 
-#define	MAX_CLIENTS				32
-#define	GENTITYNUM_BITS			12
-#define	MAX_GENTITIES			(1<<GENTITYNUM_BITS)
-#define	ENTITYNUM_NONE			(MAX_GENTITIES-1)
-#define	ENTITYNUM_WORLD			(MAX_GENTITIES-2)
-#define	ENTITYNUM_MAX_NORMAL	(MAX_GENTITIES-2)
-
 //============================================================================
 
 void gameError( const char *fmt, ... );
+
+#include "Game_Defines.h"
 
 #include "gamesys/Event.h"
 #include "gamesys/Class.h"
@@ -110,11 +84,6 @@ void gameError( const char *fmt, ... );
 
 //============================================================================
 
-const int MAX_GAME_MESSAGE_SIZE		= 8192;
-const int MAX_ENTITY_STATE_SIZE		= 512;
-const int ENTITY_PVS_SIZE			= ((MAX_GENTITIES+31)>>5);
-const int NUM_RENDER_PORTAL_BITS	= idMath::BitsForInteger( PS_BLOCK_ALL );
-
 typedef struct entityState_s {
 	int						entityNumber;
 	idBitMsg				state;
@@ -129,8 +98,6 @@ typedef struct snapshot_s {
 	struct snapshot_s *		next;
 } snapshot_t;
 
-const int MAX_EVENT_PARAM_SIZE		= 128;
-
 typedef struct entityNetEvent_s {
 	int						spawnId;
 	int						event;
@@ -140,42 +107,6 @@ typedef struct entityNetEvent_s {
 	struct entityNetEvent_s	*next;
 	struct entityNetEvent_s *prev;
 } entityNetEvent_t;
-
-enum {
-	GAME_RELIABLE_MESSAGE_INIT_DECL_REMAP,
-	GAME_RELIABLE_MESSAGE_REMAP_DECL,
-	GAME_RELIABLE_MESSAGE_SPAWN_PLAYER,
-	GAME_RELIABLE_MESSAGE_DELETE_ENT,
-	GAME_RELIABLE_MESSAGE_CHAT,
-	GAME_RELIABLE_MESSAGE_TCHAT,
-	GAME_RELIABLE_MESSAGE_SOUND_EVENT,
-	GAME_RELIABLE_MESSAGE_SOUND_INDEX,
-	GAME_RELIABLE_MESSAGE_DB,
-	GAME_RELIABLE_MESSAGE_KILL,
-	GAME_RELIABLE_MESSAGE_DROPWEAPON,
-	GAME_RELIABLE_MESSAGE_RESTART,
-	GAME_RELIABLE_MESSAGE_SERVERINFO,
-	GAME_RELIABLE_MESSAGE_TOURNEYLINE,
-	GAME_RELIABLE_MESSAGE_CALLVOTE,
-	GAME_RELIABLE_MESSAGE_CASTVOTE,
-	GAME_RELIABLE_MESSAGE_STARTVOTE,
-	GAME_RELIABLE_MESSAGE_UPDATEVOTE,
-	GAME_RELIABLE_MESSAGE_PORTALSTATES,
-	GAME_RELIABLE_MESSAGE_PORTAL,
-	GAME_RELIABLE_MESSAGE_VCHAT,
-	GAME_RELIABLE_MESSAGE_STARTSTATE,
-	GAME_RELIABLE_MESSAGE_MENU,
-	GAME_RELIABLE_MESSAGE_WARMUPTIME,
-	GAME_RELIABLE_MESSAGE_EVENT
-};
-
-typedef enum {
-	GAMESTATE_UNINITIALIZED,		// prior to Init being called
-	GAMESTATE_NOMAP,				// no map loaded
-	GAMESTATE_STARTUP,				// inside InitFromNewMap().  spawning map entities.
-	GAMESTATE_ACTIVE,				// normal gameplay
-	GAMESTATE_SHUTDOWN				// inside MapShutdown().  clearing memory.
-} gameState_t;
 
 typedef struct {
 	idEntity	*ent;
@@ -260,7 +191,7 @@ public:
 	idDict					persistentLevelInfo;	// contains args that are kept around between levels
 
 	// can be used to automatically effect every material in the world that references globalParms
-	float					globalShaderParms[ MAX_GLOBAL_SHADER_PARMS ];	
+	float					globalShaderParms[ MAX_GLOBAL_SHADER_PARMS ];
 
 	idRandom				random;					// random number generator used throughout the game
 
@@ -274,7 +205,7 @@ public:
 	idTestModel *			testmodel;				// for development testing of models
 	idEntityFx *			testFx;					// for development testing of fx
 
-	idStr					sessionCommand;			// a target_sessionCommand can set this to return something to the session 
+	idStr					sessionCommand;			// a target_sessionCommand can set this to return something to the session
 
 	idMultiplayerGame		mpGame;					// handles rules for standard dm
 
@@ -573,10 +504,110 @@ private:
 	void					GetMapLoadingGUI( char gui[ MAX_STRING_CHARS ] );
 };
 
+/*
+===============================================================================
+
+	Local implementation of the public game editor interface.
+
+===============================================================================
+*/
+
+class idGameEditLocal : public idGameEdit {
+public:
+	virtual						~idGameEditLocal( void ) {}
+
+	// These are the canonical idDict to parameter parsing routines used by both the game and tools.
+	virtual void				ParseSpawnArgsToRenderLight( const idDict *args, renderLight_t *renderLight );
+	virtual void				ParseSpawnArgsToRenderEntity( const idDict *args, renderEntity_t *renderEntity );
+	virtual void				ParseSpawnArgsToRefSound( const idDict *args, refSound_t *refSound );
+
+	// Animation system calls for non-game based skeletal rendering.
+	virtual idRenderModel *		ANIM_GetModelFromEntityDef( const char *classname );
+	virtual const idVec3 		&ANIM_GetModelOffsetFromEntityDef( const char *classname );
+	virtual idRenderModel *		ANIM_GetModelFromEntityDef( const idDict *args );
+	virtual idRenderModel *		ANIM_GetModelFromName( const char *modelName );
+	virtual const idMD5Anim *	ANIM_GetAnimFromEntityDef( const char *classname, const char *animname );
+	virtual int					ANIM_GetNumAnimsFromEntityDef( const idDict *args );
+	virtual const char *		ANIM_GetAnimNameFromEntityDef( const idDict *args, int animNum );
+	virtual const idMD5Anim *	ANIM_GetAnim( const char *fileName );
+	virtual int					ANIM_GetLength( const idMD5Anim *anim );
+	virtual int					ANIM_GetNumFrames( const idMD5Anim *anim );
+	virtual void				ANIM_CreateAnimFrame( const idRenderModel *model, const idMD5Anim *anim, int numJoints, idJointMat *frame, int time, const idVec3 &offset, bool remove_origin_offset );
+	virtual idRenderModel *		ANIM_CreateMeshForAnim( idRenderModel *model, const char *classname, const char *animname, int frame, bool remove_origin_offset );
+
+	// Articulated Figure calls for AF editor and Radiant.
+	virtual bool				AF_SpawnEntity( const char *fileName );
+	virtual void				AF_UpdateEntities( const char *fileName );
+	virtual void				AF_UndoChanges( void );
+	virtual idRenderModel *		AF_CreateMesh( const idDict &args, idVec3 &meshOrigin, idMat3 &meshAxis, bool &poseIsSet );
+
+
+	// Entity selection.
+	virtual void				ClearEntitySelection( void );
+	virtual int					GetSelectedEntities( idEntity *list[], int max );
+	virtual void				AddSelectedEntity( idEntity *ent );
+
+	// Selection methods
+	virtual void				TriggerSelected();
+
+	// Entity defs and spawning.
+	virtual const idDict *		FindEntityDefDict( const char *name, bool makeDefault = true ) const;
+	virtual void				SpawnEntityDef( const idDict &args, idEntity **ent );
+	virtual idEntity *			FindEntity( const char *name ) const;
+	virtual const char *		GetUniqueEntityName( const char *classname ) const;
+
+	// Entity methods.
+	virtual void				EntityGetOrigin( idEntity *ent, idVec3 &org ) const;
+	virtual void				EntityGetAxis( idEntity *ent, idMat3 &axis ) const;
+	virtual void				EntitySetOrigin( idEntity *ent, const idVec3 &org );
+	virtual void				EntitySetAxis( idEntity *ent, const idMat3 &axis );
+	virtual void				EntityTranslate( idEntity *ent, const idVec3 &org );
+	virtual const idDict *		EntityGetSpawnArgs( idEntity *ent ) const;
+	virtual void				EntityUpdateChangeableSpawnArgs( idEntity *ent, const idDict *dict );
+	virtual void				EntityChangeSpawnArgs( idEntity *ent, const idDict *newArgs );
+	virtual void				EntityUpdateVisuals( idEntity *ent );
+	virtual void				EntitySetModel( idEntity *ent, const char *val );
+	virtual void				EntityStopSound( idEntity *ent );
+	virtual void				EntityDelete( idEntity *ent );
+	virtual void				EntitySetColor( idEntity *ent, const idVec3 color );
+
+	// Player methods.
+	virtual bool				PlayerIsValid() const;
+	virtual void				PlayerGetOrigin( idVec3 &org ) const;
+	virtual void				PlayerGetAxis( idMat3 &axis ) const;
+	virtual void				PlayerGetViewAngles( idAngles &angles ) const;
+	virtual void				PlayerGetEyePosition( idVec3 &org ) const;
+
+	// In game map editing support.
+	virtual const idDict *		MapGetEntityDict( const char *name ) const;
+	virtual void				MapSave( const char *path = NULL ) const;
+	virtual void				MapSetEntityKeyVal( const char *name, const char *key, const char *val ) const ;
+	virtual void				MapCopyDictToEntity( const char *name, const idDict *dict ) const;
+	virtual int					MapGetUniqueMatchingKeyVals( const char *key, const char *list[], const int max ) const;
+	virtual void				MapAddEntity( const idDict *dict ) const;
+	virtual int					MapGetEntitiesMatchingClassWithString( const char *classname, const char *match, const char *list[], const int max ) const;
+	virtual void				MapRemoveEntity( const char *name ) const;
+	virtual void				MapEntityTranslate( const char *name, const idVec3 &v ) const;
+
+};
+
 //============================================================================
 
-extern idGameLocal			gameLocal;
-extern idAnimManager		animationLib;
+extern idGameLocal *		gameLocal;
+ID_INLINE idGameLocal *		GameLocal( void ) {
+	return gameLocal;
+}
+
+extern idGameEditLocal *	gameEditLocal;
+ID_INLINE idGameEditLocal *	GameEditLocal( void ) {
+	return gameEditLocal;
+}
+
+extern idAnimManagerLocal *	animationLibLocal;
+ID_INLINE idAnimManagerLocal *	AnimationLibLocal( void ) {
+	return animationLibLocal;
+}
+
 
 //============================================================================
 
@@ -600,7 +631,7 @@ ID_INLINE idEntityPtr<type> &idEntityPtr<type>::operator=( type *ent ) {
 	if ( ent == NULL ) {
 		spawnId = 0;
 	} else {
-		spawnId = ( gameLocal.spawnIds[ent->entityNumber] << GENTITYNUM_BITS ) | ent->entityNumber;
+		spawnId = ( GameLocal()->spawnIds[ent->entityNumber] << GENTITYNUM_BITS ) | ent->entityNumber;
 	}
 	return *this;
 }
@@ -612,7 +643,7 @@ ID_INLINE bool idEntityPtr<type>::SetSpawnId( int id ) {
 	if ( id == spawnId ) {
 		return false;
 	}
-	if ( ( id >> GENTITYNUM_BITS ) == gameLocal.spawnIds[ id & ( ( 1 << GENTITYNUM_BITS ) - 1 ) ] ) {
+	if ( ( id >> GENTITYNUM_BITS ) == GameLocal()->spawnIds[ id & ( ( 1 << GENTITYNUM_BITS ) - 1 ) ] ) {
 		spawnId = id;
 		return true;
 	}
@@ -621,14 +652,14 @@ ID_INLINE bool idEntityPtr<type>::SetSpawnId( int id ) {
 
 template< class type >
 ID_INLINE bool idEntityPtr<type>::IsValid( void ) const {
-	return ( gameLocal.spawnIds[ spawnId & ( ( 1 << GENTITYNUM_BITS ) - 1 ) ] == ( spawnId >> GENTITYNUM_BITS ) );
+	return ( GameLocal()->spawnIds[ spawnId & ( ( 1 << GENTITYNUM_BITS ) - 1 ) ] == ( spawnId >> GENTITYNUM_BITS ) );
 }
 
 template< class type >
 ID_INLINE type *idEntityPtr<type>::GetEntity( void ) const {
 	int entityNum = spawnId & ( ( 1 << GENTITYNUM_BITS ) - 1 );
-	if ( ( gameLocal.spawnIds[ entityNum ] == ( spawnId >> GENTITYNUM_BITS ) ) ) {
-		return static_cast<type *>( gameLocal.entities[ entityNum ] );
+	if ( ( GameLocal()->spawnIds[ entityNum ] == ( spawnId >> GENTITYNUM_BITS ) ) ) {
+		return static_cast<type *>( GameLocal()->entities[ entityNum ] );
 	}
 	return NULL;
 }
@@ -644,49 +675,6 @@ class idGameError : public idException {
 public:
 	idGameError( const char *text ) : idException( text ) {}
 };
-
-//============================================================================
-
-
-//
-// these defines work for all startsounds from all entity types
-// make sure to change script/doom_defs.script if you add any channels, or change their order
-//
-typedef enum {
-	SND_CHANNEL_ANY = SCHANNEL_ANY,
-	SND_CHANNEL_VOICE = SCHANNEL_ONE,
-	SND_CHANNEL_VOICE2,
-	SND_CHANNEL_BODY,
-	SND_CHANNEL_BODY2,
-	SND_CHANNEL_BODY3,
-	SND_CHANNEL_WEAPON,
-	SND_CHANNEL_ITEM,
-	SND_CHANNEL_HEART,
-	SND_CHANNEL_PDA,
-	SND_CHANNEL_DEMONIC,
-	SND_CHANNEL_RADIO,
-
-	// internal use only.  not exposed to script or framecommands.
-	SND_CHANNEL_AMBIENT,
-	SND_CHANNEL_DAMAGE
-} gameSoundChannel_t;
-
-// content masks
-#define	MASK_ALL					(-1)
-#define	MASK_SOLID					(CONTENTS_SOLID)
-#define	MASK_MONSTERSOLID			(CONTENTS_SOLID|CONTENTS_MONSTERCLIP|CONTENTS_BODY)
-#define	MASK_PLAYERSOLID			(CONTENTS_SOLID|CONTENTS_PLAYERCLIP|CONTENTS_BODY)
-#define	MASK_DEADSOLID				(CONTENTS_SOLID|CONTENTS_PLAYERCLIP)
-#define	MASK_WATER					(CONTENTS_WATER)
-#define	MASK_OPAQUE					(CONTENTS_OPAQUE)
-#define	MASK_SHOT_RENDERMODEL		(CONTENTS_SOLID|CONTENTS_RENDERMODEL)
-#define	MASK_SHOT_BOUNDINGBOX		(CONTENTS_SOLID|CONTENTS_BODY)
-
-const float DEFAULT_GRAVITY			= 1066.0f;
-#define DEFAULT_GRAVITY_STRING		"1066"
-const idVec3 DEFAULT_GRAVITY_VEC3( 0, 0, -DEFAULT_GRAVITY );
-
-const int	CINEMATIC_SKIP_DELAY	= SEC2MS( 2.0f );
 
 //============================================================================
 
@@ -709,7 +697,7 @@ const int	CINEMATIC_SKIP_DELAY	= SEC2MS( 2.0f );
 #include "SmokeParticles.h"
 
 #include "Entity.h"
-#include "GameEdit.h"
+#include "Game_Edit.h"
 #include "AF.h"
 #include "IK.h"
 #include "AFEntity.h"

@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -27,15 +27,17 @@ If you have questions concerning this license or the applicable additional terms
 */
 
 // This is real evil but allows the code to inspect arbitrary class variables.
+#define _XKEYCHECK_H
 #define private		public
 #define protected	public
 
-#include "../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "../Game_local.h"
 
 #ifdef ID_DEBUG_MEMORY
+#include "TypeInfo_GenHelper.h"			// stgatilov: define all classes
 #include "GameTypeInfo.h"				// Make sure this is up to date!
 #else
 #include "NoGameTypeInfo.h"
@@ -1192,8 +1194,8 @@ void idTypeInfoTools::WriteGameState( const char *fileName ) {
 
 #endif
 
-	for ( num = i = 0; i < gameLocal.num_entities; i++ ) {
-		idEntity *ent = gameLocal.entities[i];
+	for ( num = i = 0; i < GameLocal()->num_entities; i++ ) {
+		idEntity *ent = GameLocal()->entities[i];
 		if ( ent == NULL ) {
 			continue;
 		}
@@ -1258,14 +1260,14 @@ void idTypeInfoTools::CompareGameState( const char *fileName ) {
 
 		entityNum = token.GetIntValue();
 
-		if ( entityNum < 0 || entityNum >= gameLocal.num_entities ) {
+		if ( entityNum < 0 || entityNum >= GameLocal()->num_entities ) {
 			src->Warning( "entity number %d out of range", entityNum );
 			break;
 		}
 
 		typeError = false;
 
-		idEntity *ent = gameLocal.entities[entityNum];
+		idEntity *ent = GameLocal()->entities[entityNum];
 		if ( !ent ) {
 			src->Warning( "entity %d is not spawned", entityNum );
 			src->SkipBracedSection( true );
@@ -1344,7 +1346,7 @@ void TestSaveGame_f( const idCmdArgs &args ) {
 	idStr name;
 
 	if ( args.Argc() <= 1 ) {
-		gameLocal.Printf( "testSaveGame <mapName>\n" );
+		GameLocal()->Printf( "testSaveGame <mapName>\n" );
 		return;
 	}
 

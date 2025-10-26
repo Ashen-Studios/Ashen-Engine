@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #ifdef WIN32
@@ -99,7 +99,7 @@ typedef struct {
 	float	traceDist;
 	srfTriangles_t	*mesh;			// high poly mesh
 	idRenderModel	*highModel;
-	triHash_t	*hash;	
+	triHash_t	*hash;
 } renderBump_t;
 
 static float traceFraction;
@@ -144,7 +144,7 @@ static void ResizeWindow( int width, int height ) {
 	}
 	SetWindowPos( win32.hWnd, HWND_TOP, 0, 0, winWidth, winHeight, SWP_SHOWWINDOW );
 
-	qwglMakeCurrent( win32.hDC, win32.hGLRC );
+	wglMakeCurrent( win32.hDC, win32.hGLRC );
 #endif
 }
 
@@ -404,7 +404,7 @@ Returns the distance from the point to the intersection, or DIST_NO_INTERSECTION
 =================
 */
 #define	DIST_NO_INTERSECTION	-999999999.0f
-static float TraceToMeshFace( const srfTriangles_t *highMesh, int faceNum, 
+static float TraceToMeshFace( const srfTriangles_t *highMesh, int faceNum,
 							 float minDist, float maxDist,
 							const idVec3 &point, const idVec3 &normal, idVec3 &sampledNormal,
 							byte sampledColor[4] ) {
@@ -506,14 +506,14 @@ static float TraceToMeshFace( const srfTriangles_t *highMesh, int faceNum,
 ================
 SampleHighMesh
 
-Find the best surface normal in the high poly mesh 
+Find the best surface normal in the high poly mesh
 for a ray coming from the surface of the low poly mesh
 
 Returns false if the trace doesn't hit anything
 ================
 */
 static bool SampleHighMesh( const renderBump_t *rb,
-							const idVec3 &point, const idVec3 &direction, idVec3 &sampledNormal, 
+							const idVec3 &point, const idVec3 &direction, idVec3 &sampledNormal,
 							byte sampledColor[4] ) {
 	idVec3	p;
 	binLink_t	*bl;
@@ -573,7 +573,7 @@ static bool SampleHighMesh( const renderBump_t *rb,
 			link = &rb->hash->linkBlocks[ linkNum / MAX_LINKS_PER_BLOCK ][ linkNum % MAX_LINKS_PER_BLOCK ];
 
 			faceNum = link->faceNum;
-			dist = TraceToMeshFace( rb->mesh, faceNum, 
+			dist = TraceToMeshFace( rb->mesh, faceNum,
 								 bestDist, maxDist, point, normal, sampledNormal, sampledColor );
 			if ( dist == DIST_NO_INTERSECTION ) {
 				continue;
@@ -607,7 +607,7 @@ static float TriTextureArea( const float a[2], const float b[2], const float c[2
 	d2[0] = c[0] - a[0];
 	d2[1] = c[1] - a[1];
 	d2[2] = 0;
-	
+
 	cross = d1.Cross( d2 );
 	area = 0.5 * cross.Length();
 
@@ -683,7 +683,7 @@ static void RasterizeTriangle( const srfTriangles_t *lowMesh, const idVec3 *lowM
 	// calculate edge vectors
 	for ( i = 0 ; i < 3 ; i++ ) {
 		float	*v1, *v2;
-		
+
 		v1 = verts[i];
 		v2 = verts[(i+1)%3];
 
@@ -925,23 +925,23 @@ static void RenderBumpTriangles( srfTriangles_t *lowMesh, renderBump_t *rb ) {
 
 	RB_SetGL2D();
 
-	qglDisable( GL_CULL_FACE );
+	glDisable( GL_CULL_FACE );
 
-	qglColor3f( 1, 1, 1 );
+	glColor3f( 1, 1, 1 );
 
-	qglMatrixMode( GL_PROJECTION );
-	qglLoadIdentity();
-	qglOrtho( 0, 1, 1, 0, -1, 1 );
-	qglDisable( GL_BLEND );
-	qglMatrixMode( GL_MODELVIEW );
-	qglLoadIdentity();
+	glMatrixMode( GL_PROJECTION );
+	glLoadIdentity();
+	glOrtho( 0, 1, 1, 0, -1, 1 );
+	glDisable( GL_BLEND );
+	glMatrixMode( GL_MODELVIEW );
+	glLoadIdentity();
 
-	qglDisable( GL_DEPTH_TEST );
+	glDisable( GL_DEPTH_TEST );
 
-	qglClearColor(1,0,0,1);
-	qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	glClearColor(1,0,0,1);
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-	qglColor3f( 1, 1, 1 );
+	glColor3f( 1, 1, 1 );
 
 	// create smoothed normals for the surface, which might be
 	// different than the normals at the vertexes if the
@@ -975,13 +975,13 @@ static void RenderBumpTriangles( srfTriangles_t *lowMesh, renderBump_t *rb ) {
 
 		RasterizeTriangle( lowMesh, lowMeshNormals, j/3, rb );
 
-		qglClearColor(1,0,0,1);
-		qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-		qglRasterPos2f( 0, 1 );
-		qglPixelZoom( glConfig.vidWidth / (float)rb->width, glConfig.vidHeight / (float)rb->height );
-		qglDrawPixels( rb->width, rb->height, GL_RGBA, GL_UNSIGNED_BYTE, rb->localPic );
-		qglPixelZoom( 1, 1 );
-		qglFlush();
+		glClearColor(1,0,0,1);
+		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+		glRasterPos2f( 0, 1 );
+		glPixelZoom( glConfig.vidWidth / (float)rb->width, glConfig.vidHeight / (float)rb->height );
+		glDrawPixels( rb->width, rb->height, GL_RGBA, GL_UNSIGNED_BYTE, rb->localPic );
+		glPixelZoom( 1, 1 );
+		glFlush();
 		GLimp_SwapBuffers();
 	}
 
@@ -1208,7 +1208,7 @@ void RenderBump_f( const idCmdArgs &args ) {
 		// parse the renderbump parameters for this surface
 		cmdLine = ms->shader->GetRenderBump();
 
-		common->Printf( "surface %i, shader %s\nrenderBump = %s ", i, 
+		common->Printf( "surface %i, shader %s\nrenderBump = %s ", i,
 			ms->shader->GetName(), cmdLine );
 
 		if ( !ms->geometry ) {
@@ -1283,8 +1283,8 @@ void RenderBump_f( const idCmdArgs &args ) {
 				continue;
 			}
 			// all the other parameters must match, or it is an error
-			if ( idStr::Icmp( rb->highName, opt.highName) || rb->width != opt.width || 
-				rb->height != opt.height || rb->antiAlias != opt.antiAlias || 
+			if ( idStr::Icmp( rb->highName, opt.highName) || rb->width != opt.width ||
+				rb->height != opt.height || rb->antiAlias != opt.antiAlias ||
 				rb->traceFrac != opt.traceFrac ) {
 				common->Error( "mismatched renderbump parameters on image %s", rb->outputName );
 				continue;
@@ -1417,28 +1417,28 @@ void RenderBumpFlat_f( const idCmdArgs &args ) {
 	ResizeWindow( width, height );
 
 	// for small images, the viewport may be less than the minimum window
-	qglViewport( 0, 0, width, height );
+	glViewport( 0, 0, width, height );
 
-	qglEnable( GL_CULL_FACE );
-	qglCullFace( GL_FRONT );
-	qglDisable( GL_STENCIL_TEST );	
-	qglDisable( GL_SCISSOR_TEST );	
-	qglDisable( GL_ALPHA_TEST );	
-	qglDisable( GL_BLEND );	
-	qglEnable( GL_DEPTH_TEST );
-	qglDisable( GL_TEXTURE_2D );
-	qglDepthMask( GL_TRUE );
-	qglDepthFunc( GL_LEQUAL );
+	glEnable( GL_CULL_FACE );
+	glCullFace( GL_FRONT );
+	glDisable( GL_STENCIL_TEST );
+	glDisable( GL_SCISSOR_TEST );
+	glDisable( GL_ALPHA_TEST );
+	glDisable( GL_BLEND );
+	glEnable( GL_DEPTH_TEST );
+	glDisable( GL_TEXTURE_2D );
+	glDepthMask( GL_TRUE );
+	glDepthFunc( GL_LEQUAL );
 
-	qglColor3f( 1, 1, 1 );
+	glColor3f( 1, 1, 1 );
 
-	qglMatrixMode( GL_PROJECTION );
-	qglLoadIdentity();
-	qglOrtho( bounds[0][0], bounds[1][0], bounds[0][2], 
+	glMatrixMode( GL_PROJECTION );
+	glLoadIdentity();
+	glOrtho( bounds[0][0], bounds[1][0], bounds[0][2],
 		bounds[1][2], -( bounds[0][1] - 1 ), -( bounds[1][1] + 1 ) );
 
-	qglMatrixMode( GL_MODELVIEW );
-	qglLoadIdentity();
+	glMatrixMode( GL_MODELVIEW );
+	glLoadIdentity();
 
 	// flat maps are automatically anti-aliased
 
@@ -1466,10 +1466,10 @@ void RenderBumpFlat_f( const idCmdArgs &args ) {
 		yOff = ( ( sample / 4 ) / 4.0 ) * ( bounds[1][2] - bounds[0][2] ) / height;
 
 		for ( int colorPass = 0 ; colorPass < 2 ; colorPass++ ) {
-			qglClearColor(0.5,0.5,0.5,0);
-			qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+			glClearColor(0.5,0.5,0.5,0);
+			glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-			qglBegin( GL_TRIANGLES );
+			glBegin( GL_TRIANGLES );
 			for ( i = 0 ; i < highPolyModel->NumSurfaces() ; i++ ) {
 				const modelSurface_t *surf = highPolyModel->Surface( i );
 
@@ -1483,9 +1483,9 @@ void RenderBumpFlat_f( const idCmdArgs &args ) {
 							float	*a;
 
 							v = mesh->indexes[j+k];
-							qglColor3ubv( mesh->verts[v].color );
+							glColor3ubv( mesh->verts[v].color );
 							a = mesh->verts[v].xyz.ToFloatPtr();
-							qglVertex3f( a[0] + xOff, a[2] + yOff, a[1] );
+							glVertex3f( a[0] + xOff, a[2] + yOff, a[1] );
 						}
 					}
 				} else {
@@ -1511,14 +1511,14 @@ void RenderBumpFlat_f( const idCmdArgs &args ) {
 							// NULLNORMAL is used by the artists to force an area to reflect no
 							// light at all
 							if ( surf->shader->GetSurfaceFlags() & SURF_NULLNORMAL ) {
-								qglColor3f( 0.5, 0.5, 0.5 );
+								glColor3f( 0.5, 0.5, 0.5 );
 							} else {
-								qglColor3f( 0.5 + 0.5*plane[0], 0.5 - 0.5*plane[2], 0.5 - 0.5*plane[1] );
+								glColor3f( 0.5 + 0.5*plane[0], 0.5 - 0.5*plane[2], 0.5 - 0.5*plane[1] );
 							}
 
-							qglVertex3f( (*a)[0] + xOff, (*a)[2] + yOff, (*a)[1] );
-							qglVertex3f( (*b)[0] + xOff, (*b)[2] + yOff, (*b)[1] );
-							qglVertex3f( (*c)[0] + xOff, (*c)[2] + yOff, (*c)[1] );
+							glVertex3f( (*a)[0] + xOff, (*a)[2] + yOff, (*a)[1] );
+							glVertex3f( (*b)[0] + xOff, (*b)[2] + yOff, (*b)[1] );
+							glVertex3f( (*c)[0] + xOff, (*c)[2] + yOff, (*c)[1] );
 						} else {
 							for ( k = 0 ; k < 3 ; k++ ) {
 								int		v;
@@ -1531,24 +1531,24 @@ void RenderBumpFlat_f( const idCmdArgs &args ) {
 								// NULLNORMAL is used by the artists to force an area to reflect no
 								// light at all
 								if ( surf->shader->GetSurfaceFlags() & SURF_NULLNORMAL ) {
-									qglColor3f( 0.5, 0.5, 0.5 );
+									glColor3f( 0.5, 0.5, 0.5 );
 								} else {
 								// we are going to flip the normal Z direction
-									qglColor3f( 0.5 + 0.5*n[0], 0.5 - 0.5*n[2], 0.5 - 0.5*n[1] );
+									glColor3f( 0.5 + 0.5*n[0], 0.5 - 0.5*n[2], 0.5 - 0.5*n[1] );
 								}
 
 								a = mesh->verts[v].xyz.ToFloatPtr();
-								qglVertex3f( a[0] + xOff, a[2] + yOff, a[1] );
+								glVertex3f( a[0] + xOff, a[2] + yOff, a[1] );
 							}
 						}
 					}
 				}
 			}
 
-			qglEnd();
-			qglFlush();
+			glEnd();
+			glFlush();
 			GLimp_SwapBuffers();
-			qglReadPixels( 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer ); 
+			glReadPixels( 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer );
 
 			if ( colorPass ) {
 				// add to the sum buffer

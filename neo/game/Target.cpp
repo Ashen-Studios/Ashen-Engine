@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ Invisible entities that affect other entities or the world when activated.
 
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "Game_local.h"
@@ -164,7 +164,7 @@ idTarget_SessionCommand::Event_Activate
 ================
 */
 void idTarget_SessionCommand::Event_Activate( idEntity *activator ) {
-	gameLocal.sessionCommand = spawnArgs.GetString( "command" );
+	GameLocal()->sessionCommand = spawnArgs.GetString( "command" );
 }
 
 
@@ -192,28 +192,28 @@ void idTarget_EndLevel::Event_Activate( idEntity *activator ) {
 #ifdef ID_DEMO_BUILD
 	if ( spawnArgs.GetBool( "endOfGame" ) ) {
 		cvarSystem->SetCVarBool( "g_nightmare", true );
-		gameLocal.sessionCommand = "endofDemo";
+		GameLocal()->sessionCommand = "endofDemo";
 		return;
 	}
 #else
 	if ( spawnArgs.GetBool( "endOfGame" ) ) {
 		cvarSystem->SetCVarBool( "g_nightmare", true );
-		gameLocal.sessionCommand = "disconnect";
+		GameLocal()->sessionCommand = "disconnect";
 		return;
 	}
 #endif
 	if ( !spawnArgs.GetString( "nextMap", "", nextMap ) ) {
-		gameLocal.Printf( "idTarget_SessionCommand::Event_Activate: no nextMap key\n" );
+		GameLocal()->Printf( "idTarget_SessionCommand::Event_Activate: no nextMap key\n" );
 		return;
 	}
 
 	if ( spawnArgs.GetInt( "devmap", "0" ) ) {
-		gameLocal.sessionCommand = "devmap ";	// only for special demos
+		GameLocal()->sessionCommand = "devmap ";	// only for special demos
 	} else {
-		gameLocal.sessionCommand = "map ";
+		GameLocal()->sessionCommand = "map ";
 	}
 
-	gameLocal.sessionCommand += nextMap;
+	GameLocal()->sessionCommand += nextMap;
 }
 
 
@@ -253,7 +253,7 @@ void idTarget_WaitForButton::Think( void ) {
 	idPlayer *player;
 
 	if ( thinkFlags & TH_THINK ) {
-		player = gameLocal.GetLocalPlayer();
+		player = GameLocal()->GetLocalPlayer();
 		if ( player && ( !player->oldButtons & BUTTON_ATTACK ) && ( player->usercmd.buttons & BUTTON_ATTACK ) ) {
 			player->usercmd.buttons &= ~BUTTON_ATTACK;
 			BecomeInactive( TH_THINK );
@@ -284,9 +284,9 @@ idTarget_SetGlobalShaderTime::Event_Activate
 */
 void idTarget_SetGlobalShaderTime::Event_Activate( idEntity *activator ) {
 	int parm = spawnArgs.GetInt( "globalParm" );
-	float time = -MS2SEC( gameLocal.time );
+	float time = -MS2SEC( GameLocal()->time );
 	if ( parm >= 0 && parm < MAX_GLOBAL_SHADER_PARMS ) {
-		gameLocal.globalShaderParms[parm] = time;
+		GameLocal()->globalShaderParms[parm] = time;
 	}
 }
 
@@ -366,7 +366,7 @@ void idTarget_SetShaderTime::Event_Activate( idEntity *activator ) {
 	idEntity *	ent;
 	float		time;
 
-	time = -MS2SEC( gameLocal.time );
+	time = -MS2SEC( GameLocal()->time );
 	for( i = 0; i < targets.Num(); i++ ) {
 		ent = targets[ i ].GetEntity();
 		if ( ent ) {
@@ -449,8 +449,8 @@ void idTarget_FadeEntity::Event_Activate( idEntity *activator ) {
 		}
 	}
 
-	fadeStart = gameLocal.time;
-	fadeEnd = gameLocal.time + SEC2MS( spawnArgs.GetFloat( "fadetime" ) );
+	fadeStart = GameLocal()->time;
+	fadeEnd = GameLocal()->time + SEC2MS( spawnArgs.GetFloat( "fadetime" ) );
 }
 
 /*
@@ -467,11 +467,11 @@ void idTarget_FadeEntity::Think( void ) {
 
 	if ( thinkFlags & TH_THINK ) {
 		GetColor( fadeTo );
-		if ( gameLocal.time >= fadeEnd ) {
+		if ( GameLocal()->time >= fadeEnd ) {
 			color = fadeTo;
 			BecomeInactive( TH_THINK );
 		} else {
-			frac = ( float )( gameLocal.time - fadeStart ) / ( float )( fadeEnd - fadeStart );
+			frac = ( float )( GameLocal()->time - fadeStart ) / ( float )( fadeEnd - fadeStart );
 			color.Lerp( fadeFrom, fadeTo, frac );
 		}
 
@@ -525,7 +525,7 @@ void idTarget_LightFadeIn::Event_Activate( idEntity *activator ) {
 			light = static_cast<idLight *>( ent );
 			light->FadeIn( time );
 		} else {
-			gameLocal.Printf( "'%s' targets non-light '%s'", name.c_str(), ent->GetName() );
+			GameLocal()->Printf( "'%s' targets non-light '%s'", name.c_str(), ent->GetName() );
 		}
 	}
 }
@@ -568,7 +568,7 @@ void idTarget_LightFadeOut::Event_Activate( idEntity *activator ) {
 			light = static_cast<idLight *>( ent );
 			light->FadeOut( time );
 		} else {
-			gameLocal.Printf( "'%s' targets non-light '%s'", name.c_str(), ent->GetName() );
+			GameLocal()->Printf( "'%s' targets non-light '%s'", name.c_str(), ent->GetName() );
 		}
 	}
 }
@@ -602,25 +602,25 @@ idTarget_Give::Event_Activate
 ================
 */
 void idTarget_Give::Event_Activate( idEntity *activator ) {
-	
-	if ( spawnArgs.GetBool( "development" ) && developer.GetInteger() == 0 ) {
+
+	if ( spawnArgs.GetBool( "development" ) && cvarSystem->GetCVarBool( "developer" ) == 0 ) {
 		return;
 	}
 
 	static int giveNum = 0;
-	idPlayer *player = gameLocal.GetLocalPlayer();
+	idPlayer *player = GameLocal()->GetLocalPlayer();
 	if ( player ) {
 		const idKeyValue *kv = spawnArgs.MatchPrefix( "item", NULL );
 		while ( kv ) {
-			const idDict *dict = gameLocal.FindEntityDefDict( kv->GetValue(), false );
+			const idDict *dict = GameLocal()->FindEntityDefDict( kv->GetValue(), false );
 			if ( dict ) {
 				idDict d2;
 				d2.Copy( *dict );
 				d2.Set( "name", va( "givenitem_%i", giveNum++ ) );
 				idEntity *ent = NULL;
-				if ( gameLocal.SpawnEntityDef( d2, &ent ) && ent && ent->IsType( idItem::Type ) ) {
+				if ( GameLocal()->SpawnEntityDef( d2, &ent ) && ent && ent->IsType( idItem::Type ) ) {
 					idItem *item = static_cast<idItem*>(ent);
-					item->GiveToPlayer( gameLocal.GetLocalPlayer() );
+					item->GiveToPlayer( GameLocal()->GetLocalPlayer() );
 				}
 			}
 			kv = spawnArgs.MatchPrefix( "item", kv );
@@ -654,7 +654,7 @@ idTarget_GiveEmail::Event_Activate
 ================
 */
 void idTarget_GiveEmail::Event_Activate( idEntity *activator ) {
-	idPlayer *player = gameLocal.GetLocalPlayer();
+	idPlayer *player = GameLocal()->GetLocalPlayer();
 	const idDeclPDA *pda = player->GetPDA();
 	if ( pda ) {
 		player->GiveEmail( spawnArgs.GetString( "email" ) );
@@ -872,7 +872,7 @@ idTarget_SetInfluence::Event_Flash
 ================
 */
 void idTarget_SetInfluence::Event_Flash( float flash, int out ) {
-	idPlayer *player = gameLocal.GetLocalPlayer();
+	idPlayer *player = GameLocal()->GetLocalPlayer();
 	player->playerView.Fade( idVec4( 1, 1, 1, 1 ), flash );
 	const idSoundShader *shader = NULL;
 	if ( !out && flashInSound.Length() ){
@@ -892,8 +892,8 @@ idTarget_SetInfluence::Event_ClearFlash
 ================
 */
 void idTarget_SetInfluence::Event_ClearFlash( float flash ) {
-	idPlayer *player = gameLocal.GetLocalPlayer();
-	player->playerView.Fade( vec4_zero , flash );		
+	idPlayer *player = GameLocal()->GetLocalPlayer();
+	player->playerView.Fade( vec4_zero , flash );
 }
 /*
 ================
@@ -927,7 +927,7 @@ void idTarget_SetInfluence::Event_GatherEntities() {
 		}
 	} else {
 		float radius = spawnArgs.GetFloat( "radius" );
-		listedEntities = gameLocal.EntitiesWithinRadius( GetPhysics()->GetOrigin(), radius, entityList, MAX_GENTITIES );
+		listedEntities = GameLocal()->EntitiesWithinRadius( GetPhysics()->GetOrigin(), radius, entityList, MAX_GENTITIES );
 	}
 
 	for( i = 0; i < listedEntities; i++ ) {
@@ -953,7 +953,7 @@ void idTarget_SetInfluence::Event_GatherEntities() {
 	}
 	idStr temp;
 	temp = spawnArgs.GetString( "switchToView" );
-	switchToCamera = ( temp.Length() ) ? gameLocal.FindEntity( temp ) : NULL;
+	switchToCamera = ( temp.Length() ) ? GameLocal()->FindEntity( temp ) : NULL;
 
 }
 
@@ -975,7 +975,7 @@ void idTarget_SetInfluence::Event_Activate( idEntity *activator ) {
 	idVec4 colorTo;
 	idPlayer *player;
 
-	player = gameLocal.GetLocalPlayer();
+	player = GameLocal()->GetLocalPlayer();
 
 	if ( spawnArgs.GetBool( "triggerActivate" ) ) {
 		if ( restoreOnTrigger ) {
@@ -1021,12 +1021,12 @@ void idTarget_SetInfluence::Event_Activate( idEntity *activator ) {
 
 	int fov = spawnArgs.GetInt( "fov" );
 	if ( fov ) {
-		fovSetting.Init( gameLocal.time, SEC2MS( spawnArgs.GetFloat( "fovTime" ) ), player->DefaultFov(), fov );
+		fovSetting.Init( GameLocal()->time, SEC2MS( spawnArgs.GetFloat( "fovTime" ) ), player->DefaultFov(), fov );
 		BecomeActive( TH_THINK );
 	}
 
 	for ( i = 0; i < genericList.Num(); i++ ) {
-		ent = gameLocal.entities[genericList[i]];
+		ent = GameLocal()->entities[genericList[i]];
 		if ( ent == NULL ) {
 			continue;
 		}
@@ -1037,7 +1037,7 @@ void idTarget_SetInfluence::Event_Activate( idEntity *activator ) {
 	}
 
 	for ( i = 0; i < lightList.Num(); i++ ) {
-		ent = gameLocal.entities[lightList[i]];
+		ent = GameLocal()->entities[lightList[i]];
 		if ( ent == NULL || !ent->IsType( idLight::Type ) ) {
 			continue;
 		}
@@ -1046,7 +1046,7 @@ void idTarget_SetInfluence::Event_Activate( idEntity *activator ) {
 		if ( parm && *parm ) {
 			light->SetShader( parm );
 		}
-		
+
 		color = light->spawnArgs.GetVector( "_color" );
 		color = light->spawnArgs.GetVector( "color_demonic", color.ToString() );
 		colorTo.Set( color.x, color.y, color.z, 1.0f );
@@ -1054,7 +1054,7 @@ void idTarget_SetInfluence::Event_Activate( idEntity *activator ) {
 	}
 
 	for ( i = 0; i < soundList.Num(); i++ ) {
-		ent = gameLocal.entities[soundList[i]];
+		ent = GameLocal()->entities[soundList[i]];
 		if ( ent == NULL || !ent->IsType( idSound::Type ) ) {
 			continue;
 		}
@@ -1071,7 +1071,7 @@ void idTarget_SetInfluence::Event_Activate( idEntity *activator ) {
 	}
 
 	for ( i = 0; i < guiList.Num(); i++ ) {
-		ent = gameLocal.entities[guiList[i]];
+		ent = GameLocal()->entities[guiList[i]];
 		if ( ent == NULL || ent->GetRenderEntity() == NULL ) {
 			continue;
 		}
@@ -1101,12 +1101,12 @@ void idTarget_SetInfluence::Event_Activate( idEntity *activator ) {
 	if ( spawnArgs.GetBool( "effect_vision" ) ) {
 		parm = spawnArgs.GetString( "mtrVision" );
 		skin = spawnArgs.GetString( "skinVision" );
-		player->SetInfluenceView( parm, skin, spawnArgs.GetInt( "visionRadius" ), this ); 
+		player->SetInfluenceView( parm, skin, spawnArgs.GetInt( "visionRadius" ), this );
 	}
 
 	parm = spawnArgs.GetString( "mtrWorld" );
 	if ( parm && *parm ) {
-		gameLocal.SetGlobalMaterial( declManager->FindMaterial( parm ) );
+		GameLocal()->SetGlobalMaterial( declManager->FindMaterial( parm ) );
 	}
 
 	if ( !restoreOnTrigger ) {
@@ -1121,9 +1121,9 @@ idTarget_SetInfluence::Think
 */
 void idTarget_SetInfluence::Think( void ) {
 	if ( thinkFlags & TH_THINK ) {
-		idPlayer *player = gameLocal.GetLocalPlayer();
-		player->SetInfluenceFov( fovSetting.GetCurrentValue( gameLocal.time ) );
-		if ( fovSetting.IsDone( gameLocal.time ) ) {
+		idPlayer *player = GameLocal()->GetLocalPlayer();
+		player->SetInfluenceFov( fovSetting.GetCurrentValue( GameLocal()->time ) );
+		if ( fovSetting.IsDone( GameLocal()->time ) ) {
 			if ( !spawnArgs.GetBool( "leaveFOV" ) ) {
 				player->SetInfluenceFov( 0 );
 			}
@@ -1159,7 +1159,7 @@ void idTarget_SetInfluence::Event_RestoreInfluence() {
 	}
 
 	for ( i = 0; i < genericList.Num(); i++ ) {
-		ent = gameLocal.entities[genericList[i]];
+		ent = GameLocal()->entities[genericList[i]];
 		if ( ent == NULL ) {
 			continue;
 		}
@@ -1169,7 +1169,7 @@ void idTarget_SetInfluence::Event_RestoreInfluence() {
 	}
 
 	for ( i = 0; i < lightList.Num(); i++ ) {
-		ent = gameLocal.entities[lightList[i]];
+		ent = GameLocal()->entities[lightList[i]];
 		if ( ent == NULL || !ent->IsType( idLight::Type ) ) {
 			continue;
 		}
@@ -1184,7 +1184,7 @@ void idTarget_SetInfluence::Event_RestoreInfluence() {
 	}
 
 	for ( i = 0; i < soundList.Num(); i++ ) {
-		ent = gameLocal.entities[soundList[i]];
+		ent = GameLocal()->entities[soundList[i]];
 		if ( ent == NULL || !ent->IsType( idSound::Type ) ) {
 			continue;
 		}
@@ -1194,7 +1194,7 @@ void idTarget_SetInfluence::Event_RestoreInfluence() {
 	}
 
 	for ( i = 0; i < guiList.Num(); i++ ) {
-		ent = gameLocal.entities[guiList[i]];
+		ent = GameLocal()->entities[guiList[i]];
 		if ( ent == NULL || GetRenderEntity() == NULL ) {
 			continue;
 		}
@@ -1211,11 +1211,11 @@ void idTarget_SetInfluence::Event_RestoreInfluence() {
 		}
 	}
 
-	idPlayer *player = gameLocal.GetLocalPlayer();
+	idPlayer *player = GameLocal()->GetLocalPlayer();
 	player->SetInfluenceLevel( 0 );
 	player->SetInfluenceView( NULL, NULL, 0.0f, NULL );
 	player->SetInfluenceFov( 0 );
-	gameLocal.SetGlobalMaterial( NULL );
+	GameLocal()->SetGlobalMaterial( NULL );
 	float fadeTime = spawnArgs.GetFloat( "fadeWorldSounds" );
 	if ( fadeTime ) {
 		gameSoundWorld->FadeSoundClasses( 0, 0.0f, fadeTime / 2.0f );
@@ -1261,7 +1261,7 @@ void idTarget_SetKeyVal::Event_Activate( idEntity *activator ) {
 						if ( ent->GetRenderEntity()->gui[ j ] ) {
 							if ( idStr::Icmpn( key, "gui_", 4 ) == 0 ) {
 								ent->GetRenderEntity()->gui[ j ]->SetStateString( key, val );
-								ent->GetRenderEntity()->gui[ j ]->StateChanged( gameLocal.time );
+								ent->GetRenderEntity()->gui[ j ]->StateChanged( GameLocal()->time );
 							}
 						}
 					}
@@ -1318,7 +1318,7 @@ void idTarget_SetFov::Restore( idRestoreGame *savefile ) {
 	savefile->ReadFloat( setting );
 	fovSetting.SetEndValue( setting );
 
-	fovSetting.GetCurrentValue( gameLocal.time );
+	fovSetting.GetCurrentValue( GameLocal()->time );
 }
 
 /*
@@ -1330,8 +1330,8 @@ void idTarget_SetFov::Event_Activate( idEntity *activator ) {
 	// always allow during cinematics
 	cinematic = true;
 
-	idPlayer *player = gameLocal.GetLocalPlayer();
-	fovSetting.Init( gameLocal.time, SEC2MS( spawnArgs.GetFloat( "time" ) ), player ? player->DefaultFov() : g_fov.GetFloat(), spawnArgs.GetFloat( "fov" ) );
+	idPlayer *player = GameLocal()->GetLocalPlayer();
+	fovSetting.Init( GameLocal()->time, SEC2MS( spawnArgs.GetFloat( "time" ) ), player ? player->DefaultFov() : g_fov.GetFloat(), spawnArgs.GetFloat( "fov" ) );
 	BecomeActive( TH_THINK );
 }
 
@@ -1342,9 +1342,9 @@ idTarget_SetFov::Think
 */
 void idTarget_SetFov::Think( void ) {
 	if ( thinkFlags & TH_THINK ) {
-		idPlayer *player = gameLocal.GetLocalPlayer();
-		player->SetInfluenceFov( fovSetting.GetCurrentValue( gameLocal.time ) );
-		if ( fovSetting.IsDone( gameLocal.time ) ) {
+		idPlayer *player = GameLocal()->GetLocalPlayer();
+		player->SetInfluenceFov( fovSetting.GetCurrentValue( GameLocal()->time ) );
+		if ( fovSetting.IsDone( GameLocal()->time ) ) {
 			player->SetInfluenceFov( 0.0f );
 			BecomeInactive( TH_THINK );
 		}
@@ -1372,7 +1372,7 @@ idTarget_SetPrimaryObjective::Event_Activate
 ================
 */
 void idTarget_SetPrimaryObjective::Event_Activate( idEntity *activator ) {
-	idPlayer *player = gameLocal.GetLocalPlayer();
+	idPlayer *player = GameLocal()->GetLocalPlayer();
 	if ( player && player->objectiveSystem ) {
 		player->objectiveSystem->SetStateString( "missionobjective", spawnArgs.GetString( "text", common->GetLanguageDict()->GetString( "#str_04253" ) ) );
 	}
@@ -1443,13 +1443,13 @@ void idTarget_CallObjectFunction::Event_Activate( idEntity *activator ) {
 		if ( ent && ent->scriptObject.HasObject() ) {
 			func = ent->scriptObject.GetFunction( funcName );
 			if ( !func ) {
-				gameLocal.Error( "Function '%s' not found on entity '%s' for function call from '%s'", funcName, ent->name.c_str(), name.c_str() );
+				GameLocal()->Error( "Function '%s' not found on entity '%s' for function call from '%s'", funcName, ent->name.c_str(), name.c_str() );
 			}
 			if ( func->type->NumParameters() != 1 ) {
-				gameLocal.Error( "Function '%s' on entity '%s' has the wrong number of parameters for function call from '%s'", funcName, ent->name.c_str(), name.c_str() );
+				GameLocal()->Error( "Function '%s' on entity '%s' has the wrong number of parameters for function call from '%s'", funcName, ent->name.c_str(), name.c_str() );
 			}
 			if ( !ent->scriptObject.GetTypeDef()->Inherits( func->type->GetParmType( 0 ) ) ) {
-				gameLocal.Error( "Function '%s' on entity '%s' is the wrong type for function call from '%s'", funcName, ent->name.c_str(), name.c_str() );
+				GameLocal()->Error( "Function '%s' on entity '%s' is the wrong type for function call from '%s'", funcName, ent->name.c_str(), name.c_str() );
 			}
 			// create a thread and call the function
 			thread = new idThread();
@@ -1481,21 +1481,21 @@ void idTarget_EnableLevelWeapons::Event_Activate( idEntity *activator ) {
 	int i;
 	const char *weap;
 
-	gameLocal.world->spawnArgs.SetBool( "no_Weapons", spawnArgs.GetBool( "disable" ) );
+	GameLocal()->world->spawnArgs.SetBool( "no_Weapons", spawnArgs.GetBool( "disable" ) );
 
 	if ( spawnArgs.GetBool( "disable" ) ) {
-		for( i = 0; i < gameLocal.numClients; i++ ) {
-			if ( gameLocal.entities[ i ] ) {
-				gameLocal.entities[ i ]->ProcessEvent( &EV_Player_DisableWeapon );
+		for( i = 0; i < GameLocal()->numClients; i++ ) {
+			if ( GameLocal()->entities[ i ] ) {
+				GameLocal()->entities[ i ]->ProcessEvent( &EV_Player_DisableWeapon );
 			}
 		}
 	} else {
 		weap = spawnArgs.GetString( "weapon" );
-		for( i = 0; i < gameLocal.numClients; i++ ) {
-			if ( gameLocal.entities[ i ] ) {
-				gameLocal.entities[ i ]->ProcessEvent( &EV_Player_EnableWeapon );
+		for( i = 0; i < GameLocal()->numClients; i++ ) {
+			if ( GameLocal()->entities[ i ] ) {
+				GameLocal()->entities[ i ]->ProcessEvent( &EV_Player_EnableWeapon );
 				if ( weap && weap[ 0 ] ) {
-					gameLocal.entities[ i ]->PostEventSec( &EV_Player_SelectWeapon, 0.5f, weap );
+					GameLocal()->entities[ i ]->PostEventSec( &EV_Player_SelectWeapon, 0.5f, weap );
 				}
 			}
 		}
@@ -1561,7 +1561,7 @@ idTarget_Tip::Event_Activate
 ================
 */
 void idTarget_Tip::Event_GetPlayerPos( void ) {
-	idPlayer *player = gameLocal.GetLocalPlayer();
+	idPlayer *player = GameLocal()->GetLocalPlayer();
 	if ( player ) {
 		playerPos = player->GetPhysics()->GetOrigin();
 		PostEventMS( &EV_TipOff, 100 );
@@ -1574,7 +1574,7 @@ idTarget_Tip::Event_Activate
 ================
 */
 void idTarget_Tip::Event_Activate( idEntity *activator ) {
-	idPlayer *player = gameLocal.GetLocalPlayer();
+	idPlayer *player = GameLocal()->GetLocalPlayer();
 	if ( player ) {
 		if ( player->IsTipVisible() ) {
 			PostEventSec( &EV_Activate, 5.1f, activator );
@@ -1591,7 +1591,7 @@ idTarget_Tip::Event_TipOff
 ================
 */
 void idTarget_Tip::Event_TipOff( void ) {
-	idPlayer *player = gameLocal.GetLocalPlayer();
+	idPlayer *player = GameLocal()->GetLocalPlayer();
 	if ( player ) {
 		idVec3 v = player->GetPhysics()->GetOrigin() - playerPos;
 		if ( v.Length() > 96.0f ) {
@@ -1621,7 +1621,7 @@ idTarget_GiveEmail::Event_Activate
 ================
 */
 void idTarget_GiveSecurity::Event_Activate( idEntity *activator ) {
-	idPlayer *player = gameLocal.GetLocalPlayer();
+	idPlayer *player = GameLocal()->GetLocalPlayer();
 	if ( player ) {
 		player->GiveSecurity( spawnArgs.GetString( "text_security" ) );
 	}
@@ -1646,9 +1646,9 @@ idTarget_RemoveWeapons::Event_Activate
 ================
 */
 void idTarget_RemoveWeapons::Event_Activate( idEntity *activator ) {
-	for( int i = 0; i < gameLocal.numClients; i++ ) {
-		if ( gameLocal.entities[ i ] ) {
-			idPlayer *player = static_cast< idPlayer* >( gameLocal.entities[i] );
+	for( int i = 0; i < GameLocal()->numClients; i++ ) {
+		if ( GameLocal()->entities[ i ] ) {
+			idPlayer *player = static_cast< idPlayer* >( GameLocal()->entities[i] );
 			const idKeyValue *kv = spawnArgs.MatchPrefix( "weapon", NULL );
 			while ( kv ) {
 				player->RemoveWeapon( kv->GetValue() );
@@ -1678,9 +1678,9 @@ idTarget_LevelTrigger::Event_Activate
 ================
 */
 void idTarget_LevelTrigger::Event_Activate( idEntity *activator ) {
-	for( int i = 0; i < gameLocal.numClients; i++ ) {
-		if ( gameLocal.entities[ i ] ) {
-			idPlayer *player = static_cast< idPlayer* >( gameLocal.entities[i] );
+	for( int i = 0; i < GameLocal()->numClients; i++ ) {
+		if ( GameLocal()->entities[ i ] ) {
+			idPlayer *player = static_cast< idPlayer* >( GameLocal()->entities[i] );
 			player->SetLevelTrigger( spawnArgs.GetString( "levelName" ), spawnArgs.GetString( "triggerName" ) );
 		}
 	}
@@ -1705,9 +1705,9 @@ idTarget_EnableStamina::Event_Activate
 ================
 */
 void idTarget_EnableStamina::Event_Activate( idEntity *activator ) {
-	for( int i = 0; i < gameLocal.numClients; i++ ) {
-		if ( gameLocal.entities[ i ] ) {
-			idPlayer *player = static_cast< idPlayer* >( gameLocal.entities[i] );
+	for( int i = 0; i < GameLocal()->numClients; i++ ) {
+		if ( GameLocal()->entities[ i ] ) {
+			idPlayer *player = static_cast< idPlayer* >( GameLocal()->entities[i] );
 			if ( spawnArgs.GetBool( "enable" ) ) {
 				pm_stamina.SetFloat( player->spawnArgs.GetFloat( "pm_stamina" ) );
 			} else {

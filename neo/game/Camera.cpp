@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "Game_local.h"
@@ -126,17 +126,17 @@ idCameraView::Event_Activate
 */
 void idCameraView::Event_Activate( idEntity *activator ) {
 	if (spawnArgs.GetBool("trigger")) {
-		if (gameLocal.GetCamera() != this) {
+		if (GameLocal()->GetCamera() != this) {
 			if ( g_debugCinematic.GetBool() ) {
-				gameLocal.Printf( "%d: '%s' start\n", gameLocal.framenum, GetName() );
+				GameLocal()->Printf( "%d: '%s' start\n", GameLocal()->framenum, GetName() );
 			}
 
-			gameLocal.SetCamera(this);
+			GameLocal()->SetCamera(this);
 		} else {
 			if ( g_debugCinematic.GetBool() ) {
-				gameLocal.Printf( "%d: '%s' stop\n", gameLocal.framenum, GetName() );
+				GameLocal()->Printf( "%d: '%s' stop\n", GameLocal()->framenum, GetName() );
 			}
-			gameLocal.SetCamera(NULL);
+			GameLocal()->SetCamera(NULL);
 		}
 	}
 }
@@ -148,10 +148,10 @@ idCameraView::Stop
 */
 void idCameraView::Stop( void ) {
 	if ( g_debugCinematic.GetBool() ) {
-		gameLocal.Printf( "%d: '%s' stop\n", gameLocal.framenum, GetName() );
+		GameLocal()->Printf( "%d: '%s' stop\n", GameLocal()->framenum, GetName() );
 	}
-	gameLocal.SetCamera(NULL);
-	ActivateTargets( gameLocal.GetLocalPlayer() );
+	GameLocal()->SetCamera(NULL);
+	ActivateTargets( GameLocal()->GetLocalPlayer() );
 }
 
 
@@ -163,7 +163,7 @@ idCameraView::Spawn
 void idCameraView::SetAttachment( idEntity **e, const char *p  ) {
 	const char *cam = spawnArgs.GetString( p );
 	if ( strlen ( cam ) ) {
-		*e = gameLocal.FindEntity( cam );
+		*e = GameLocal()->FindEntity( cam );
 	}
 }
 
@@ -193,7 +193,7 @@ idCameraView::GetViewParms
 */
 void idCameraView::GetViewParms( renderView_t *view ) {
 	assert( view );
-	
+
 	if (view == NULL) {
 		return;
 	}
@@ -215,8 +215,8 @@ void idCameraView::GetViewParms( renderView_t *view ) {
 	} else {
 		view->viewaxis = ent->GetPhysics()->GetAxis();
 	}
-	
-	gameLocal.CalcFov( fov, view->fov_x, view->fov_y );
+
+	GameLocal()->CalcFov( fov, view->fov_x, view->fov_y );
 }
 
 /*
@@ -259,8 +259,8 @@ idCameraAnim::~idCameraAnim
 =====================
 */
 idCameraAnim::~idCameraAnim() {
-	if ( gameLocal.GetCamera() == this ) {
-		gameLocal.SetCamera( NULL );
+	if ( GameLocal()->GetCamera() == this ) {
+		GameLocal()->SetCamera( NULL );
 	}
 }
 
@@ -329,17 +329,17 @@ void idCameraAnim::LoadAnim( void ) {
 
 	key = spawnArgs.GetString( "anim" );
 	if ( !key ) {
-		gameLocal.Error( "Missing 'anim' key on '%s'", name.c_str() );
+		GameLocal()->Error( "Missing 'anim' key on '%s'", name.c_str() );
 	}
 
 	filename = spawnArgs.GetString( va( "anim %s", key ) );
 	if ( !filename.Length() ) {
-		gameLocal.Error( "Missing 'anim %s' key on '%s'", key, name.c_str() );
+		GameLocal()->Error( "Missing 'anim %s' key on '%s'", key, name.c_str() );
 	}
 
 	filename.SetFileExtension( MD5_CAMERA_EXT );
 	if ( !parser.LoadFile( filename ) ) {
-		gameLocal.Error( "Unable to load '%s' on '%s'", filename.c_str(), name.c_str() );
+		GameLocal()->Error( "Unable to load '%s' on '%s'", filename.c_str(), name.c_str() );
 	}
 
 	cameraCuts.Clear();
@@ -402,7 +402,7 @@ void idCameraAnim::LoadAnim( void ) {
 	parser.ExpectTokenString( "}" );
 
 #if 0
-	if ( !gameLocal.GetLocalPlayer() ) {
+	if ( !GameLocal()->GetLocalPlayer() ) {
 		return;
 	}
 
@@ -417,7 +417,7 @@ void idCameraAnim::LoadAnim( void ) {
 	dtGraph.SetNumSamples( numFrames );
 	dqGraph.SetNumSamples( numFrames );
 
-	gameLocal.Printf( "\n\ndelta vec:\n" );
+	GameLocal()->Printf( "\n\ndelta vec:\n" );
 	float diff_t, last_t, t;
 	float diff_q, last_q, q;
 	diff_t = last_t = 0.0f;
@@ -433,7 +433,7 @@ void idCameraAnim::LoadAnim( void ) {
 		dtGraph.AddValue( diff_t );
 		dqGraph.AddValue( diff_q );
 
-		gameLocal.Printf( "%d: %.8f  :  %.8f,     %.8f  :  %.8f\n", i, t, diff_t, q, diff_q  );
+		GameLocal()->Printf( "%d: %.8f  :  %.8f,     %.8f  :  %.8f\n", i, t, diff_t, q, diff_q  );
 		last_t = t;
 		last_q = q;
 	}
@@ -458,16 +458,16 @@ void idCameraAnim::Start( void ) {
 	}
 
 	if ( g_debugCinematic.GetBool() ) {
-		gameLocal.Printf( "%d: '%s' start\n", gameLocal.framenum, GetName() );
+		GameLocal()->Printf( "%d: '%s' start\n", GameLocal()->framenum, GetName() );
 	}
 
-	starttime = gameLocal.time;
-	gameLocal.SetCamera( this );
+	starttime = GameLocal()->time;
+	GameLocal()->SetCamera( this );
 	BecomeActive( TH_THINK );
 
 	// if the player has already created the renderview for this frame, have him update it again so that the camera starts this frame
-	if ( gameLocal.GetLocalPlayer()->GetRenderView()->time == gameLocal.time ) {
-		gameLocal.GetLocalPlayer()->CalculateRenderView();
+	if ( GameLocal()->GetLocalPlayer()->GetRenderView()->time == GameLocal()->time ) {
+		GameLocal()->GetLocalPlayer()->CalculateRenderView();
 	}
 }
 
@@ -477,13 +477,13 @@ idCameraAnim::Stop
 =====================
 */
 void idCameraAnim::Stop( void ) {
-	if ( gameLocal.GetCamera() == this ) {
+	if ( GameLocal()->GetCamera() == this ) {
 		if ( g_debugCinematic.GetBool() ) {
-			gameLocal.Printf( "%d: '%s' stop\n", gameLocal.framenum, GetName() );
+			GameLocal()->Printf( "%d: '%s' stop\n", GameLocal()->framenum, GetName() );
 		}
 
 		BecomeInactive( TH_THINK );
-		gameLocal.SetCamera( NULL );
+		GameLocal()->SetCamera( NULL );
 		if ( threadNum ) {
 			idThread::ObjectMoveDone( threadNum, this );
 			threadNum = 0;
@@ -503,7 +503,7 @@ void idCameraAnim::Think( void ) {
 
 	if ( thinkFlags & TH_THINK ) {
 		// check if we're done in the Think function when the cinematic is being skipped (idCameraAnim::GetViewParms isn't called when skipping cinematics).
-		if ( !gameLocal.skipCinematic ) {
+		if ( !GameLocal()->skipCinematic ) {
 			return;
 		}
 
@@ -513,13 +513,13 @@ void idCameraAnim::Think( void ) {
 		}
 
 		if ( frameRate == USERCMD_HZ ) {
-			frameTime	= gameLocal.time - starttime;
-			frame		= frameTime / gameLocal.msec;
+			frameTime	= GameLocal()->time - starttime;
+			frame		= frameTime / GameLocal()->msec;
 		} else {
-			frameTime	= ( gameLocal.time - starttime ) * frameRate;
+			frameTime	= ( GameLocal()->time - starttime ) * frameRate;
 			frame		= frameTime / 1000;
 		}
-		
+
 		if ( frame > camera.Num() + cameraCuts.Num() - 2 ) {
 			if ( cycle > 0 ) {
 				cycle--;
@@ -563,11 +563,11 @@ void idCameraAnim::GetViewParms( renderView_t *view ) {
 	}
 
 	if ( frameRate == USERCMD_HZ ) {
-		frameTime	= gameLocal.time - starttime;
-		frame		= frameTime / gameLocal.msec;
+		frameTime	= GameLocal()->time - starttime;
+		frame		= frameTime / GameLocal()->msec;
 		lerp		= 0.0f;
 	} else {
-		frameTime	= ( gameLocal.time - starttime ) * frameRate;
+		frameTime	= ( GameLocal()->time - starttime ) * frameRate;
 		frame		= frameTime / 1000;
 		lerp		= ( frameTime % 1000 ) * 0.001f;
 	}
@@ -584,7 +584,7 @@ void idCameraAnim::GetViewParms( renderView_t *view ) {
 	}
 
 	if ( g_debugCinematic.GetBool() ) {
-		int prevFrameTime	= ( gameLocal.time - starttime - gameLocal.msec ) * frameRate;
+		int prevFrameTime	= ( GameLocal()->time - starttime - GameLocal()->msec ) * frameRate;
 		int prevFrame		= prevFrameTime / 1000;
 		int prevCut;
 
@@ -598,7 +598,7 @@ void idCameraAnim::GetViewParms( renderView_t *view ) {
 		}
 
 		if ( prevCut != cut ) {
-			gameLocal.Printf( "%d: '%s' cut %d\n", gameLocal.framenum, GetName(), cut );
+			GameLocal()->Printf( "%d: '%s' cut %d\n", GameLocal()->framenum, GetName(), cut );
 		}
 	}
 
@@ -621,9 +621,9 @@ void idCameraAnim::GetViewParms( renderView_t *view ) {
 		}
 
 		Stop();
-		if ( gameLocal.GetCamera() != NULL ) {
+		if ( GameLocal()->GetCamera() != NULL ) {
 			// we activated another camera when we stopped, so get it's viewparms instead
-			gameLocal.GetCamera()->GetViewParms( view );
+			GameLocal()->GetCamera()->GetViewParms( view );
 			return;
 		} else {
 			// just use our last frame
@@ -648,27 +648,27 @@ void idCameraAnim::GetViewParms( renderView_t *view ) {
 		view->fov_x = camFrame[ 0 ].fov * invlerp + camFrame[ 1 ].fov * lerp;
 	}
 
-	gameLocal.CalcFov( view->fov_x, view->fov_x, view->fov_y );
+	GameLocal()->CalcFov( view->fov_x, view->fov_x, view->fov_y );
 
 	// setup the pvs for this frame
 	UpdatePVSAreas( view->vieworg );
-	
+
 #if 0
 	static int lastFrame = 0;
 	static idVec3 lastFrameVec( 0.0f, 0.0f, 0.0f );
-	if ( gameLocal.time != lastFrame ) {
-		gameRenderWorld->DebugBounds( colorCyan, idBounds( view->vieworg ).Expand( 16.0f ), vec3_origin, gameLocal.msec );
+	if ( GameLocal()->time != lastFrame ) {
+		gameRenderWorld->DebugBounds( colorCyan, idBounds( view->vieworg ).Expand( 16.0f ), vec3_origin, GameLocal()->msec );
 		gameRenderWorld->DebugLine( colorRed, view->vieworg, view->vieworg + idVec3( 0.0f, 0.0f, 2.0f ), 10000, false );
 		gameRenderWorld->DebugLine( colorCyan, lastFrameVec, view->vieworg, 10000, false );
 		gameRenderWorld->DebugLine( colorYellow, view->vieworg + view->viewaxis[ 0 ] * 64.0f, view->vieworg + view->viewaxis[ 0 ] * 66.0f, 10000, false );
 		gameRenderWorld->DebugLine( colorOrange, view->vieworg + view->viewaxis[ 0 ] * 64.0f, view->vieworg + view->viewaxis[ 0 ] * 64.0f + idVec3( 0.0f, 0.0f, 2.0f ), 10000, false );
 		lastFrameVec = view->vieworg;
-		lastFrame = gameLocal.time;
+		lastFrame = GameLocal()->time;
 	}
 #endif
 
 	if ( g_showcamerainfo.GetBool() ) {
-		gameLocal.Printf( "^5Frame: ^7%d/%d\n\n\n", realFrame + 1, camera.Num() - cameraCuts.Num() );
+		GameLocal()->Printf( "^5Frame: ^7%d/%d\n\n\n", realFrame + 1, camera.Num() - cameraCuts.Num() );
 	}
 }
 
@@ -710,7 +710,7 @@ idCameraAnim::Event_SetCallback
 ================
 */
 void idCameraAnim::Event_SetCallback( void ) {
-	if ( ( gameLocal.GetCamera() == this ) && !threadNum ) {
+	if ( ( GameLocal()->GetCamera() == this ) && !threadNum ) {
 		threadNum = idThread::CurrentThreadNum();
 		idThread::ReturnInt( true );
 	} else {

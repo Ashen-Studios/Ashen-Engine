@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ const float FOG_ENTER = (FOG_ENTER_SIZE+1.0f)/(FOG_ENTER_SIZE*2);
 class idScreenRect {
 public:
 	short		x1, y1, x2, y2;							// inclusive pixel bounds inside viewport
-    float       zmin, zmax;								// for depth bounds test
+	float       zmin, zmax;								// for depth bounds test
 
 	void		Clear();								// clear to backwards values
 	void		AddPoint( float x, float y );			// adds a point
@@ -312,7 +312,7 @@ typedef struct viewLight_s {
 
 	// true if globalLightOrigin is inside the view frustum, even if it may
 	// be obscured by geometry.  This allows us to skip shadows from non-visible objects
-	bool					viewSeesGlobalLightOrigin;	
+	bool					viewSeesGlobalLightOrigin;
 
 	// if !viewInsideLight, the corresponding bit for each of the shadowFrustum
 	// projection planes that the view is on the negative side of will be set,
@@ -403,7 +403,7 @@ typedef struct viewDef_s {
 	// these are real physical pixel values, possibly scaled and offset from the
 	// renderView x/y/width/height
 
-	struct viewDef_s *	superView;				// never go into an infinite subview loop 
+	struct viewDef_s *	superView;				// never go into an infinite subview loop
 	struct drawSurf_s *	subviewSurface;
 
 	// drawSurfs are the visible surfaces of the viewEntities, sorted
@@ -446,7 +446,7 @@ typedef struct {
 	idVec4				specularColor;	// may have a light color baked into it, will be < tr.backEndRendererMaxLight
 	stageVertexColor_t	vertexColor;	// applies to both diffuse and specular
 
-	int					ambientLight;	// use tr.ambientNormalMap instead of normalization cube map 
+	int					ambientLight;	// use tr.ambientNormalMap instead of normalization cube map
 	// (not a bool just to avoid an uninitialized memory check of the pad region by valgrind)
 
 	// these are loaded into the vertex program
@@ -536,7 +536,7 @@ typedef struct {
 
 	int					memoryHighwater;	// max used on any frame
 
-	// the currently building command list 
+	// the currently building command list
 	// commands can be inserted at the front if needed, as for required
 	// dynamically generated textures
 	emptyCommand_t	*cmdHead, *cmdTail;		// may be of other command type based on commandId
@@ -628,7 +628,7 @@ typedef struct {
 	int		c_shadowVertexes;
 
 	int		c_vboIndexes;
-	float	c_overDraw;	
+	float	c_overDraw;
 
 	float	maxLightValue;	// for light scale
 	int		msec;			// total msec for backend run
@@ -668,15 +668,6 @@ typedef struct {
 
 const int MAX_GUI_SURFACES	= 1024;		// default size of the drawSurfs list for guis, will
 										// be automatically expanded as needed
-
-typedef enum {
-	BE_ARB,
-	BE_NV10,
-	BE_NV20,
-	BE_R200,
-	BE_ARB2,
-	BE_BAD
-} backEndName_t;
 
 typedef struct {
 	int		x, y, width, height;	// these are in physical, OpenGL Y-at-bottom pixels
@@ -729,7 +720,6 @@ public:
 	virtual void			CaptureRenderToImage( const char *imageName );
 	virtual void			CaptureRenderToFile( const char *fileName, bool fixAlpha );
 	virtual void			UnCrop();
-	virtual void			GetCardCaps( bool &oldCard, bool &nv10or20 );
 	virtual bool			UploadImage( const char *imageName, const byte *data, int width, int height );
 
 public:
@@ -738,7 +728,6 @@ public:
 							~idRenderSystemLocal( void );
 
 	void					Clear( void );
-	void					SetBackEndRenderer();			// sets tr.backEndRenderer based on cvars
 	void					RenderViewToViewport( const renderView_t *renderView, idScreenRect *viewport );
 
 public:
@@ -759,9 +748,8 @@ public:
 	int						tiledViewport[2];
 
 	// determines which back end to use, and if vertex programs are in use
-	backEndName_t			backEndRenderer;
-	bool					backEndRendererHasVertexPrograms;
-	float					backEndRendererMaxLight;	// 1.0 for standard, unlimited for floats
+
+	const float			backEndRendererMaxLight;	// 1.0 for standard, unlimited for floats
 														// determines how much overbrighting needs
 														// to be done post-process
 
@@ -813,9 +801,6 @@ extern glconfig_t			glConfig;		// outside of TR since it shouldn't be cleared du
 //
 // cvars
 //
-extern idCVar r_ext_vertex_array_range;
-
-extern idCVar r_glDriver;				// "opengl32", etc
 extern idCVar r_mode;					// video mode number
 extern idCVar r_displayRefresh;			// optional display refresh rate option for vid mode
 extern idCVar r_fullscreen;				// 0 = windowed, 1 = full screen
@@ -831,7 +816,6 @@ extern idCVar r_swapInterval;			// changes wglSwapIntarval
 extern idCVar r_offsetFactor;			// polygon offset parameter
 extern idCVar r_offsetUnits;			// polygon offset parameter
 extern idCVar r_singleTriangle;			// only draw a single triangle per primitive
-extern idCVar r_logFile;				// number of frames to emit GL logs
 extern idCVar r_clear;					// force screen clear every frame
 extern idCVar r_shadows;				// enable shadows
 extern idCVar r_subviewOnly;			// 1 = don't render main view, allowing subviews to be debugged
@@ -841,16 +825,9 @@ extern idCVar r_flareSize;				// scale the flare deforms from the material def
 extern idCVar r_gamma;					// changes gamma tables
 extern idCVar r_brightness;				// changes gamma tables
 
-extern idCVar r_renderer;				// arb, nv10, nv20, r200, gl2, etc
-
-extern idCVar r_cgVertexProfile;		// arbvp1, vp20, vp30
-extern idCVar r_cgFragmentProfile;		// arbfp1, fp30
-
 extern idCVar r_checkBounds;			// compare all surface bounds with precalculated ones
 
-extern idCVar r_useNV20MonoLights;		// 1 = allow an interaction pass optimization
 extern idCVar r_useLightPortalFlow;		// 1 = do a more precise area reference determination
-extern idCVar r_useTripleTextureARB;	// 1 = cards with 3+ texture units do a two pass instead of three pass
 extern idCVar r_useShadowSurfaceScissor;// 1 = scissor shadows by the scissor rect of the interaction surfaces
 extern idCVar r_useConstantMaterials;	// 1 = use pre-calculated material registers if possible
 extern idCVar r_useInteractionTable;	// create a full entityDefs * lightDefs table to make finding interactions faster
@@ -880,7 +857,7 @@ extern idCVar r_useScissor;				// 1 = scissor clip as portals and lights are pro
 extern idCVar r_usePortals;				// 1 = use portals to perform area culling, otherwise draw everything
 extern idCVar r_useStateCaching;		// avoid redundant state changes in GL_*() calls
 extern idCVar r_useCombinerDisplayLists;// if 1, put all nvidia register combiner programming in display lists
-extern idCVar r_useVertexBuffers;		// if 0, don't use ARB_vertex_buffer_object for vertexes
+
 extern idCVar r_useIndexBuffers;		// if 0, don't use ARB_vertex_buffer_object for indexes
 extern idCVar r_useEntityCallbacks;		// if 0, issue the callback immediately at update time, rather than defering
 extern idCVar r_lightAllBackFaces;		// light all the back faces, even when they would be shadowed
@@ -915,7 +892,6 @@ extern idCVar r_skipROQ;
 extern idCVar r_ignoreGLErrors;
 
 extern idCVar r_forceLoadImages;		// draw all images to screen after registration
-extern idCVar r_demonstrateBug;			// used during development to show IHV's their problems
 extern idCVar r_screenFraction;			// for testing fill rate, the resolution of the entire screen can be changed
 
 extern idCVar r_showUnsmoothedTangents;	// highlight geometry rendered with unsmoothed tangents
@@ -963,8 +939,6 @@ extern idCVar r_jointNameOffset;		// offset of joint names when r_showskel is se
 extern idCVar r_testGamma;				// draw a grid pattern to test gamma levels
 extern idCVar r_testStepGamma;			// draw a grid pattern to test gamma levels
 extern idCVar r_testGammaBias;			// draw a grid pattern to test gamma levels
-
-extern idCVar r_testARBProgram;			// experiment with vertex/fragment programs
 
 extern idCVar r_singleLight;			// suppress all but one light
 extern idCVar r_singleEntity;			// suppress all but one entity
@@ -1093,21 +1067,13 @@ void		GLimp_SwapBuffers( void );
 // other system specific cvar checks that happen every frame.
 // This will not be called if 'r_drawBuffer GL_FRONT'
 
-void		GLimp_SetGamma( unsigned short red[256], 
-						    unsigned short green[256],
+void		GLimp_SetGamma( unsigned short red[256],
+							unsigned short green[256],
 							unsigned short blue[256] );
 // Sets the hardware gamma ramps for gamma and brightness adjustment.
 // These are now taken as 16 bit values, so we can take full advantage
 // of dacs with >8 bits of precision
 
-
-bool		GLimp_SpawnRenderThread( void (*function)( void ) );
-// Returns false if the system only has a single processor
-
-void *		GLimp_BackEndSleep( void );
-void		GLimp_FrontEndSleep( void );
-void		GLimp_WakeBackEnd( void *data );
-// these functions implement the dual processor syncronization
 
 void		GLimp_ActivateContext( void );
 void		GLimp_DeactivateContext( void );
@@ -1181,7 +1147,7 @@ viewLight_t *R_SetLightDefViewLight( idRenderLightLocal *def );
 void R_AddDrawSurf( const srfTriangles_t *tri, const viewEntity_t *space, const renderEntity_t *renderEntity,
 					const idMaterial *shader, const idScreenRect &scissor );
 
-void R_LinkLightSurf( const drawSurf_t **link, const srfTriangles_t *tri, const viewEntity_t *space, 
+void R_LinkLightSurf( const drawSurf_t **link, const srfTriangles_t *tri, const viewEntity_t *space,
 				   const idRenderLightLocal *light, const idMaterial *shader, const idScreenRect &scissor, bool viewInsideShadow );
 
 bool R_CreateAmbientCache( srfTriangles_t *tri, bool needsLighting );
@@ -1251,9 +1217,9 @@ void RB_LeaveDepthHack();
 void RB_DrawElementsImmediate( const srfTriangles_t *tri );
 void RB_RenderTriangleSurface( const srfTriangles_t *tri );
 void RB_T_RenderTriangleSurface( const drawSurf_t *surf );
-void RB_RenderDrawSurfListWithFunction( drawSurf_t **drawSurfs, int numDrawSurfs, 
+void RB_RenderDrawSurfListWithFunction( drawSurf_t **drawSurfs, int numDrawSurfs,
 					  void (*triFunc_)( const drawSurf_t *) );
-void RB_RenderDrawSurfChainWithFunction( const drawSurf_t *drawSurfs, 
+void RB_RenderDrawSurfChainWithFunction( const drawSurf_t *drawSurfs,
 										void (*triFunc_)( const drawSurf_t *) );
 void RB_DrawShaderPasses( drawSurf_t **drawSurfs, int numDrawSurfs );
 void RB_LoadShaderTextureMatrix( const float *shaderRegisters, const textureStage_t *texture );
@@ -1280,8 +1246,6 @@ void RB_DrawElementsWithCounters( const srfTriangles_t *tri );
 void RB_DrawShadowElementsWithCounters( const srfTriangles_t *tri, int numIndexes );
 void RB_STD_FillDepthBuffer( drawSurf_t **drawSurfs, int numDrawSurfs );
 void RB_BindVariableStageImage( const textureStage_t *texture, const float *shaderRegisters );
-void RB_BindStageTexture( const float *shaderRegisters, const textureStage_t *texture, const drawSurf_t *surf );
-void RB_FinishStageTexture( const textureStage_t *texture, const drawSurf_t *surf );
 void RB_StencilShadowPass( const drawSurf_t *drawSurfs );
 void RB_STD_DrawView( void );
 void RB_STD_FogAllLights( void );
@@ -1295,40 +1259,24 @@ DRAW_*
 ============================================================
 */
 
-void	RB_ARB_DrawInteractions( void );
-
-void	R_R200_Init( void );
-void	RB_R200_DrawInteractions( void );
-
-void	R_NV10_Init( void );
-void	RB_NV10_DrawInteractions( void );
-
-void	R_NV20_Init( void );
-void	RB_NV20_DrawInteractions( void );
-
 void	R_ARB2_Init( void );
 void	RB_ARB2_DrawInteractions( void );
+
 void	R_ReloadARBPrograms_f( const idCmdArgs &args );
 int		R_FindARBProgram( GLenum target, const char *program );
+
+void	R_Exp_Init( void );
+void    RB_Exp_DrawInteractions( void );
 
 typedef enum {
 	PROG_INVALID,
 	VPROG_INTERACTION,
 	VPROG_ENVIRONMENT,
 	VPROG_BUMPY_ENVIRONMENT,
-	VPROG_R200_INTERACTION,
 	VPROG_STENCIL_SHADOW,
-	VPROG_NV20_BUMP_AND_LIGHT,
-	VPROG_NV20_DIFFUSE_COLOR,
-	VPROG_NV20_SPECULAR_COLOR,
-	VPROG_NV20_DIFFUSE_AND_SPECULAR_COLOR,
-	VPROG_TEST,
 	FPROG_INTERACTION,
 	FPROG_ENVIRONMENT,
 	FPROG_BUMPY_ENVIRONMENT,
-	FPROG_TEST,
-	VPROG_AMBIENT,
-	FPROG_AMBIENT,
 	VPROG_GLASSWARP,
 	FPROG_GLASSWARP,
 	PROG_USER
@@ -1378,9 +1326,7 @@ typedef enum {
 	PP_SPECULAR_MATRIX_S,
 	PP_SPECULAR_MATRIX_T,
 	PP_COLOR_MODULATE,
-	PP_COLOR_ADD,
-
-	PP_LIGHT_FALLOFF_TQ = 20	// only for NV programs
+	PP_COLOR_ADD
 } programParameter_t;
 
 
@@ -1451,7 +1397,7 @@ typedef struct {
 	int		totalIndexes;
 } optimizedShadow_t;
 
-optimizedShadow_t SuperOptimizeOccluders( idVec4 *verts, glIndex_t *indexes, int numIndexes, 
+optimizedShadow_t SuperOptimizeOccluders( idVec4 *verts, glIndex_t *indexes, int numIndexes,
 										 idPlane projectionPlane, idVec3 projectionOrigin );
 
 void CleanupOptimizedShadowTris( srfTriangles_t *tri );
@@ -1675,8 +1621,8 @@ TR_SHADOWBOUNDS
 =============================================================
 */
 idScreenRect R_CalcIntersectionScissor( const idRenderLightLocal * lightDef,
-									    const idRenderEntityLocal * entityDef,
-									    const viewDef_t * viewDef );
+										const idRenderEntityLocal * entityDef,
+										const viewDef_t * viewDef );
 
 //=============================================
 

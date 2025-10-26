@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "../renderer/Image.h"
@@ -106,6 +106,7 @@ unsigned int	com_msgID = -1;
 #ifdef __DOOM_DLL__
 idGame *		game = NULL;
 idGameEdit *	gameEdit = NULL;
+idAnimManager *	animationLib = NULL;
 #endif
 
 // writes si_version to the config file - in a kinda obfuscated way
@@ -140,9 +141,6 @@ public:
 	virtual void				Error( const char *fmt, ... ) id_attribute((format(printf,2,3)));
 	virtual void				FatalError( const char *fmt, ... ) id_attribute((format(printf,2,3)));
 	virtual const idLangDict *	GetLanguageDict( void );
-
-	virtual const char *		KeysFromBinding( const char *bind );
-	virtual const char *		BindingFromKey( const char *key );
 
 	virtual int					ButtonState( int key );
 	virtual int					KeyState( int key );
@@ -474,7 +472,7 @@ prints message that only shows up if the "developer" cvar is set
 void idCommonLocal::DPrintf( const char *fmt, ... ) {
 	va_list		argptr;
 	char		msg[MAX_PRINT_MSG_SIZE];
-		
+
 	if ( !cvarSystem->IsInitialized() || !com_developer.GetBool() ) {
 		return;			// don't confuse non-developers with techie stuff...
 	}
@@ -483,7 +481,7 @@ void idCommonLocal::DPrintf( const char *fmt, ... ) {
 	idStr::vsnPrintf( msg, sizeof(msg), fmt, argptr );
 	va_end( argptr );
 	msg[sizeof(msg)-1] = '\0';
-	
+
 	// never refresh the screen, which could cause reentrency problems
 	bool temp = com_refreshOnPrint;
 	com_refreshOnPrint = false;
@@ -503,7 +501,7 @@ prints warning message in yellow that only shows up if the "developer" cvar is s
 void idCommonLocal::DWarning( const char *fmt, ... ) {
 	va_list		argptr;
 	char		msg[MAX_PRINT_MSG_SIZE];
-		
+
 	if ( !com_developer.GetBool() ) {
 		return;			// don't confuse non-developers with techie stuff...
 	}
@@ -526,7 +524,7 @@ prints WARNING %s and adds the warning message to a queue to be printed later on
 void idCommonLocal::Warning( const char *fmt, ... ) {
 	va_list		argptr;
 	char		msg[MAX_PRINT_MSG_SIZE];
-		
+
 	va_start( argptr, fmt );
 	idStr::vsnPrintf( msg, sizeof(msg), fmt, argptr );
 	va_end( argptr );
@@ -890,7 +888,7 @@ void idCommonLocal::CheckToolMode( void ) {
 		else if ( !idStr::Icmp( com_consoleLines[ i ].Argv(0), "materialEditor" ) ) {
 			com_editors |= EDITOR_MATERIAL;
 		}
-		
+
 		if ( !idStr::Icmp( com_consoleLines[ i ].Argv(0), "renderbump" )
 			|| !idStr::Icmp( com_consoleLines[ i ].Argv(0), "editor" )
 			|| !idStr::Icmp( com_consoleLines[ i ].Argv(0), "guieditor" )
@@ -1059,7 +1057,7 @@ void idCommonLocal::WriteConfigToFile( const char *filename ) {
 	f->Printf( "// %s\n", out.c_str() );
 #endif
 
-	idKeyInput::WriteBindings( f );
+	keyInput->WriteBindings( f );
 	cvarSystem->WriteFlaggedVariables( CVAR_ARCHIVE, "seta", f );
 	fileSystem->CloseFile( f );
 }
@@ -1088,30 +1086,9 @@ void idCommonLocal::WriteConfiguration( void ) {
 	com_developer.SetBool( false );
 
 	WriteConfigToFile( CONFIG_FILE );
-	session->WriteCDKey( );
 
 	// restore the developer cvar
 	com_developer.SetBool( developer );
-}
-
-/*
-===============
-KeysFromBinding()
-Returns the key bound to the command
-===============
-*/
-const char* idCommonLocal::KeysFromBinding( const char *bind ) {
-	return idKeyInput::KeysFromBinding( bind );
-}
-
-/*
-===============
-BindingFromKey()
-Returns the binding bound to key
-===============
-*/
-const char* idCommonLocal::BindingFromKey( const char *key ) {
-	return idKeyInput::BindingFromKey( key );
 }
 
 /*
@@ -1217,7 +1194,7 @@ static void PrintMemInfo_f( const idCmdArgs &args ) {
 		return;
 	}
 
-	f->Printf( "total(%s ) image(%s ) model(%s ) sound(%s ): %s\n", idStr::FormatNumber( mi.assetTotals ).c_str(), idStr::FormatNumber( mi.imageAssetsTotal ).c_str(), 
+	f->Printf( "total(%s ) image(%s ) model(%s ) sound(%s ): %s\n", idStr::FormatNumber( mi.assetTotals ).c_str(), idStr::FormatNumber( mi.imageAssetsTotal ).c_str(),
 		idStr::FormatNumber( mi.modelAssetsTotal ).c_str(), idStr::FormatNumber( mi.soundAssetsTotal ).c_str(), mi.filebase.c_str() );
 
 	fileSystem->CloseFile( f );
@@ -1514,23 +1491,10 @@ void Com_ExecMachineSpec_f( const idCmdArgs &args ) {
 		cvarSystem->SetCVarBool( "r_forceLoadImages", false, CVAR_ARCHIVE );
 	}
 
-	bool oldCard = false;
-	bool nv10or20 = false;
-	renderSystem->GetCardCaps( oldCard, nv10or20 );
-	if ( oldCard ) {
-		cvarSystem->SetCVarBool( "g_decals", false, CVAR_ARCHIVE );
-		cvarSystem->SetCVarBool( "g_projectileLights", false, CVAR_ARCHIVE );
-		cvarSystem->SetCVarBool( "g_doubleVision", false, CVAR_ARCHIVE );
-		cvarSystem->SetCVarBool( "g_muzzleFlash", false, CVAR_ARCHIVE );
-	} else {
-		cvarSystem->SetCVarBool( "g_decals", true, CVAR_ARCHIVE );
-		cvarSystem->SetCVarBool( "g_projectileLights", true, CVAR_ARCHIVE );
-		cvarSystem->SetCVarBool( "g_doubleVision", true, CVAR_ARCHIVE );
-		cvarSystem->SetCVarBool( "g_muzzleFlash", true, CVAR_ARCHIVE );
-	}
-	if ( nv10or20 ) {
-		cvarSystem->SetCVarInteger( "image_useNormalCompression", 1, CVAR_ARCHIVE );
-	}
+	cvarSystem->SetCVarBool( "g_decals", true, CVAR_ARCHIVE );
+	cvarSystem->SetCVarBool( "g_projectileLights", true, CVAR_ARCHIVE );
+	cvarSystem->SetCVarBool( "g_doubleVision", true, CVAR_ARCHIVE );
+	cvarSystem->SetCVarBool( "g_muzzleFlash", true, CVAR_ARCHIVE );
 
 #if MACOS_X
 	// On low settings, G4 systems & 64MB FX5200/NV34 Systems should default shadows off
@@ -1596,7 +1560,7 @@ idCommonLocal::FilterLangList
 ===============
 */
 void idCommonLocal::FilterLangList( idStrList* list, idStr lang ) {
-	
+
 	idStr temp;
 	for( int i = 0; i < list->Num(); i++ ) {
 		temp = (*list)[i];
@@ -1624,7 +1588,7 @@ void idCommonLocal::InitLanguageDict( void ) {
 	//to add new strings to the english language dictionary
 	idFileList*	langFiles;
 	langFiles =  fileSystem->ListFilesTree( "strings", ".lang", true );
-	
+
 	idStrList langList = langFiles->GetList();
 
 	StartupVariable( "sys_lang", false );	// let it be set on the command line - this is needed because this init happens very early
@@ -1633,7 +1597,7 @@ void idCommonLocal::InitLanguageDict( void ) {
 	//Loop through the list and filter
 	idStrList currentLangList = langList;
 	FilterLangList(&currentLangList, langName);
-	
+
 	if ( currentLangList.Num() == 0 ) {
 		// reset cvar to default and try to load again
 		cmdSystem->BufferCommandText( CMD_EXEC_NOW, "reset sys_lang" );
@@ -1743,7 +1707,7 @@ void idCommonLocal::LocalizeGui( const char *fileName, idLangDict &langDict ) {
 	if ( fileSystem->ReadFile( fileName, (void**)&buffer ) > 0 ) {
 		src.LoadMemory( buffer, strlen(buffer), fileName );
 		if ( src.IsLoaded() ) {
-			idFile *outFile = fileSystem->OpenFileWrite( fileName ); 
+			idFile *outFile = fileSystem->OpenFileWrite( fileName );
 			common->Printf( "Processing %s\n", fileName );
 			session->UpdateScreen();
 			idToken token;
@@ -1945,7 +1909,7 @@ int LocalizeMap(const char* mapName, idLangDict &langDict, ListHash& listHash, i
 	common->Printf("Localizing Map '%s'\n", mapName);
 
 	int strCount = 0;
-	
+
 	idMapFile map;
 	if ( map.Parse(mapName, false, false ) ) {
 		int count = map.GetNumEntities();
@@ -1965,13 +1929,13 @@ int LocalizeMap(const char* mapName, idLangDict &langDict, ListHash& listHash, i
 					for(int k = 0; k < list->Num(); k++) {
 
 						idStr val = ent->epairs.GetString((*list)[k], "");
-						
+
 						if(val.Length() && classname == "info_location" && (*list)[k] == "location") {
 							hasLocation = true;
 						}
 
 						if(val.Length() && TestMapVal(val)) {
-							
+
 							if(!hasLocation || (*list)[k] == "location") {
 								//Localize it!!!
 								strCount++;
@@ -2011,7 +1975,7 @@ int LocalizeMap(const char* mapName, idLangDict &langDict, ListHash& listHash, i
 			idStr bak = file.Left(file.Length() - 4);
 			bak.Append(".bak_loc");
 			fileSystem->CopyFile( file, bak );
-			
+
 			map.Write( mapName, ".map" );
 		}
 	}
@@ -2032,7 +1996,7 @@ void Com_LocalizeMaps_f( const idCmdArgs &args ) {
 	}
 
 	int strCount = 0;
-	
+
 	bool count = false;
 	bool dictUpdate = false;
 	bool write = false;
@@ -2061,7 +2025,7 @@ void Com_LocalizeMaps_f( const idCmdArgs &args ) {
 	}
 
 	common->SetRefreshOnPrint( true );
-	
+
 	ListHash listHash;
 	LoadMapLocalizeData(listHash);
 
@@ -2075,7 +2039,7 @@ void Com_LocalizeMaps_f( const idCmdArgs &args ) {
 		GetFileList("z:/d3xp/d3xp/maps/game", "*.map", files);
 		for ( int i = 0; i < files.Num(); i++ ) {
 			idStr file =  fileSystem->OSPathToRelativePath(files[i]);
-			strCount += LocalizeMap(file, strTable, listHash, excludeList, write);		
+			strCount += LocalizeMap(file, strTable, listHash, excludeList, write);
 		}
 	}
 
@@ -2128,7 +2092,7 @@ void Com_LocalizeGuis_f( const idCmdArgs &args ) {
 		} else {
 			files = fileSystem->ListFilesTree( "guis", "*.pd", true, "d3xp" );
 		}
-		
+
 		for ( int i = 0; i < files->GetNumFiles(); i++ ) {
 			commonLocal.LocalizeGui( files->GetFile( i ), strTable );
 		}
@@ -2144,8 +2108,8 @@ void Com_LocalizeGuiParmsTest_f( const idCmdArgs &args ) {
 
 	common->SetRefreshOnPrint( true );
 
-	idFile *localizeFile = fileSystem->OpenFileWrite( "gui_parm_localize.csv" ); 
-	idFile *noLocalizeFile = fileSystem->OpenFileWrite( "gui_parm_nolocalize.csv" ); 
+	idFile *localizeFile = fileSystem->OpenFileWrite( "gui_parm_localize.csv" );
+	idFile *noLocalizeFile = fileSystem->OpenFileWrite( "gui_parm_nolocalize.csv" );
 
 	idStrList excludeList;
 	LoadGuiParmExcludeList(excludeList);
@@ -2154,7 +2118,7 @@ void Com_LocalizeGuiParmsTest_f( const idCmdArgs &args ) {
 	GetFileList("z:/d3xp/d3xp/maps/game", "*.map", files);
 
 	for ( int i = 0; i < files.Num(); i++ ) {
-		
+
 		common->Printf("Testing Map '%s'\n", files[i].c_str());
 		idMapFile map;
 
@@ -2179,7 +2143,7 @@ void Com_LocalizeGuiParmsTest_f( const idCmdArgs &args ) {
 			}
 		}
 	}
-	
+
 	fileSystem->CloseFile( localizeFile );
 	fileSystem->CloseFile( noLocalizeFile );
 
@@ -2195,8 +2159,8 @@ void Com_LocalizeMapsTest_f( const idCmdArgs &args ) {
 
 	common->SetRefreshOnPrint( true );
 
-	idFile *localizeFile = fileSystem->OpenFileWrite( "map_localize.csv" ); 
-	
+	idFile *localizeFile = fileSystem->OpenFileWrite( "map_localize.csv" );
+
 	idStrList files;
 	GetFileList("z:/d3xp/d3xp/maps/game", "*.map", files);
 
@@ -2211,7 +2175,7 @@ void Com_LocalizeMapsTest_f( const idCmdArgs &args ) {
 			for ( int j = 0; j < count; j++ ) {
 				idMapEntity *ent = map.GetEntity( j );
 				if ( ent ) {
-					
+
 					//Temp code to get a list of all entity key value pairs
 					/*idStr classname = ent->epairs.GetString("classname");
 					if(classname == "worldspawn" || classname == "func_static" || classname == "light" || classname == "speaker" || classname.Left(8) == "trigger_") {
@@ -2224,7 +2188,7 @@ void Com_LocalizeMapsTest_f( const idCmdArgs &args ) {
 					}*/
 
 					idStr classname = ent->epairs.GetString("classname");
-					
+
 					//Hack: for info_location
 					bool hasLocation = false;
 
@@ -2235,13 +2199,13 @@ void Com_LocalizeMapsTest_f( const idCmdArgs &args ) {
 						for(int k = 0; k < list->Num(); k++) {
 
 							idStr val = ent->epairs.GetString((*list)[k], "");
-							
+
 							if(classname == "info_location" && (*list)[k] == "location") {
 								hasLocation = true;
 							}
 
 							if(val.Length() && TestMapVal(val)) {
-								
+
 								if(!hasLocation || (*list)[k] == "location") {
 									idStr out = va("%s,%s,%s\r\n", val.c_str(), (*list)[k].c_str(), file.c_str());
 									localizeFile->Write( out.c_str(), out.Length() );
@@ -2443,7 +2407,7 @@ void idCommonLocal::Frame( void ) {
 		Sys_GenerateEvents();
 
 		// write config file if anything changed
-		WriteConfiguration(); 
+		WriteConfiguration();
 
 		// change SIMD implementation if required
 		if ( com_forceGenericSIMD.IsModified() ) {
@@ -2477,7 +2441,7 @@ void idCommonLocal::Frame( void ) {
 			Printf( "frame:%i all:%3i gfr:%3i rf:%3i bk:%3i\n", com_frameNumber, com_frameMsec, time_gameFrame, time_frontend, time_backend );
 			time_gameFrame = 0;
 			time_gameDraw = 0;
-		}	
+		}
 
 		com_frameNumber++;
 
@@ -2509,7 +2473,7 @@ void idCommonLocal::GUIFrame( bool execCmd, bool network ) {
 		idAsyncNetwork::RunFrame();
 	}
 	session->Frame();
-	session->UpdateScreen( false );	
+	session->UpdateScreen( false );
 }
 
 /*
@@ -2681,6 +2645,7 @@ void idCommonLocal::LoadGameDLL( void ) {
 
 	game								= gameExport.game;
 	gameEdit							= gameExport.gameEdit;
+	animationLib						= gameExport.animationLib;
 
 #endif
 
@@ -2733,17 +2698,13 @@ void idCommonLocal::SetMachineSpec( void ) {
 	double ghz = Sys_ClockTicksPerSecond() * 0.000000001f;
 	int vidRam = Sys_GetVideoRam();
 	int sysRam = Sys_GetSystemRam();
-	bool oldCard = false;
-	bool nv10or20 = false;
 
-	renderSystem->GetCardCaps( oldCard, nv10or20 );
+	Printf( "Detected\n \t%.2f GHz CPU\n\t%i MB of System memory\n\t%i MB of Video memory on %s\n\n", ghz, sysRam, vidRam, "an optimal video architecture" );
 
-	Printf( "Detected\n \t%.2f GHz CPU\n\t%i MB of System memory\n\t%i MB of Video memory on %s\n\n", ghz, sysRam, vidRam, ( oldCard ) ? "a less than optimal video architecture" : "an optimal video architecture" );
-
-	if ( ghz >= 2.75f && vidRam >= 512 && sysRam >= 1024 && !oldCard ) {
+	if ( ghz >= 2.75f && vidRam >= 512 && sysRam >= 1024 ) {
 		Printf( "This system qualifies for Ultra quality!\n" );
 		com_machineSpec.SetInteger( 3 );
-	} else if ( ghz >= ( ( cpu & CPUID_AMD ) ? 1.9f : 2.19f ) && vidRam >= 256 && sysRam >= 512 && !oldCard ) {
+	} else if ( ghz >= ( ( cpu & CPUID_AMD ) ? 1.9f : 2.19f ) && vidRam >= 256 && sysRam >= 512 ) {
 		Printf( "This system qualifies for High quality!\n" );
 		com_machineSpec.SetInteger( 2 );
 	} else if ( ghz >= ( ( cpu & CPUID_AMD ) ? 1.1f : 1.25f ) && vidRam >= 128 && sysRam >= 384 ) {
@@ -2775,7 +2736,7 @@ void idCommonLocal::Init( int argc, const char **argv, const char *cmdline ) {
 
 		// clear warning buffer
 		ClearWarnings( GAME_NAME " initialization" );
-		
+
 		// parse command line options
 		idCmdArgs args;
 		if ( cmdline ) {
@@ -2801,7 +2762,7 @@ void idCommonLocal::Init( int argc, const char **argv, const char *cmdline ) {
 		Printf( "%s\n", version.string );
 
 		// initialize key input/binding, done early so bind command exists
-		idKeyInput::Init();
+		keyInput->Init();
 
 		// init the console so we can take prints
 		console->Init();
@@ -2832,12 +2793,7 @@ void idCommonLocal::Init( int argc, const char **argv, const char *cmdline ) {
 		// game specific initialization
 		InitGame();
 
-		// don't add startup commands if no CD key is present
-#if ID_ENFORCE_KEY
-		if ( !session->CDKeysAreValid( false ) || !AddStartupCommands() ) {
-#else
 		if ( !AddStartupCommands() ) {
-#endif
 			// if the user didn't give any commands, run default action
 			session->StartMenu( true );
 		}
@@ -2853,7 +2809,7 @@ void idCommonLocal::Init( int argc, const char **argv, const char *cmdline ) {
 
 		// remove any prints from the notify lines
 		console->ClearNotifyLines();
-		
+
 		ClearCommandLine();
 
 		com_fullyInitialized = true;
@@ -2887,7 +2843,7 @@ void idCommonLocal::Shutdown( void ) {
 	console->Shutdown();
 
 	// shut down the key system
-	idKeyInput::Shutdown();
+	keyInput->Shutdown();
 
 	// shut down the cvar system
 	cvarSystem->Shutdown();
@@ -2938,7 +2894,7 @@ void idCommonLocal::InitGame( void ) {
 		file = fileSystem->OpenFileWrite( CONFIG_SPEC );
 		fileSystem->CloseFile( file );
 	}
-	
+
 	idCmdArgs args;
 	if ( sysDetect ) {
 		SetMachineSpec();
@@ -3025,7 +2981,7 @@ void idCommonLocal::InitGame( void ) {
 
 	// load the game dll
 	LoadGameDLL();
-	
+
 	PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04351" ) );
 
 	// init the session
@@ -3033,7 +2989,7 @@ void idCommonLocal::InitGame( void ) {
 
 	// have to do this twice.. first one sets the correct r_mode for the renderer init
 	// this time around the backend is all setup correct.. a bit fugly but do not want
-	// to mess with all the gl init at this point.. an old vid card will never qualify for 
+	// to mess with all the gl init at this point.. an old vid card will never qualify for
 	if ( sysDetect ) {
 		SetMachineSpec();
 		Com_ExecMachineSpec_f( args );

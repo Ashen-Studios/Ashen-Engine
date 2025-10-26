@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -628,7 +628,7 @@ void idParser::AddBuiltinDefines( void ) {
 		const char *string;
 		int id;
 	} builtin[] = {
-		{ "__LINE__",	BUILTIN_LINE }, 
+		{ "__LINE__",	BUILTIN_LINE },
 		{ "__FILE__",	BUILTIN_FILE },
 		{ "__DATE__",	BUILTIN_DATE },
 		{ "__TIME__",	BUILTIN_TIME },
@@ -765,6 +765,17 @@ int idParser::ExpandDefine( idToken *deftoken, define_t *define, idToken **first
 	idToken *t1, *t2, *first, *last, *nextpt, token;
 	int parmnum, i;
 
+	// Write #if MACRO for undefined MACRO
+	// so we substitute undefined define with zero
+	if ( !define ) {
+		idToken *zero = new idToken(*deftoken);;
+		*zero = "0";
+		zero->type = TT_NUMBER;
+		zero->NumberValue();
+		*firsttoken = *lasttoken = zero;
+		return true;
+	}
+
 	// if it is a builtin define
 	if ( define->builtin ) {
 		return idParser::ExpandBuiltinDefine( deftoken, define, firsttoken, lasttoken );
@@ -838,7 +849,7 @@ int idParser::ExpandDefine( idToken *deftoken, define_t *define, idToken **first
 			// add the token to the list
 			t->next = NULL;
 // the token being read from the define list should use the line number of
-// the original file, not the header file			
+// the original file, not the header file
 			t->line = deftoken->line;
 
 			if ( last ) last->next = t;
@@ -918,7 +929,7 @@ int idParser::ReadLine( idToken *token ) {
 		if (!idParser::ReadSourceToken( token )) {
 			return false;
 		}
-		
+
 		if (token->linesCrossed > crossline) {
 			idParser::UnreadSourceToken( token );
 			return false;
@@ -1524,7 +1535,7 @@ int idParser::EvaluateTokens( idToken *tokens, signed long int *intvalue, double
 							break;
 						}
 					}
-					
+
 					case P_MUL:
 					case P_DIV:
 					case P_MOD:
@@ -1832,8 +1843,7 @@ int idParser::Evaluate( signed long int *intvalue, double *floatvalue, int integ
 				//then it must be a define
 				define = FindHashedDefine(idParser::definehash, token.c_str());
 				if (!define) {
-					idParser::Error( "can't Evaluate '%s', not defined", token.c_str() );
-					return false;
+					idParser::Warning( "can't evaluate undefined macro '%s', substituted with zero", token.c_str() );
 				}
 				if ( !idParser::ExpandDefineIntoSource( &token, define ) ) {
 					return false;
@@ -2933,19 +2943,19 @@ void idParser::GetStringFromMarker( idStr& out, bool clean ) {
 	if ( marker_p == NULL ) {
 		marker_p = scriptstack->buffer;
 	}
-		
+
 	if ( tokens ) {
 		p = (char*)tokens->whiteSpaceStart_p;
 	} else {
 		p = (char*)scriptstack->script_p;
 	}
-	
+
 	// Set the end character to NULL to give us a complete string
 	save = *p;
 	*p = 0;
-	
+
 	// If cleaning then reparse
-	if ( clean ) {	
+	if ( clean ) {
 		idParser temp( marker_p, strlen( marker_p ), "temp", flags );
 		idToken token;
 		while ( temp.ReadToken ( &token ) ) {
@@ -2954,9 +2964,9 @@ void idParser::GetStringFromMarker( idStr& out, bool clean ) {
 	} else {
 		out = marker_p;
 	}
-	
+
 	// restore the character we set to NULL
-	*p = save;		
+	*p = save;
 }
 
 /*

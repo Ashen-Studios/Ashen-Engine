@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -727,7 +727,7 @@ idWinding *Brush_MakeFaceWinding(brush_t *b, face_t *face, bool keepOnPlaneWindi
 
 	if (!w) {
 		Sys_Status("Unable to create face winding on brush\n");
-	} 
+	}
 	return w;
 }
 
@@ -1436,7 +1436,7 @@ brush_t *Brush_Parse(idVec3 origin) {
 			if (newFormat) {
 				//Brush_BuildWindings(b, true, true, false, false);
 			}
-			
+
 			if (b == NULL) {
 				Warning("parsing brush primitive");
 				return NULL;
@@ -2505,7 +2505,7 @@ Brush_ModelIntersect
 bool Brush_ModelIntersect(brush_t *b, idVec3 origin, idVec3 dir,float &scale) {
 	idRenderModel *model = b->modelHandle;
 	idRenderModel *md5;
-   
+
     if ( !model )
         model = b->owner->eclass->entityModel;
 
@@ -3700,11 +3700,11 @@ void DrawProjectedLight(brush_t *b, bool bSelected, bool texture) {
 GLCircle
 ================
 */
-void GLCircle(float x, float y, float z, float r) 
-{ 
-	float ix = 0; 
-	float iy = r; 
-	float ig = 3 - 2 * r; 
+void GLCircle(float x, float y, float z, float r)
+{
+	float ix = 0;
+	float iy = r;
+	float ig = 3 - 2 * r;
 	float idgr = -6;
 	float idgd = 4 * r - 10;
 	qglPointSize(0.5f);
@@ -3730,7 +3730,7 @@ void GLCircle(float x, float y, float z, float r)
 		qglVertex3f(x - iy, y - ix, z);
 	}
 	qglEnd();
-} 
+}
 
 /*
 ================
@@ -3742,9 +3742,9 @@ void DrawSpeaker(brush_t *b, bool bSelected, bool twoD) {
 	if (!(g_qeglobals.d_savedinfo.showSoundAlways || (g_qeglobals.d_savedinfo.showSoundWhenSelected && bSelected))) {
 		return;
 	}
-	
+
 	// convert to units ( inches )
-	float min = FloatForKey(b->owner, "s_mindistance"); 
+	float min = FloatForKey(b->owner, "s_mindistance");
 	float max = FloatForKey(b->owner, "s_maxdistance");
 
 	const char *s = b->owner->epairs.GetString("s_shader");
@@ -3758,12 +3758,12 @@ void DrawSpeaker(brush_t *b, bool bSelected, bool twoD) {
 				max = shader->GetMaxDistance();
 			}
 		}
-	} 
+	}
 
 	if (min == 0 && max == 0) {
 		return;
 	}
-	
+
 
 	// convert from meters to doom units
 	min *= METERS_TO_DOOM;
@@ -3812,7 +3812,7 @@ void DrawSpeaker(brush_t *b, bool bSelected, bool twoD) {
 		qglPopMatrix();
 	}
 
-		
+
 }
 
 /*
@@ -3959,7 +3959,7 @@ void Brush_DrawModel( brush_t *b, bool camera, bool bSelected ) {
 		model = b->owner->eclass->entityModel;
 	}
 	if ( model ) {
-		idRenderModel *model2; 
+		idRenderModel *model2;
 
 		model2 = NULL;
 		bool fixedBounds = false;
@@ -4031,7 +4031,7 @@ void Brush_DrawModel( brush_t *b, bool camera, bool bSelected ) {
                 qglPolygonMode ( GL_FRONT_AND_BACK , GL_FILL );
                 qglColor3fv ( g_qeglobals.d_savedinfo.colors[COLOR_SELBRUSHES].ToFloatPtr () );
                 qglEnable ( GL_BLEND );
-                qglBlendFunc ( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );                
+                qglBlendFunc ( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
                 DrawRenderModel( model, b->owner->origin, axis, camera );
             }
 			*/
@@ -4193,7 +4193,7 @@ void Brush_DrawAxis(brush_t *b) {
 			wr = yr;
 			type = 1;
 		}
-		
+
 		if (g_qeglobals.flatRotation) {
 			if (yr > wr) {
 				wr = yr;
@@ -4254,7 +4254,7 @@ void Brush_DrawEmitter(brush_t *b, bool bSelected, bool cam) {
 	if ( !( b->owner->eclass->nShowFlags & ECLASS_PARTICLE ) ) {
 		return;
 	}
-		
+
 	if (bSelected) {
 		qglColor4f(g_qeglobals.d_savedinfo.colors[COLOR_SELBRUSHES].x, g_qeglobals.d_savedinfo.colors[COLOR_SELBRUSHES].y, g_qeglobals.d_savedinfo.colors[COLOR_SELBRUSHES].z, .5);
 	} else {
@@ -4336,8 +4336,8 @@ void Brush_DrawCombatNode( brush_t *b, bool cameraView, bool bSelected ) {
 		color = colorRed;
 	} else  {
 		color = colorBlue;
-	} 
-		
+	}
+
 	idVec3 leftDir( -cone_left.y, cone_left.x, 0.0f );
 	idVec3 rightDir( cone_right.y, -cone_right.x, 0.0f );
 	leftDir.NormalizeFast();
@@ -4577,7 +4577,7 @@ idSurface_SweptSpline *SplineToSweptSpline( idCurve<idVec3> *curve ) {
 Brush_DrawCurve
 ================
 */
-void Brush_DrawCurve( brush_t *b, bool bSelected, bool cam ) { 
+void Brush_DrawCurve( brush_t *b, bool bSelected, bool cam ) {
 	if ( b == NULL || b->owner->curve == NULL ) {
 		return;
 	}
@@ -4587,7 +4587,7 @@ void Brush_DrawCurve( brush_t *b, bool bSelected, bool cam ) {
 	qglColor3f( 0.0f, 0.0f, 1.0f );
 	for ( i = 0; i < maxage; i++) {
 
-		if ( bSelected && g_qeglobals.d_select_mode == sel_editpoint ) { 
+		if ( bSelected && g_qeglobals.d_select_mode == sel_editpoint ) {
 			idVec3 v = b->owner->curve->GetValue( i );
 			if ( cam ) {
 				glBox( colorBlue, v, 6.0f );
@@ -4605,7 +4605,7 @@ void Brush_DrawCurve( brush_t *b, bool bSelected, bool cam ) {
 				}
 			}
 		}
-/*		
+/*
 		if ( cam ) {
 			idSurface_SweptSpline *ss = SplineToSweptSpline( b->owner->curve );
 			if ( ss ) {
@@ -4638,7 +4638,7 @@ void Brush_DrawCurve( brush_t *b, bool bSelected, bool cam ) {
 				for ( int j = 0; j < POINTS_PER_KNOT; j++ ) {
 					idVec3 v = b->owner->curve->GetCurrentValue( start );
 					qglVertex3f( v.x, v.y, v.z );
-					start += inc;								
+					start += inc;
 				}
 			}*/
                 // DHM - _D3XP : Makes it easier to see curve
@@ -4650,7 +4650,7 @@ void Brush_DrawCurve( brush_t *b, bool bSelected, bool cam ) {
 			for ( int j = 0; j <= POINTS_PER_KNOT; j++ ) {
 				idVec3 v = b->owner->curve->GetCurrentValue( start );
 				qglVertex3f( v.x, v.y, v.z );
-				start += inc;								
+				start += inc;
 			}
 			}
 			qglEnd();
@@ -4886,7 +4886,7 @@ void Brush_Move(brush_t *b, const idVec3 move, bool bSnap, bool updateOrigin) {
 				if (QE_SingleBrush(true, true)) {
 					adjustOrigin = false;
 				}
-			} 
+			}
 
 			if (adjustOrigin && updateOrigin) {
 				b->owner->origin += move;
@@ -5215,6 +5215,6 @@ void Brush_GetBounds( brush_t *b, idBounds &bo ) {
 		for ( int i = 0; i < c; i++ ) {
 			bo.AddPoint ( b->owner->curve->GetValue( i ) );
 		}
-	} 
+	}
 
 }

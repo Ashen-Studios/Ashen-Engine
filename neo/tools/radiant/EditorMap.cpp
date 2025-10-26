@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -518,7 +518,7 @@ void Map_LoadFile(const char *filename) {
 	ent = AngledEntity();
 
 	g_pParentWnd->GetCamera()->Camera().angles[PITCH] = 0;
-	
+
 	if (ent) {
 		GetVectorForKey(ent, "origin", g_pParentWnd->GetCamera()->Camera().origin);
 		GetVectorForKey(ent, "origin", g_pParentWnd->GetXYWnd()->GetOrigin());
@@ -619,7 +619,7 @@ idMapEntity *EntityToMapEntity(entity_t *e, bool use_region, CWaitDlg *dlg) {
 	long lastUpdate = 0;
 	if ( !EntityHasModel( e ) ) {
 		for ( brush_t *b = e->brushes.onext; b != &e->brushes; b = b->onext ) {
-			count++;					
+			count++;
 			if ( e->eclass->fixedsize && !b->entityModel ) {
 				continue;
 			}
@@ -659,7 +659,7 @@ bool Map_SaveFile(const char *filename, bool use_region, bool autosave) {
 
 	int len = strlen(filename);
 	WIN32_FIND_DATA FileData;
-	if (FindFirstFile(filename, &FileData) != INVALID_HANDLE_VALUE) { 
+	if (FindFirstFile(filename, &FileData) != INVALID_HANDLE_VALUE) {
 		// the file exists;
 		if (len > 0 && GetFileAttributes(filename) & FILE_ATTRIBUTE_READONLY) {
 			g_pParentWnd->MessageBox("File is read only", "Read Only", MB_OK);
@@ -727,7 +727,7 @@ bool Map_SaveFile(const char *filename, bool use_region, bool autosave) {
 
 	if ( use_region ) {
 		idStr buf;
-		sprintf( buf, "{\n\"classname\"    \"info_player_start\"\n\"origin\"\t \"%i %i %i\"\n\"angle\"\t \"%i\"\n}\n", 
+		sprintf( buf, "{\n\"classname\"    \"info_player_start\"\n\"origin\"\t \"%i %i %i\"\n\"angle\"\t \"%i\"\n}\n",
 					(int)g_pParentWnd->GetCamera()->Camera().origin[0],
 					(int)g_pParentWnd->GetCamera()->Camera().origin[1],
 					(int)g_pParentWnd->GetCamera()->Camera().origin[2],
@@ -768,8 +768,8 @@ bool Map_SaveFile(const char *filename, bool use_region, bool autosave) {
 
 			if (use_region && !idStr::Icmp(ValueForKey(e, "classname"), "info_player_start")) {
 				continue;
-			} 
-		
+			}
+
 			idStr classname = e->epairs.GetString("classname");
 			sprintf(status, "Saving entity %i (%s)...", count, classname.c_str());
 			dlg.SetText(status);
@@ -1132,7 +1132,7 @@ void UniqueTargetName(idStr &rStr) {
 			}
 		}
 	}
-	
+
 	sprintf(rStr, "t%i", maxtarg + 1);
 }
 
@@ -1284,7 +1284,7 @@ void Map_ImportBuffer(char *buf, bool renameEntities) {
 					{
 						LPCSTR psNewTargetName = RemappedNames.GetString( cstrTargetNameOld );
 						if (psNewTargetName && psNewTargetName[0])
-						{								
+						{
 							SetKeyValue(pEntNew, "target", psNewTargetName);
 						}
 					}

@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 /*
@@ -722,8 +722,9 @@ int idDeclFile::LoadAndParse() {
 		if ( newDecl ) {
 			// update the existing copy
 			if ( newDecl->sourceFile != this || newDecl->redefinedInReload ) {
-				src.Warning( "%s '%s' previously defined at %s:%i", declManagerLocal.GetDeclNameFromType( identifiedType ),
-								name.c_str(), newDecl->sourceFile->fileName.c_str(), newDecl->sourceLine );
+				// This really doesn't do anything bad, having redefines is actually how mods operate.
+				//src.Warning( "%s '%s' previously defined at %s:%i", declManagerLocal.GetDeclNameFromType( identifiedType ),
+				//				name.c_str(), newDecl->sourceFile->fileName.c_str(), newDecl->sourceLine );
 				continue;
 			}
 			if ( newDecl->declState != DS_UNPARSED ) {
@@ -1046,7 +1047,7 @@ int idDeclManagerLocal::GetChecksum( void ) const {
 		if ( type == DECL_PDA || type == DECL_VIDEO || type == DECL_AUDIO || type == DECL_EMAIL ) {
 			continue;
 		}
- 
+
 		num = linearLists[i].Num();
 		for ( j = 0; j < num; j++ ) {
 			idDeclLocal *decl = linearLists[i][j];

@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #ifndef USE_LIBC_MALLOC
@@ -195,7 +195,7 @@ idHeap::~idHeap( void ) {
 	if ( smallCurPage ) {
 		FreePage( smallCurPage );			// free small-heap current allocation page
 	}
-	p = smallFirstUsedPage;					// free small-heap allocated pages 
+	p = smallFirstUsedPage;					// free small-heap allocated pages
 	while( p ) {
 		idHeap::page_s *next = p->next;
 		FreePage( p );
@@ -223,7 +223,7 @@ idHeap::~idHeap( void ) {
 		p = next;
 	}
 
-	ReleaseSwappedPages();			
+	ReleaseSwappedPages();
 
 	if ( defragBlock ) {
 		free( defragBlock );
@@ -326,7 +326,7 @@ void *idHeap::Allocate16( const dword bytes ) {
 			idLib::common->Printf( "Freeing defragBlock on alloc of %i.\n", bytes );
 			free( defragBlock );
 			defragBlock = NULL;
-			ptr = (byte *) malloc( bytes + 16 + 4 );			
+			ptr = (byte *) malloc( bytes + 16 + 4 );
 			AllocDefragBlock();
 		}
 		if ( !ptr ) {
@@ -417,7 +417,7 @@ void idHeap::Dump( void ) {
 	for ( pg = mediumFirstFreePage; pg; pg = pg->next ) {
 		idLib::common->Printf( "%p  bytes %-8d  (partially used by medium heap)\n", pg->data, pg->dataSize );
 	}
-	
+
 	for ( pg = largeFirstUsedPage; pg; pg = pg->next ) {
 		idLib::common->Printf( "%p  bytes %-8d  (fully used by large heap)\n", pg->data, pg->dataSize );
 	}
@@ -481,7 +481,7 @@ idHeap::page_s* idHeap::AllocatePage( dword bytes ) {
 				idLib::common->Printf( "Freeing defragBlock on alloc of %i.\n", size + ALIGN - 1 );
 				free( defragBlock );
 				defragBlock = NULL;
-				p = (idHeap::page_s *) ::malloc( size + ALIGN - 1 );			
+				p = (idHeap::page_s *) ::malloc( size + ALIGN - 1 );
 				AllocDefragBlock();
 			}
 			if ( !p ) {
@@ -500,7 +500,7 @@ idHeap::page_s* idHeap::AllocatePage( dword bytes ) {
 	p->next = NULL;
 
 	pagesAllocated++;
-	
+
 	return p;
 }
 
@@ -648,7 +648,7 @@ void *idHeap::MediumAllocateFromPage( idHeap::page_s *p, dword sizeNeeded ) {
 		}
 		best->next	= nw;
 		best->size	-= sizeNeeded;
-		
+
 		p->largestFree = best->size;
 	}
 	else {
@@ -713,7 +713,7 @@ void *idHeap::MediumAllocate( dword bytes ) {
 		}
 
 		mediumFirstFreePage		= p;
-		
+
 		p->largestFree	= pageSize;
 		p->firstFree	= (void *)p->data;
 
@@ -760,7 +760,7 @@ void *idHeap::MediumAllocate( dword bytes ) {
 		}
 		mediumFirstUsedPage = p;
 		return data;
-	} 
+	}
 
 	// re-order linked list (so that next malloc query starts from current
 	// matching block) -- this speeds up both the page walks and block walks
@@ -824,18 +824,18 @@ void idHeap::MediumFree( void *ptr ) {
 		p->largestFree	= e->size;
 		e->freeBlock	= 1;				// mark block as free
 	}
-			
+
 	mediumHeapEntry_s *next = e->next;
 
 	// if the next block is free we can merge
 	if ( next && next->freeBlock ) {
 		e->size += next->size;
 		e->next = next->next;
-		
+
 		if ( next->next ) {
 			next->next->prev = e;
 		}
-		
+
 		if ( next->prevFree ) {
 			next->prevFree->nextFree = next->nextFree;
 		}
@@ -868,7 +868,7 @@ void idHeap::MediumFree( void *ptr ) {
 		if ( e->nextFree ) {
 			e->nextFree->prevFree = e->prevFree;
 		}
-		
+
 		e->nextFree = (mediumHeapEntry_s *)p->firstFree;
 		e->prevFree = NULL;
 		if ( e->nextFree ) {
@@ -901,7 +901,7 @@ void idHeap::MediumFree( void *ptr ) {
 		if ( !mediumFirstFreePage ) {
 			mediumFirstFreePage = p;
 		}
-	} 
+	}
 }
 
 //===============================================================
@@ -1075,6 +1075,9 @@ void *Mem_Alloc( const int size ) {
 		return malloc( size );
 	}
 	void *mem = mem_heap->Allocate( size );
+#ifdef ID_DEBUG_UNINITIALIZED_MEMORY
+	memset(mem, 0xCD, size);
+#endif
 	Mem_UpdateAllocStats( mem_heap->Msize( mem ) );
 	return mem;
 }
@@ -1115,6 +1118,9 @@ void *Mem_Alloc16( const int size ) {
 		return malloc( size );
 	}
 	void *mem = mem_heap->Allocate16( size );
+#ifdef ID_DEBUG_UNINITIALIZED_MEMORY
+	memset(mem, 0xCD, size);
+#endif
 	// make sure the memory is 16 byte aligned
 	assert( ( ((int)mem) & 15) == 0 );
 	return mem;
@@ -1168,7 +1174,7 @@ Mem_CopyString
 */
 char *Mem_CopyString( const char *in ) {
 	char	*out;
-	
+
 	out = (char *)Mem_Alloc( strlen(in) + 1 );
 	strcpy( out, in );
 	return out;
@@ -1582,6 +1588,9 @@ void *Mem_AllocDebugMemory( const int size, const char *fileName, const int line
 	else {
 		p = mem_heap->Allocate( size + sizeof( debugMemory_t ) );
 	}
+#ifdef ID_DEBUG_UNINITIALIZED_MEMORY
+	memset(p, 0xCD, size);
+#endif
 
 	Mem_UpdateAllocStats( size );
 
@@ -1725,7 +1734,7 @@ Mem_CopyString
 */
 char *Mem_CopyString( const char *in, const char *fileName, const int lineNumber ) {
 	char	*out;
-	
+
 	out = (char *)Mem_Alloc( strlen(in) + 1, fileName, lineNumber );
 	strcpy( out, in );
 	return out;

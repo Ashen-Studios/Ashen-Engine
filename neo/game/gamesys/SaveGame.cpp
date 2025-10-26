@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "../Game_local.h"
@@ -36,7 +36,7 @@ If you have questions concerning this license or the applicable additional terms
 /*
 Save game related helper classes.
 
-Save games are implemented in two classes, idSaveGame and idRestoreGame, that implement write/read functions for 
+Save games are implemented in two classes, idSaveGame and idRestoreGame, that implement write/read functions for
 common types.  They're passed in to each entity and object for them to archive themselves.  Each class
 implements save/restore functions for it's own data.  When restoring, all the objects are instantiated,
 then the restore function is called on each, superclass first, then subclasses.
@@ -138,7 +138,7 @@ void idSaveGame::CallSave_r( const idTypeInfo *cls, const idClass *obj ) {
 			return;
 		}
 	}
-	
+
 	( obj->*cls->Save )( this );
 }
 
@@ -227,7 +227,7 @@ void idSaveGame::WriteBool( const bool value ) {
 ================
 idSaveGame::WriteString
 ================
-*/  
+*/
 void idSaveGame::WriteString( const char *string ) {
 	int len;
 
@@ -331,7 +331,7 @@ void idSaveGame::WriteObject( const idClass *obj ) {
 
 	index = objects.FindIndex( obj );
 	if ( index < 0 ) {
-		gameLocal.DPrintf( "idSaveGame::WriteObject - WriteObject FindIndex failed\n" );
+		GameLocal()->DPrintf( "idSaveGame::WriteObject - WriteObject FindIndex failed\n" );
 
 		// Use the NULL index
 		index = 0;
@@ -484,7 +484,7 @@ void idSaveGame::WriteUserInterface( const idUserInterface *ui, bool unique ) {
 		WriteString( name );
 		WriteBool( unique );
 		if ( ui->WriteToSaveGame( file ) == false ) {
-			gameLocal.Error( "idSaveGame::WriteUserInterface: ui failed to write properly\n" );
+			GameLocal()->Error( "idSaveGame::WriteUserInterface: ui failed to write properly\n" );
 		}
 	}
 }
@@ -700,7 +700,7 @@ void idSaveGame::WriteTrace( const trace_t &trace ) {
  */
 void idSaveGame::WriteTraceModel( const idTraceModel &trace ) {
 	int j, k;
-	
+
 	WriteInt( (int&)trace.type );
 	WriteInt( trace.numVerts );
 	for ( j = 0; j < MAX_TRACEMODEL_VERTS; j++ ) {
@@ -766,7 +766,7 @@ void idSaveGame::WriteBuildNumber( const int value ) {
 /***********************************************************************
 
 	idRestoreGame
-	
+
 ***********************************************************************/
 
 /*
@@ -848,7 +848,7 @@ void idRestoreGame::RestoreObjects( void ) {
 	gameState.StripFileExtension();
 	WriteGameState_f( idCmdArgs( va( "test %s_restore", gameState.c_str() ), false ) );
 	//CompareGameState_f( idCmdArgs( va( "test %s_save", gameState.c_str() ) ) );
-	gameLocal.Error( "dumped game states" );
+	GameLocal()->Error( "dumped game states" );
 #endif
 }
 
@@ -880,7 +880,7 @@ void idRestoreGame::Error( const char *fmt, ... ) {
 
 	objects.DeleteContents( true );
 
-	gameLocal.Error( "%s", text );
+	GameLocal()->Error( "%s", text );
 }
 
 /*
@@ -896,7 +896,7 @@ void idRestoreGame::CallRestore_r( const idTypeInfo *cls, idClass *obj ) {
 			return;
 		}
 	}
-	
+
 	( obj->*cls->Restore )( this );
 }
 
@@ -1250,7 +1250,7 @@ void idRestoreGame::ReadUserInterface( idUserInterface *&ui ) {
 			if ( ui->ReadFromSaveGame( file ) == false ) {
 				Error( "idSaveGame::ReadUserInterface: ui failed to read properly\n" );
 			} else {
-				ui->StateChanged( gameLocal.time );
+				ui->StateChanged( GameLocal()->time );
 			}
 		}
 	}
@@ -1471,7 +1471,7 @@ void idRestoreGame::ReadTrace( trace_t &trace ) {
  */
 void idRestoreGame::ReadTraceModel( idTraceModel &trace ) {
 	int j, k;
-	
+
 	ReadInt( (int&)trace.type );
 	ReadInt( trace.numVerts );
 	for ( j = 0; j < MAX_TRACEMODEL_VERTS; j++ ) {

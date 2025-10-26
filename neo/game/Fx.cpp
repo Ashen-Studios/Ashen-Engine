@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "Game_local.h"
@@ -151,7 +151,7 @@ void idEntityFx::Setup( const char *fx ) {
 	}
 
 	// early during MP Spawn() with no information. wait till we ReadFromSnapshot for more
-	if ( gameLocal.isClient && ( !fx || fx[0] == '\0' ) ) {
+	if ( gameLocal->isClient && ( !fx || fx[0] == '\0' ) ) {
 		return;
 	}
 
@@ -172,7 +172,7 @@ void idEntityFx::Setup( const char *fx ) {
 
 			idFXLocalAction& laction = actions[i];
 			if ( fxaction.random1 || fxaction.random2 ) {
-				laction.delay = fxaction.random1 + gameLocal.random.RandomFloat() * ( fxaction.random2 - fxaction.random1 );
+				laction.delay = fxaction.random1 + gameLocal->random.RandomFloat() * ( fxaction.random2 - fxaction.random1 );
 			} else {
 				laction.delay = fxaction.delay;
 			}
@@ -217,7 +217,7 @@ void idEntityFx::CleanUp( void ) {
 	for( int i = 0; i < fxEffect->events.Num(); i++ ) {
 		const idFXSingleAction& fxaction = fxEffect->events[i];
 		idFXLocalAction& laction = actions[i];
-		CleanUpSingleAction( fxaction, laction );		
+		CleanUpSingleAction( fxaction, laction );
 	}
 }
 
@@ -298,7 +298,7 @@ idEntityFx::Done
 ================
 */
 const bool idEntityFx::Done() {
-	if (started > 0 && gameLocal.time > started + Duration()) {
+	if (started > 0 && gameLocal->time > started + Duration()) {
 		return true;
 	}
 	return false;
@@ -319,7 +319,7 @@ void idEntityFx::ApplyFade( const idFXSingleAction& fxaction, idFXLocalAction& l
 			laction.renderEntity.shaderParms[SHADERPARM_RED] = (fxaction.fadeInTime) ? fadePct : 1.0f - fadePct;
 			laction.renderEntity.shaderParms[SHADERPARM_GREEN] = (fxaction.fadeInTime) ? fadePct : 1.0f - fadePct;
 			laction.renderEntity.shaderParms[SHADERPARM_BLUE] = (fxaction.fadeInTime) ? fadePct : 1.0f - fadePct;
-	
+
 			gameRenderWorld->UpdateEntityDef( laction.modelDefHandle, &laction.renderEntity );
 		}
 		if ( laction.lightDefHandle != -1 ) {
@@ -377,13 +377,13 @@ void idEntityFx::Run( int time ) {
 			float totalDelay = 0.0f;
 			if ( fxaction.restart ) {
 				if ( fxaction.random1 || fxaction.random2 ) {
-					totalDelay = fxaction.random1 + gameLocal.random.RandomFloat() * (fxaction.random2 - fxaction.random1);
+					totalDelay = fxaction.random1 + gameLocal->random.RandomFloat() * (fxaction.random2 - fxaction.random1);
 				} else {
 					totalDelay = fxaction.delay;
 				}
 				laction.delay = totalDelay;
 				laction.start = time;
-			} 
+			}
 			continue;
 		}
 
@@ -457,7 +457,7 @@ void idEntityFx::Run( int time ) {
 			case FX_DECAL: {
 				if ( !useAction->decalDropped ) {
 					useAction->decalDropped = true;
-					gameLocal.ProjectDecal( GetPhysics()->GetOrigin(), GetPhysics()->GetGravity(), 8.0f, true, fxaction.size, fxaction.data ); 
+					gameLocal->ProjectDecal( GetPhysics()->GetOrigin(), GetPhysics()->GetGravity(), 8.0f, true, fxaction.size, fxaction.data );
 				}
 				break;
 			}
@@ -467,24 +467,24 @@ void idEntityFx::Run( int time ) {
 					args.Clear();
 					args.SetFloat( "kick_time", fxaction.shakeTime );
 					args.SetFloat( "kick_amplitude", fxaction.shakeAmplitude );
-					for ( j = 0; j < gameLocal.numClients; j++ ) {
-						idPlayer *player = gameLocal.GetClientByNum( j );
+					for ( j = 0; j < gameLocal->numClients; j++ ) {
+						idPlayer *player = gameLocal->GetClientByNum( j );
 						if ( player && ( player->GetPhysics()->GetOrigin() - GetPhysics()->GetOrigin() ).LengthSqr() < Square( fxaction.shakeDistance ) ) {
-							if ( !gameLocal.isMultiplayer || !fxaction.shakeIgnoreMaster || GetBindMaster() != player ) {
+							if ( !gameLocal->isMultiplayer || !fxaction.shakeIgnoreMaster || GetBindMaster() != player ) {
 								player->playerView.DamageImpulse( fxaction.offset, &args );
 							}
 						}
 					}
 					if ( fxaction.shakeImpulse != 0.0f && fxaction.shakeDistance != 0.0f ) {
 						idEntity *ignore_ent = NULL;
-						if ( gameLocal.isMultiplayer ) {
+						if ( gameLocal->isMultiplayer ) {
 							ignore_ent = this;
 							if ( fxaction.shakeIgnoreMaster ) {
 								ignore_ent = GetBindMaster();
 							}
 						}
 						// lookup the ent we are bound to?
-						gameLocal.RadiusPush( GetPhysics()->GetOrigin(), fxaction.shakeDistance, fxaction.shakeImpulse, this, ignore_ent, 1.0f, true );
+						gameLocal->RadiusPush( GetPhysics()->GetOrigin(), fxaction.shakeDistance, fxaction.shakeImpulse, this, ignore_ent, 1.0f, true );
 					}
 					useAction->shakeStarted = true;
 				}
@@ -516,7 +516,7 @@ void idEntityFx::Run( int time ) {
 				break;
 			}
 			case FX_LAUNCH: {
-				if ( gameLocal.isClient ) {
+				if ( gameLocal->isClient ) {
 					// client never spawns entities outside of ClientReadSnapshot
 					useAction->launched = true;
 					break;
@@ -525,11 +525,11 @@ void idEntityFx::Run( int time ) {
 					useAction->launched = true;
 					projectile = NULL;
 					// FIXME: may need to cache this if it is slow
-					projectileDef = gameLocal.FindEntityDefDict( fxaction.data, false );
+					projectileDef = gameLocal->FindEntityDefDict( fxaction.data, false );
 					if ( !projectileDef ) {
-						gameLocal.Warning( "projectile \'%s\' not found", fxaction.data.c_str() );
+						gameLocal->Warning( "projectile \'%s\' not found", fxaction.data.c_str() );
 					} else {
-						gameLocal.SpawnEntityDef( *projectileDef, &ent, false );
+						gameLocal->SpawnEntityDef( *projectileDef, &ent, false );
 						if ( ent && ent->IsType( idProjectile::Type ) ) {
 							projectile = ( idProjectile * )ent;
 							projectile->Create( this, GetPhysics()->GetOrigin(), GetPhysics()->GetAxis()[0] );
@@ -603,7 +603,7 @@ void idEntityFx::Think( void ) {
 	}
 
 	if ( thinkFlags & TH_THINK ) {
-		Run( gameLocal.time );
+		Run( gameLocal->time );
 	}
 
 	RunPhysics();
@@ -635,7 +635,7 @@ void idEntityFx::Event_ClearFx( void ) {
 			if ( rest == 0.0f ) {
 				PostEventSec( &EV_Remove, 0.1f );
 			} else {
-				rest *= gameLocal.random.RandomFloat();
+				rest *= gameLocal->random.RandomFloat();
 				PostEventSec( &EV_Activate, rest, this );
 			}
 		}
@@ -656,23 +656,23 @@ void idEntityFx::Event_Trigger( idEntity *activator ) {
 	float		fxActionDelay;
 	const char *fx;
 
-	if ( gameLocal.time < nextTriggerTime ) {
+	if ( gameLocal->time < nextTriggerTime ) {
 		return;
 	}
 
 	if ( spawnArgs.GetString( "fx", "", &fx) ) {
 		Setup( fx );
-		Start( gameLocal.time );
+		Start( gameLocal->time );
 		PostEventMS( &EV_Fx_KillFx, Duration() );
 		BecomeActive( TH_THINK );
 	}
 
 	fxActionDelay = spawnArgs.GetFloat( "fxActionDelay" );
 	if ( fxActionDelay != 0.0f ) {
-		nextTriggerTime = gameLocal.time + SEC2MS( fxActionDelay );
+		nextTriggerTime = gameLocal->time + SEC2MS( fxActionDelay );
 	} else {
 		// prevent multiple triggers on same frame
-		nextTriggerTime = gameLocal.time + 1;
+		nextTriggerTime = gameLocal->time + 1;
 	}
 	PostEventSec( &EV_Fx_Action, fxActionDelay, activator );
 }
@@ -692,7 +692,7 @@ idEntityFx *idEntityFx::StartFx( const char *fx, const idVec3 *useOrigin, const 
 	idDict args;
 	args.SetBool( "start", true );
 	args.Set( "fx", fx );
-	idEntityFx *nfx = static_cast<idEntityFx *>( gameLocal.SpawnEntityType( idEntityFx::Type, &args ) );
+	idEntityFx *nfx = static_cast<idEntityFx *>( gameLocal->SpawnEntityType( idEntityFx::Type, &args ) );
 	if ( nfx->Joint() && *nfx->Joint() ) {
 		nfx->BindToJoint( ent, nfx->Joint(), true );
 		nfx->SetOrigin( vec3_origin );
@@ -703,7 +703,7 @@ idEntityFx *idEntityFx::StartFx( const char *fx, const idVec3 *useOrigin, const 
 
 	if ( bind ) {
 		// never bind to world spawn
-		if ( ent != gameLocal.world ) {
+		if ( ent != gameLocal->world ) {
 			nfx->Bind( ent, true );
 		}
 	}
@@ -719,7 +719,7 @@ idEntityFx::WriteToSnapshot
 void idEntityFx::WriteToSnapshot( idBitMsgDelta &msg ) const {
 	GetPhysics()->WriteToSnapshot( msg );
 	WriteBindToSnapshot( msg );
-	msg.WriteLong( ( fxEffect != NULL ) ? gameLocal.ServerRemapDecl( -1, DECL_FX, fxEffect->Index() ) : -1 );
+	msg.WriteLong( ( fxEffect != NULL ) ? gameLocal->ServerRemapDecl( -1, DECL_FX, fxEffect->Index() ) : -1 );
 	msg.WriteLong( started );
 }
 
@@ -733,19 +733,19 @@ void idEntityFx::ReadFromSnapshot( const idBitMsgDelta &msg ) {
 
 	GetPhysics()->ReadFromSnapshot( msg );
 	ReadBindFromSnapshot( msg );
-	fx_index = gameLocal.ClientRemapDecl( DECL_FX, msg.ReadLong() );
+	fx_index = gameLocal->ClientRemapDecl( DECL_FX, msg.ReadLong() );
 	start_time = msg.ReadLong();
 
 	if ( fx_index != -1 && start_time > 0 && !fxEffect && started < 0 ) {
 		spawnArgs.GetInt( "effect_lapse", "1000", max_lapse );
-		if ( gameLocal.time - start_time > max_lapse ) {
+		if ( gameLocal->time - start_time > max_lapse ) {
 			// too late, skip the effect completely
 			started = 0;
 			return;
 		}
 		const idDeclFX *fx = static_cast<const idDeclFX *>( declManager->DeclByIndex( DECL_FX, fx_index ) );
 		if ( !fx ) {
-			gameLocal.Error( "FX at index %d not found", fx_index );
+			gameLocal->Error( "FX at index %d not found", fx_index );
 		}
 		fxEffect = fx;
 		Setup( fx->GetName() );
@@ -759,8 +759,8 @@ idEntityFx::ClientPredictionThink
 =================
 */
 void idEntityFx::ClientPredictionThink( void ) {
-	if ( gameLocal.isNewFrame ) { 
-		Run( gameLocal.time ); 
+	if ( gameLocal->isNewFrame ) {
+		Run( gameLocal->time );
 	}
 	RunPhysics();
 	Present();
@@ -770,7 +770,7 @@ void idEntityFx::ClientPredictionThink( void ) {
 ===============================================================================
 
   idTeleporter
-	
+
 ===============================================================================
 */
 

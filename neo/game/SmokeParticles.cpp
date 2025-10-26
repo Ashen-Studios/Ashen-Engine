@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "Game_local.h"
@@ -129,7 +129,7 @@ void idSmokeParticles::FreeSmokes( void ) {
 		for ( last = NULL, smoke = active->smokes; smoke; smoke = next ) {
 			next = smoke->next;
 
-			float frac = (float)( gameLocal.time - smoke->privateStartTime ) / ( stage->particleLife * 1000 );
+			float frac = (float)( GameLocal()->time - smoke->privateStartTime ) / ( stage->particleLife * 1000 );
 			if ( frac >= 1.0f ) {
 				// remove the particle from the stage list
 				if ( last != NULL ) {
@@ -169,17 +169,17 @@ bool idSmokeParticles::EmitSmoke( const idDeclParticle *smoke, const int systemS
 		return false;
 	}
 
-	if ( !gameLocal.isNewFrame ) {
+	if ( !GameLocal()->isNewFrame ) {
 		return false;
 	}
 
 	// dedicated doesn't smoke. No UpdateRenderEntity, so they would not be freed
-	if ( gameLocal.localClientNum < 0 ) {
+	if ( GameLocal()->localClientNum < 0 ) {
 		return false;
 	}
 
-	assert( gameLocal.time == 0 || systemStartTime <= gameLocal.time );
-	if ( systemStartTime > gameLocal.time ) {
+	assert( GameLocal()->time == 0 || systemStartTime <= GameLocal()->time );
+	if ( systemStartTime > GameLocal()->time ) {
 		return false;
 	}
 
@@ -204,12 +204,12 @@ bool idSmokeParticles::EmitSmoke( const idDeclParticle *smoke, const int systemS
 		// see how many particles we should emit this tic
 		// FIXME: 			smoke.privateStartTime += stage->timeOffset;
 		int		finalParticleTime = stage->cycleMsec * stage->spawnBunching;
-		int		deltaMsec = gameLocal.time - systemStartTime;
+		int		deltaMsec = GameLocal()->time - systemStartTime;
 
 		int		nowCount, prevCount;
 		if ( finalParticleTime == 0 ) {
 			// if spawnBunching is 0, they will all come out at once
-			if ( gameLocal.time == systemStartTime ) {
+			if ( GameLocal()->time == systemStartTime ) {
 				prevCount = -1;
 				nowCount = stage->totalParticles-1;
 			} else {
@@ -258,7 +258,7 @@ bool idSmokeParticles::EmitSmoke( const idDeclParticle *smoke, const int systemS
 		// add all the required particles
 		for ( prevCount++ ; prevCount <= nowCount ; prevCount++ ) {
 			if ( !freeSmokes ) {
-				gameLocal.Printf( "idSmokeParticles::EmitSmoke: no free smokes with %d active stages\n", activeStages.Num() );
+				GameLocal()->Printf( "idSmokeParticles::EmitSmoke: no free smokes with %d active stages\n", activeStages.Num() );
 				return true;
 			}
 			singleSmoke_t	*newSmoke = freeSmokes;
@@ -339,7 +339,7 @@ bool idSmokeParticles::UpdateRenderEntity( renderEntity_s *renderEntity, const r
 		for ( last = NULL, smoke = active->smokes; smoke; smoke = next ) {
 			next = smoke->next;
 
-			g.frac = (float)( gameLocal.time - smoke->privateStartTime ) / ( stage->particleLife * 1000 );
+			g.frac = (float)( GameLocal()->time - smoke->privateStartTime ) / ( stage->particleLife * 1000 );
 			if ( g.frac >= 1.0f ) {
 				// remove the particle from the stage list
 				if ( last != NULL ) {
@@ -368,7 +368,7 @@ bool idSmokeParticles::UpdateRenderEntity( renderEntity_s *renderEntity, const r
 			last = smoke;
 		}
 		if ( tri->numVerts > quads * 4 ) {
-			gameLocal.Error( "idSmokeParticles::UpdateRenderEntity: miscounted verts" );
+			GameLocal()->Error( "idSmokeParticles::UpdateRenderEntity: miscounted verts" );
 		}
 
 		if ( tri->numVerts == 0 ) {
@@ -413,8 +413,8 @@ idSmokeParticles::ModelCallback
 */
 bool idSmokeParticles::ModelCallback( renderEntity_s *renderEntity, const renderView_t *renderView ) {
 	// update the particles
-	if ( gameLocal.smokeParticles ) {
-		return gameLocal.smokeParticles->UpdateRenderEntity( renderEntity, renderView );
+	if ( GameLocal()->smokeParticles ) {
+		return GameLocal()->smokeParticles->UpdateRenderEntity( renderEntity, renderView );
 	}
 
 	return true;

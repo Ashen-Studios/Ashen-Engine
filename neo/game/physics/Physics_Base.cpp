@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "../Game_local.h"
@@ -42,7 +42,7 @@ idPhysics_Base::idPhysics_Base
 idPhysics_Base::idPhysics_Base( void ) {
 	self = NULL;
 	clipMask = 0;
-	SetGravity( gameLocal.GetGravity() );
+	SetGravity( GameLocal()->GetGravity() );
 	ClearContacts();
 }
 
@@ -534,7 +534,7 @@ void idPhysics_Base::ClearContacts( void ) {
 	idEntity *ent;
 
 	for ( i = 0; i < contacts.Num(); i++ ) {
-		ent = gameLocal.entities[ contacts[i].entityNum ];
+		ent = GameLocal()->entities[ contacts[i].entityNum ];
 		if ( ent ) {
 			ent->RemoveContactEntity( self );
 		}
@@ -720,7 +720,7 @@ void idPhysics_Base::AddGroundContacts( const idClipModel *clipModel ) {
 
 	dir.SubVec3(0) = gravityNormal;
 	dir.SubVec3(1) = vec3_origin;
-	num = gameLocal.clip.Contacts( &contacts[index], 10, clipModel->GetOrigin(),
+	num = GameLocal()->clip.Contacts( &contacts[index], 10, clipModel->GetOrigin(),
 					dir, CONTACT_EPSILON, clipModel, clipModel->GetAxis(), clipMask, self );
 	contacts.SetNum( index + num, false );
 }
@@ -735,7 +735,7 @@ void idPhysics_Base::AddContactEntitiesForContacts( void ) {
 	idEntity *ent;
 
 	for ( i = 0; i < contacts.Num(); i++ ) {
-		ent = gameLocal.entities[ contacts[i].entityNum ];
+		ent = GameLocal()->entities[ contacts[i].entityNum ];
 		if ( ent && ent != self ) {
 			ent->AddContactEntity( self );
 		}
@@ -767,7 +767,7 @@ idPhysics_Base::IsOutsideWorld
 ================
 */
 bool idPhysics_Base::IsOutsideWorld( void ) const {
-	if ( !gameLocal.clip.GetWorldBounds().Expand( 128.0f ).IntersectsBounds( GetAbsBounds() ) ) {
+	if ( !GameLocal()->clip.GetWorldBounds().Expand( 128.0f ).IntersectsBounds( GetAbsBounds() ) ) {
 		return true;
 	}
 	return false;

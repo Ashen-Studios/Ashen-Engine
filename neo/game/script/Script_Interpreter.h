@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -234,7 +234,7 @@ idInterpreter::GetEntity
 ID_INLINE idEntity *idInterpreter::GetEntity( int entnum ) const{
 	assert( entnum <= MAX_GENTITIES );
 	if ( ( entnum > 0 ) && ( entnum <= MAX_GENTITIES ) ) {
-		return gameLocal.entities[ entnum - 1 ];
+		return GameLocal()->entities[ entnum - 1 ];
 	}
 	return NULL;
 }
@@ -249,7 +249,7 @@ ID_INLINE idScriptObject *idInterpreter::GetScriptObject( int entnum ) const {
 
 	assert( entnum <= MAX_GENTITIES );
 	if ( ( entnum > 0 ) && ( entnum <= MAX_GENTITIES ) ) {
-		ent = gameLocal.entities[ entnum - 1 ];
+		ent = GameLocal()->entities[ entnum - 1 ];
 		if ( ent && ent->scriptObject.data ) {
 			return &ent->scriptObject;
 		}

@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "../Game_local.h"
@@ -52,7 +52,7 @@ void idPhysics_Monster::CheckGround( monsterPState_t &state ) {
 	}
 
 	down = state.origin + gravityNormal * CONTACT_EPSILON;
-	gameLocal.clip.Translation( groundTrace, state.origin, down, clipModel, clipModel->GetAxis(), clipMask, self );
+	GameLocal()->clip.Translation( groundTrace, state.origin, down, clipModel, clipModel->GetAxis(), clipMask, self );
 
 	if ( groundTrace.fraction == 1.0f ) {
 		state.onGround = false;
@@ -60,7 +60,7 @@ void idPhysics_Monster::CheckGround( monsterPState_t &state ) {
 		return;
 	}
 
-	groundEntityPtr = gameLocal.entities[ groundTrace.c.entityNum ];
+	groundEntityPtr = GameLocal()->entities[ groundTrace.c.entityNum ];
 
 	if ( ( groundTrace.c.normal * -gravityNormal ) < minFloorCosine ) {
 		state.onGround = false;
@@ -95,7 +95,7 @@ monsterMoveResult_t idPhysics_Monster::SlideMove( idVec3 &start, idVec3 &velocit
 	blockingEntity = NULL;
 	move = delta;
 	for( i = 0; i < 3; i++ ) {
-		gameLocal.clip.Translation( tr, start, start + move, clipModel, clipModel->GetAxis(), clipMask, self );
+		GameLocal()->clip.Translation( tr, start, start + move, clipModel, clipModel->GetAxis(), clipMask, self );
 
 		start = tr.endpos;
 
@@ -107,9 +107,9 @@ monsterMoveResult_t idPhysics_Monster::SlideMove( idVec3 &start, idVec3 &velocit
 		}
 
 		if ( tr.c.entityNum != ENTITYNUM_NONE ) {
-			blockingEntity = gameLocal.entities[ tr.c.entityNum ];
-		} 
-		
+			blockingEntity = GameLocal()->entities[ tr.c.entityNum ];
+		}
+
 		// clip the movement delta and velocity
 		move.ProjectOntoPlane( tr.c.normal, OVERCLIP );
 		velocity.ProjectOntoPlane( tr.c.normal, OVERCLIP );
@@ -150,7 +150,7 @@ monsterMoveResult_t idPhysics_Monster::StepMove( idVec3 &start, idVec3 &velocity
 
 		// try to step down so that we walk down slopes and stairs at a normal rate
 		down = noStepPos + gravityNormal * maxStepHeight;
-		gameLocal.clip.Translation( tr, noStepPos, down, clipModel, clipModel->GetAxis(), clipMask, self );
+		GameLocal()->clip.Translation( tr, noStepPos, down, clipModel, clipModel->GetAxis(), clipMask, self );
 		if ( tr.fraction < 1.0f ) {
 			start = tr.endpos;
 			return MM_STEPPED;
@@ -163,7 +163,7 @@ monsterMoveResult_t idPhysics_Monster::StepMove( idVec3 &start, idVec3 &velocity
 	if ( blockingEntity && blockingEntity->IsType( idActor::Type ) ) {
 		// try to step down in case walking into an actor while going down steps
 		down = noStepPos + gravityNormal * maxStepHeight;
-		gameLocal.clip.Translation( tr, noStepPos, down, clipModel, clipModel->GetAxis(), clipMask, self );
+		GameLocal()->clip.Translation( tr, noStepPos, down, clipModel, clipModel->GetAxis(), clipMask, self );
 		start = tr.endpos;
 		velocity = noStepVel;
 		return MM_BLOCKED;
@@ -175,7 +175,7 @@ monsterMoveResult_t idPhysics_Monster::StepMove( idVec3 &start, idVec3 &velocity
 
 	// try to step up
 	up = start - gravityNormal * maxStepHeight;
-	gameLocal.clip.Translation( tr, start, up, clipModel, clipModel->GetAxis(), clipMask, self );
+	GameLocal()->clip.Translation( tr, start, up, clipModel, clipModel->GetAxis(), clipMask, self );
 	if ( tr.fraction == 0.0f ) {
 		start = noStepPos;
 		velocity = noStepVel;
@@ -194,7 +194,7 @@ monsterMoveResult_t idPhysics_Monster::StepMove( idVec3 &start, idVec3 &velocity
 
 	// step down again
 	down = stepPos + gravityNormal * maxStepHeight;
-	gameLocal.clip.Translation( tr, stepPos, down, clipModel, clipModel->GetAxis(), clipMask, self );
+	GameLocal()->clip.Translation( tr, stepPos, down, clipModel, clipModel->GetAxis(), clipMask, self );
 	stepPos = tr.endpos;
 
 	// if the move is further without stepping up, or the slope is too steap, don't step up
@@ -228,7 +228,7 @@ idPhysics_Monster::Rest
 ================
 */
 void idPhysics_Monster::Rest( void ) {
-	current.atRest = gameLocal.time;
+	current.atRest = GameLocal()->time;
 	current.velocity.Zero();
 	self->BecomeInactive( TH_PHYSICS );
 }
@@ -252,7 +252,7 @@ idPhysics_Monster::idPhysics_Monster( void ) {
 	memset( &current, 0, sizeof( current ) );
 	current.atRest = -1;
 	saved = current;
-	
+
 	delta.Zero();
 	maxStepHeight = 18.0f;
 	minFloorCosine = 0.7f;
@@ -310,7 +310,7 @@ void idPhysics_Monster::Save( idSaveGame *savefile ) const {
 	savefile->WriteBool( fly );
 	savefile->WriteBool( useVelocityMove );
 	savefile->WriteBool( noImpact );
-	
+
 	savefile->WriteInt( (int)moveResult );
 	savefile->WriteObject( blockingEntity );
 }
@@ -460,7 +460,7 @@ bool idPhysics_Monster::Evaluate( int timeStepMSec, int endTimeMSec ) {
 	if ( masterEntity ) {
 		self->GetMasterPosition( masterOrigin, masterAxis );
 		current.origin = masterOrigin + current.localOrigin * masterAxis;
-		clipModel->Link( gameLocal.clip, self, 0, current.origin, clipModel->GetAxis() );
+		clipModel->Link( GameLocal()->clip, self, 0, current.origin, clipModel->GetAxis() );
 		current.velocity = ( current.origin - oldOrigin ) / timeStep;
 		masterDeltaYaw = masterYaw;
 		masterYaw = masterAxis[0].ToYaw();
@@ -525,7 +525,7 @@ bool idPhysics_Monster::Evaluate( int timeStepMSec, int endTimeMSec ) {
 		}
 	}
 
-	clipModel->Link( gameLocal.clip, self, 0, current.origin, clipModel->GetAxis() );
+	clipModel->Link( GameLocal()->clip, self, 0, current.origin, clipModel->GetAxis() );
 
 	// get all the ground contacts
 	EvaluateContacts();
@@ -535,7 +535,7 @@ bool idPhysics_Monster::Evaluate( int timeStepMSec, int endTimeMSec ) {
 	current.pushVelocity.Zero();
 
 	if ( IsOutsideWorld() ) {
-		gameLocal.Warning( "clip model outside world bounds for entity '%s' at (%s)", self->name.c_str(), current.origin.ToString(0) );
+		GameLocal()->Warning( "clip model outside world bounds for entity '%s' at (%s)", self->name.c_str(), current.origin.ToString(0) );
 		Rest();
 	}
 
@@ -556,7 +556,7 @@ idPhysics_Monster::GetTime
 ================
 */
 int idPhysics_Monster::GetTime( void ) const {
-	return gameLocal.time;
+	return GameLocal()->time;
 }
 
 /*
@@ -619,7 +619,7 @@ idPhysics_Monster::RestoreState
 void idPhysics_Monster::RestoreState( void ) {
 	current = saved;
 
-	clipModel->Link( gameLocal.clip, self, 0, current.origin, clipModel->GetAxis() );
+	clipModel->Link( GameLocal()->clip, self, 0, current.origin, clipModel->GetAxis() );
 
 	EvaluateContacts();
 }
@@ -641,7 +641,7 @@ void idPhysics_Monster::SetOrigin( const idVec3 &newOrigin, int id ) {
 	else {
 		current.origin = newOrigin;
 	}
-	clipModel->Link( gameLocal.clip, self, 0, newOrigin, clipModel->GetAxis() );
+	clipModel->Link( GameLocal()->clip, self, 0, newOrigin, clipModel->GetAxis() );
 	Activate();
 }
 
@@ -651,7 +651,7 @@ idPhysics_Player::SetAxis
 ================
 */
 void idPhysics_Monster::SetAxis( const idMat3 &newAxis, int id ) {
-	clipModel->Link( gameLocal.clip, self, 0, clipModel->GetOrigin(), newAxis );
+	clipModel->Link( GameLocal()->clip, self, 0, clipModel->GetOrigin(), newAxis );
 	Activate();
 }
 
@@ -664,7 +664,7 @@ void idPhysics_Monster::Translate( const idVec3 &translation, int id ) {
 
 	current.localOrigin += translation;
 	current.origin += translation;
-	clipModel->Link( gameLocal.clip, self, 0, current.origin, clipModel->GetAxis() );
+	clipModel->Link( GameLocal()->clip, self, 0, current.origin, clipModel->GetAxis() );
 	Activate();
 }
 
@@ -685,7 +685,7 @@ void idPhysics_Monster::Rotate( const idRotation &rotation, int id ) {
 	else {
 		current.localOrigin = current.origin;
 	}
-	clipModel->Link( gameLocal.clip, self, 0, current.origin, clipModel->GetAxis() * rotation.ToMat3() );
+	clipModel->Link( GameLocal()->clip, self, 0, current.origin, clipModel->GetAxis() * rotation.ToMat3() );
 	Activate();
 }
 

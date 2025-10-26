@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "Game_local.h"
@@ -165,7 +165,7 @@ bool idItem::UpdateRenderEntity( renderEntity_s *renderEntity, const renderView_
 		}
 	}
 
-	// fade down after the last pulse finishes 
+	// fade down after the last pulse finishes
 	if ( !inView && cycle > lastCycle ) {
 		renderEntity->shaderParms[4] = 0.0f;
 	} else {
@@ -200,9 +200,9 @@ bool idItem::ModelCallback( renderEntity_t *renderEntity, const renderView_t *re
 		return false;
 	}
 
-	ent = static_cast<idItem *>(gameLocal.entities[ renderEntity->entityNum ]);
+	ent = static_cast<idItem *>(GameLocal()->entities[ renderEntity->entityNum ]);
 	if ( !ent ) {
-		gameLocal.Error( "idItem::ModelCallback: callback with NULL game entity" );
+		GameLocal()->Error( "idItem::ModelCallback: callback with NULL game entity" );
 	}
 
 	return ent->UpdateRenderEntity( renderEntity, renderView );
@@ -220,13 +220,13 @@ void idItem::Think( void ) {
 			idVec3		org;
 
 			ang.pitch = ang.roll = 0.0f;
-			ang.yaw = ( gameLocal.time & 4095 ) * 360.0f / -4096.0f;
+			ang.yaw = ( GameLocal()->time & 4095 ) * 360.0f / -4096.0f;
 			SetAngles( ang );
 
 			float scale = 0.005f + entityNumber * 0.00001f;
-			
+
 			org = orgOrigin;
-			org.z += 4.0f + cos( ( gameLocal.time + 2000 ) * scale ) * 4.0f;
+			org.z += 4.0f + cos( ( GameLocal()->time + 2000 ) * scale ) * 4.0f;
 			SetOrigin( org );
 		}
 	}
@@ -278,7 +278,7 @@ void idItem::Spawn( void ) {
 
 	if ( spawnArgs.GetFloat( "triggersize", "0", tsize ) ) {
 		GetPhysics()->GetClipModel()->LoadModel( idTraceModel( idBounds( vec3_origin ).Expand( tsize ) ) );
-		GetPhysics()->GetClipModel()->Link( gameLocal.clip );
+		GetPhysics()->GetClipModel()->Link( GameLocal()->clip );
 	}
 
 	if ( spawnArgs.GetBool( "start_off" ) ) {
@@ -290,14 +290,14 @@ void idItem::Spawn( void ) {
 
 	giveTo = spawnArgs.GetString( "owner" );
 	if ( giveTo.Length() ) {
-		ent = gameLocal.FindEntity( giveTo );
+		ent = GameLocal()->FindEntity( giveTo );
 		if ( !ent ) {
-			gameLocal.Error( "Item couldn't find owner '%s'", giveTo.c_str() );
+			GameLocal()->Error( "Item couldn't find owner '%s'", giveTo.c_str() );
 		}
 		PostEventMS( &EV_Touch, 0, ent, NULL );
 	}
 
-	if ( spawnArgs.GetBool( "spin" ) || gameLocal.isMultiplayer ) {
+	if ( spawnArgs.GetBool( "spin" ) || GameLocal()->isMultiplayer ) {
 		spin = true;
 		BecomeActive( TH_THINK );
 	}
@@ -344,8 +344,8 @@ bool idItem::GiveToPlayer( idPlayer *player ) {
 
 	if ( spawnArgs.GetBool( "inv_carry" ) ) {
 		return player->GiveInventoryItem( &spawnArgs );
-	} 
-	
+	}
+
 	return player->GiveItem( this );
 }
 
@@ -355,12 +355,12 @@ idItem::Pickup
 ================
 */
 bool idItem::Pickup( idPlayer *player ) {
-	
+
 	if ( !GiveToPlayer( player ) ) {
 		return false;
 	}
 
-	if ( gameLocal.isServer ) {
+	if ( GameLocal()->isServer ) {
 		ServerSendEvent( EVENT_PICKUP, NULL, false, -1 );
 	}
 
@@ -386,7 +386,7 @@ bool idItem::Pickup( idPlayer *player ) {
 	bool dropped = spawnArgs.GetBool( "dropped" );
 	bool no_respawn = spawnArgs.GetBool( "no_respawn" );
 
-	if ( gameLocal.isMultiplayer && respawn == 0.0f ) {
+	if ( GameLocal()->isMultiplayer && respawn == 0.0f ) {
 		respawn = 20.0f;
 	}
 
@@ -394,7 +394,7 @@ bool idItem::Pickup( idPlayer *player ) {
 		const char *sfx = spawnArgs.GetString( "fxRespawn" );
 		if ( sfx && *sfx ) {
 			PostEventSec( &EV_RespawnFx, respawn - 0.5f );
-		} 
+		}
 		PostEventSec( &EV_RespawnItem, respawn );
 	} else if ( !spawnArgs.GetBool( "inv_objective" ) && !no_respawn ) {
 		// give some time for the pickup sound to play
@@ -415,7 +415,7 @@ idItem::ClientPredictionThink
 */
 void idItem::ClientPredictionThink( void ) {
 	// only think forward because the state is not synced through snapshots
-	if ( !gameLocal.isNewFrame ) {
+	if ( !GameLocal()->isNewFrame ) {
 		return;
 	}
 	Think();
@@ -494,7 +494,7 @@ void idItem::Event_DropToFloor( void ) {
 		return;
 	}
 
-	gameLocal.clip.TraceBounds( trace, renderEntity.origin, renderEntity.origin - idVec3( 0, 0, 64 ), renderEntity.bounds, MASK_SOLID | CONTENTS_CORPSE, this );
+	GameLocal()->clip.TraceBounds( trace, renderEntity.origin, renderEntity.origin - idVec3( 0, 0, 64 ), renderEntity.bounds, MASK_SOLID | CONTENTS_CORPSE, this );
 	SetOrigin( trace.endpos );
 }
 
@@ -538,7 +538,7 @@ idItem::Event_Respawn
 ================
 */
 void idItem::Event_Respawn( void ) {
-	if ( gameLocal.isServer ) {
+	if ( GameLocal()->isServer ) {
 		ServerSendEvent( EVENT_RESPAWN, NULL, false, -1 );
 	}
 	BecomeActive( TH_THINK );
@@ -557,7 +557,7 @@ idItem::Event_RespawnFx
 ================
 */
 void idItem::Event_RespawnFx( void ) {
-	if ( gameLocal.isServer ) {
+	if ( GameLocal()->isServer ) {
 		ServerSendEvent( EVENT_RESPAWNFX, NULL, false, -1 );
 	}
 	const char *sfx = spawnArgs.GetString( "fxRespawn" );
@@ -696,13 +696,13 @@ idObjective::Event_Screenshot
 */
 void idObjective::Event_CamShot( ) {
 	const char *camName;
-	idStr shotName = gameLocal.GetMapName();
+	idStr shotName = GameLocal()->GetMapName();
 	shotName.StripFileExtension();
 	shotName += "/";
 	shotName += spawnArgs.GetString( "screenshot" );
 	shotName.SetFileExtension( ".tga" );
 	if ( spawnArgs.GetString( "camShot", "", &camName ) ) {
-		idEntity *ent = gameLocal.FindEntity( camName );
+		idEntity *ent = GameLocal()->FindEntity( camName );
 		if ( ent && ent->cameraTarget ) {
 			const renderView_t *view = ent->cameraTarget->GetRenderView();
 			renderView_t fullView = *view;
@@ -723,14 +723,14 @@ idObjective::Event_Trigger
 ================
 */
 void idObjective::Event_Trigger( idEntity *activator ) {
-	idPlayer *player = gameLocal.GetLocalPlayer();
+	idPlayer *player = GameLocal()->GetLocalPlayer();
 	if ( player ) {
 
 		//Pickup( player );
 
 		if ( spawnArgs.GetString( "inv_objective", NULL ) ) {
 	 		if ( player && player->hud ) {
-				idStr shotName = gameLocal.GetMapName();
+				idStr shotName = GameLocal()->GetMapName();
 				shotName.StripFileExtension();
 				shotName += "/";
 				shotName += spawnArgs.GetString( "screenshot" );
@@ -742,10 +742,10 @@ void idObjective::Event_Trigger( idEntity *activator ) {
 				player->GiveObjective( spawnArgs.GetString( "objectivetitle" ), spawnArgs.GetString( "objectivetext" ), shotName );
 
 				// a tad slow but keeps from having to update all objectives in all maps with a name ptr
-				for( int i = 0; i < gameLocal.num_entities; i++ ) {
-					if ( gameLocal.entities[ i ] && gameLocal.entities[ i ]->IsType( idObjectiveComplete::Type ) ) {
-						if ( idStr::Icmp( spawnArgs.GetString( "objectivetitle" ), gameLocal.entities[ i ]->spawnArgs.GetString( "objectivetitle" ) ) == 0 ){
-							gameLocal.entities[ i ]->spawnArgs.SetBool( "objEnabled", true );
+				for( int i = 0; i < GameLocal()->num_entities; i++ ) {
+					if ( GameLocal()->entities[ i ] && GameLocal()->entities[ i ]->IsType( idObjectiveComplete::Type ) ) {
+						if ( idStr::Icmp( spawnArgs.GetString( "objectivetitle" ), GameLocal()->entities[ i ]->spawnArgs.GetString( "objectivetitle" ) ) == 0 ){
+							GameLocal()->entities[ i ]->spawnArgs.SetBool( "objEnabled", true );
 							break;
 						}
 					}
@@ -763,7 +763,7 @@ idObjective::Event_GetPlayerPos
 ================
 */
 void idObjective::Event_GetPlayerPos() {
-	idPlayer *player = gameLocal.GetLocalPlayer();
+	idPlayer *player = GameLocal()->GetLocalPlayer();
 	if ( player ) {
 		playerPos = player->GetPhysics()->GetOrigin();
 		PostEventMS( &EV_HideObjective, 100, player );
@@ -776,7 +776,7 @@ idObjective::Event_HideObjective
 ================
 */
 void idObjective::Event_HideObjective(idEntity *e) {
-	idPlayer *player = gameLocal.GetLocalPlayer();
+	idPlayer *player = GameLocal()->GetLocalPlayer();
 	if ( player ) {
 		idVec3 v = player->GetPhysics()->GetOrigin() - playerPos;
 		if ( v.Length() > 64.0f ) {
@@ -848,7 +848,7 @@ bool idPDAItem::GiveToPlayer(idPlayer *player) {
 ===============================================================================
 
   idMoveableItem
-	
+
 ===============================================================================
 */
 
@@ -922,7 +922,7 @@ void idMoveableItem::Spawn( void ) {
 	// create a trigger for item pickup
 	spawnArgs.GetFloat( "triggersize", "16.0", tsize );
 	trigger = new idClipModel( idTraceModel( idBounds( vec3_origin ).Expand( tsize ) ) );
-	trigger->Link( gameLocal.clip, this, 0, GetPhysics()->GetOrigin(), GetPhysics()->GetAxis() );
+	trigger->Link( GameLocal()->clip, this, 0, GetPhysics()->GetOrigin(), GetPhysics()->GetAxis() );
 	trigger->SetContents( CONTENTS_TRIGGER );
 
 	// check if a clip model is set
@@ -933,7 +933,7 @@ void idMoveableItem::Spawn( void ) {
 
 	// load the trace model
 	if ( !collisionModelManager->TrmFromModel( clipModelName, trm ) ) {
-		gameLocal.Error( "idMoveableItem '%s': cannot load collision model %s", name.c_str(), clipModelName.c_str() );
+		GameLocal()->Error( "idMoveableItem '%s': cannot load collision model %s", name.c_str(), clipModelName.c_str() );
 		return;
 	}
 
@@ -957,7 +957,7 @@ void idMoveableItem::Spawn( void ) {
 	physicsObj.SetAxis( GetPhysics()->GetAxis() );
 	physicsObj.SetBouncyness( bouncyness );
 	physicsObj.SetFriction( 0.6f, 0.6f, friction );
-	physicsObj.SetGravity( gameLocal.GetGravity() );
+	physicsObj.SetGravity( GameLocal()->GetGravity() );
 	physicsObj.SetContents( CONTENTS_RENDERMODEL );
 	physicsObj.SetClipMask( MASK_SOLID | CONTENTS_MOVEABLECLIP );
 	SetPhysics( &physicsObj );
@@ -967,7 +967,7 @@ void idMoveableItem::Spawn( void ) {
 	const char *smokeName = spawnArgs.GetString( "smoke_trail" );
 	if ( *smokeName != '\0' ) {
 		smoke = static_cast<const idDeclParticle *>( declManager->FindType( DECL_PARTICLE, smokeName ) );
-		smokeTime = gameLocal.time;
+		smokeTime = GameLocal()->time;
 		BecomeActive( TH_UPDATEPARTICLES );
 	}
 }
@@ -983,11 +983,11 @@ void idMoveableItem::Think( void ) {
 
 	if ( thinkFlags & TH_PHYSICS ) {
 		// update trigger position
-		trigger->Link( gameLocal.clip, this, 0, GetPhysics()->GetOrigin(), mat3_identity );
+		trigger->Link( GameLocal()->clip, this, 0, GetPhysics()->GetOrigin(), mat3_identity );
 	}
-	
+
 	if ( thinkFlags & TH_UPDATEPARTICLES ) {
-		if ( !gameLocal.smokeParticles->EmitSmoke( smoke, smokeTime, gameLocal.random.CRandomFloat(), GetPhysics()->GetOrigin(), GetPhysics()->GetAxis() ) ) {
+		if ( !GameLocal()->smokeParticles->EmitSmoke( smoke, smokeTime, GameLocal()->random.CRandomFloat(), GetPhysics()->GetOrigin(), GetPhysics()->GetAxis() ) ) {
 			smokeTime = 0;
 			BecomeInactive( TH_UPDATEPARTICLES );
 		}
@@ -1005,7 +1005,7 @@ bool idMoveableItem::Pickup( idPlayer *player ) {
 	bool ret = idItem::Pickup( player );
 	if ( ret ) {
 		trigger->SetContents( 0 );
-	} 
+	}
 	return ret;
 }
 
@@ -1028,7 +1028,7 @@ idEntity *idMoveableItem::DropItem( const char *classname, const idVec3 &origin,
 		args.SetBool( "triggerFirst", true );
 	}
 
-	gameLocal.SpawnEntityDef( args, &item );
+	GameLocal()->SpawnEntityDef( args, &item );
 	if ( item ) {
 		// set item position
 		item->GetPhysics()->SetOrigin( origin );
@@ -1089,8 +1089,8 @@ void idMoveableItem::DropItems( idAnimatedEntity  *ent, const char *type, idList
 			key2 += "Offset";
 			jointName = ent->spawnArgs.GetString( key );
 			joint = ent->GetAnimator()->GetJointHandle( jointName );
-			if ( !ent->GetJointWorldTransform( joint, gameLocal.time, origin, axis ) ) {
-				gameLocal.Warning( "%s refers to invalid joint '%s' on entity '%s'\n", key.c_str(), jointName, ent->name.c_str() );
+			if ( !ent->GetJointWorldTransform( joint, GameLocal()->time, origin, axis ) ) {
+				GameLocal()->Warning( "%s refers to invalid joint '%s' on entity '%s'\n", key.c_str(), jointName, ent->name.c_str() );
 				origin = ent->GetPhysics()->GetOrigin();
 				axis = ent->GetPhysics()->GetAxis();
 			}
@@ -1154,7 +1154,7 @@ void idMoveableItem::Gib( const idVec3 &dir, const char *damageDefName ) {
 	const char *smokeName = spawnArgs.GetString( "smoke_gib" );
 	if ( *smokeName != '\0' ) {
 		const idDeclParticle *smoke = static_cast<const idDeclParticle *>( declManager->FindType( DECL_PARTICLE, smokeName ) );
-		gameLocal.smokeParticles->EmitSmoke( smoke, gameLocal.time, gameLocal.random.CRandomFloat(), renderEntity.origin, renderEntity.axis );
+		GameLocal()->smokeParticles->EmitSmoke( smoke, GameLocal()->time, GameLocal()->random.CRandomFloat(), renderEntity.origin, renderEntity.axis );
 	}
 	// remove the entity
 	PostEventMS( &EV_Remove, 0 );
@@ -1229,7 +1229,7 @@ idItemRemover::RemoveItem
 */
 void idItemRemover::RemoveItem( idPlayer *player ) {
 	const char *remove;
-	
+
 	remove = spawnArgs.GetString( "remove" );
 	player->RemoveInventoryItem( remove );
 }
@@ -1305,7 +1305,7 @@ void idObjectiveComplete::Event_Trigger( idEntity *activator ) {
 	if ( !spawnArgs.GetBool( "objEnabled" ) ) {
 		return;
 	}
-	idPlayer *player = gameLocal.GetLocalPlayer();
+	idPlayer *player = GameLocal()->GetLocalPlayer();
 	if ( player ) {
 		RemoveItem( player );
 
@@ -1327,7 +1327,7 @@ idObjectiveComplete::Event_GetPlayerPos
 ================
 */
 void idObjectiveComplete::Event_GetPlayerPos() {
-	idPlayer *player = gameLocal.GetLocalPlayer();
+	idPlayer *player = GameLocal()->GetLocalPlayer();
 	if ( player ) {
 		playerPos = player->GetPhysics()->GetOrigin();
 		PostEventMS( &EV_HideObjective, 100, player );
@@ -1340,7 +1340,7 @@ idObjectiveComplete::Event_HideObjective
 ================
 */
 void idObjectiveComplete::Event_HideObjective( idEntity *e ) {
-	idPlayer *player = gameLocal.GetLocalPlayer();
+	idPlayer *player = GameLocal()->GetLocalPlayer();
 	if ( player ) {
 		idVec3 v = player->GetPhysics()->GetOrigin();
 		v -= playerPos;

@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "../Game_local.h"
@@ -57,7 +57,7 @@ void idInterpreter::Save( idSaveGame *savefile ) const {
 	for( i = 0; i < callStackDepth; i++ ) {
 		savefile->WriteInt( callStack[i].s );
 		if ( callStack[i].f ) {
-			savefile->WriteInt( gameLocal.program.GetFunctionIndex( callStack[i].f ) );
+			savefile->WriteInt( GameLocal()->program.GetFunctionIndex( callStack[i].f ) );
 		} else {
 			savefile->WriteInt( -1 );
 		}
@@ -72,7 +72,7 @@ void idInterpreter::Save( idSaveGame *savefile ) const {
 	savefile->WriteInt( maxLocalstackUsed );
 
 	if ( currentFunction ) {
-		savefile->WriteInt( gameLocal.program.GetFunctionIndex( currentFunction ) );
+		savefile->WriteInt( GameLocal()->program.GetFunctionIndex( currentFunction ) );
 	} else {
 		savefile->WriteInt( -1 );
 	}
@@ -111,7 +111,7 @@ void idInterpreter::Restore( idRestoreGame *savefile ) {
 
 		savefile->ReadInt( func_index );
 		if ( func_index >= 0 ) {
-			callStack[i].f = gameLocal.program.GetFunction( func_index );
+			callStack[i].f = GameLocal()->program.GetFunction( func_index );
 		} else {
 			callStack[i].f = NULL;
 		}
@@ -128,7 +128,7 @@ void idInterpreter::Restore( idRestoreGame *savefile ) {
 
 	savefile->ReadInt( func_index );
 	if ( func_index >= 0 ) {
-		currentFunction = gameLocal.program.GetFunction( func_index );
+		currentFunction = GameLocal()->program.GetFunction( func_index );
 	} else {
 		currentFunction = NULL;
 	}
@@ -178,7 +178,7 @@ void idInterpreter::Reset( void ) {
 ================
 idInterpreter::GetRegisterValue
 
-Returns a string representation of the value of the register.  This is 
+Returns a string representation of the value of the register.  This is
 used primarily for the debugger and debugging
 
 //FIXME:  This is pretty much wrong.  won't access data in most situations.
@@ -195,11 +195,11 @@ bool idInterpreter::GetRegisterValue( const char *name, idStr &out, int scopeDep
 	const function_t *func;
 
 	out.Empty();
-	
+
 	if ( scopeDepth == -1 ) {
 		scopeDepth = callStackDepth;
-	}	
-	
+	}
+
 	if ( scopeDepth == callStackDepth ) {
 		func = currentFunction;
 	} else {
@@ -213,7 +213,7 @@ bool idInterpreter::GetRegisterValue( const char *name, idStr &out, int scopeDep
 	funcName = strstr( funcObject, "::" );
 	if ( funcName ) {
 		*funcName = '\0';
-		scope = gameLocal.program.GetDef( NULL, funcObject, &def_namespace );
+		scope = GameLocal()->program.GetDef( NULL, funcObject, &def_namespace );
 		funcName += 2;
 	} else {
 		funcName = funcObject;
@@ -221,27 +221,27 @@ bool idInterpreter::GetRegisterValue( const char *name, idStr &out, int scopeDep
 	}
 
 	// Get the function from the object
-	d = gameLocal.program.GetDef( NULL, funcName, scope );
+	d = GameLocal()->program.GetDef( NULL, funcName, scope );
 	if ( !d ) {
 		return false;
 	}
-	
+
 	// Get the variable itself and check various namespaces
-	d = gameLocal.program.GetDef( NULL, name, d );
+	d = GameLocal()->program.GetDef( NULL, name, d );
 	if ( !d ) {
 		if ( scope == &def_namespace ) {
 			return false;
 		}
-		
-		d = gameLocal.program.GetDef( NULL, name, scope );
+
+		d = GameLocal()->program.GetDef( NULL, name, scope );
 		if ( !d ) {
-			d = gameLocal.program.GetDef( NULL, name, &def_namespace );
+			d = GameLocal()->program.GetDef( NULL, name, &def_namespace );
 			if ( !d ) {
 				return false;
 			}
 		}
 	}
-		
+
 	reg = GetVariable( d );
 	switch( d->Type() ) {
 	case ev_float:
@@ -254,7 +254,7 @@ bool idInterpreter::GetRegisterValue( const char *name, idStr &out, int scopeDep
 		break;
 
 	case ev_vector:
-		if ( reg.vectorPtr ) {				
+		if ( reg.vectorPtr ) {
 			out = va( "%g,%g,%g", reg.vectorPtr->x, reg.vectorPtr->y, reg.vectorPtr->z );
 		} else {
 			out = "0,0,0";
@@ -282,7 +282,7 @@ bool idInterpreter::GetRegisterValue( const char *name, idStr &out, int scopeDep
 		if ( !field || !obj ) {
 			return false;
 		}
-								
+
 		switch ( field->Type() ) {
 		case ev_boolean:
 			out = va( "%d", *( reinterpret_cast<int *>( &obj->data[ reg.ptrOffset ] ) ) );
@@ -367,7 +367,7 @@ int idInterpreter::CurrentLine( void ) const {
 	if ( instructionPointer < 0 ) {
 		return 0;
 	}
-	return gameLocal.program.GetLineNumberForStatement( instructionPointer );
+	return GameLocal()->program.GetLineNumberForStatement( instructionPointer );
 }
 
 /*
@@ -379,7 +379,7 @@ const char *idInterpreter::CurrentFile( void ) const {
 	if ( instructionPointer < 0 ) {
 		return "";
 	}
-	return gameLocal.program.GetFilenameForStatement( instructionPointer );
+	return GameLocal()->program.GetFilenameForStatement( instructionPointer );
 }
 
 /*
@@ -393,7 +393,7 @@ void idInterpreter::StackTrace( void ) const {
 	int					top;
 
 	if ( callStackDepth == 0 ) {
-		gameLocal.Printf( "<NO STACK>\n" );
+		GameLocal()->Printf( "<NO STACK>\n" );
 		return;
 	}
 
@@ -401,19 +401,19 @@ void idInterpreter::StackTrace( void ) const {
 	if ( top >= MAX_STACK_DEPTH ) {
 		top = MAX_STACK_DEPTH - 1;
 	}
-	
+
 	if ( !currentFunction ) {
-		gameLocal.Printf( "<NO FUNCTION>\n" );
+		GameLocal()->Printf( "<NO FUNCTION>\n" );
 	} else {
-		gameLocal.Printf( "%12s : %s\n", gameLocal.program.GetFilename( currentFunction->filenum ), currentFunction->Name() );
+		GameLocal()->Printf( "%12s : %s\n", GameLocal()->program.GetFilename( currentFunction->filenum ), currentFunction->Name() );
 	}
 
 	for( i = top; i >= 0; i-- ) {
 		f = callStack[ i ].f;
 		if ( !f ) {
-			gameLocal.Printf( "<NO FUNCTION>\n" );
+			GameLocal()->Printf( "<NO FUNCTION>\n" );
 		} else {
-			gameLocal.Printf( "%12s : %s\n", gameLocal.program.GetFilename( f->filenum ), f->Name() );
+			GameLocal()->Printf( "%12s : %s\n", GameLocal()->program.GetFilename( f->filenum ), f->Name() );
 		}
 	}
 }
@@ -435,9 +435,9 @@ void idInterpreter::Error( char *fmt, ... ) const {
 
 	StackTrace();
 
-	if ( ( instructionPointer >= 0 ) && ( instructionPointer < gameLocal.program.NumStatements() ) ) {
-		statement_t &line = gameLocal.program.GetStatement( instructionPointer );
-		common->Error( "%s(%d): Thread '%s': %s\n", gameLocal.program.GetFilename( line.file ), line.linenumber, thread->GetThreadName(), text );
+	if ( ( instructionPointer >= 0 ) && ( instructionPointer < GameLocal()->program.NumStatements() ) ) {
+		statement_t &line = GameLocal()->program.GetStatement( instructionPointer );
+		common->Error( "%s(%d): Thread '%s': %s\n", GameLocal()->program.GetFilename( line.file ), line.linenumber, thread->GetThreadName(), text );
 	} else {
 		common->Error( "Thread '%s': %s\n", thread->GetThreadName(), text );
 	}
@@ -458,9 +458,9 @@ void idInterpreter::Warning( char *fmt, ... ) const {
 	vsprintf( text, fmt, argptr );
 	va_end( argptr );
 
-	if ( ( instructionPointer >= 0 ) && ( instructionPointer < gameLocal.program.NumStatements() ) ) {
-		statement_t &line = gameLocal.program.GetStatement( instructionPointer );
-		common->Warning( "%s(%d): Thread '%s': %s", gameLocal.program.GetFilename( line.file ), line.linenumber, thread->GetThreadName(), text );
+	if ( ( instructionPointer >= 0 ) && ( instructionPointer < GameLocal()->program.NumStatements() ) ) {
+		statement_t &line = GameLocal()->program.GetStatement( instructionPointer );
+		common->Warning( "%s(%d): Thread '%s': %s", GameLocal()->program.GetFilename( line.file ), line.linenumber, thread->GetThreadName(), text );
 	} else {
 		common->Warning( "Thread '%s' : %s", thread->GetThreadName(), text );
 	}
@@ -475,26 +475,26 @@ void idInterpreter::DisplayInfo( void ) const {
 	const function_t *f;
 	int i;
 
-	gameLocal.Printf( " Stack depth: %d bytes, %d max\n", localstackUsed, maxLocalstackUsed );
-	gameLocal.Printf( "  Call depth: %d, %d max\n", callStackDepth, maxStackDepth );
-	gameLocal.Printf( "  Call Stack: " );
+	GameLocal()->Printf( " Stack depth: %d bytes, %d max\n", localstackUsed, maxLocalstackUsed );
+	GameLocal()->Printf( "  Call depth: %d, %d max\n", callStackDepth, maxStackDepth );
+	GameLocal()->Printf( "  Call Stack: " );
 
 	if ( callStackDepth == 0 ) {
-		gameLocal.Printf( "<NO STACK>\n" );
+		GameLocal()->Printf( "<NO STACK>\n" );
 	} else {
 		if ( !currentFunction ) {
-			gameLocal.Printf( "<NO FUNCTION>\n" );
+			GameLocal()->Printf( "<NO FUNCTION>\n" );
 		} else {
-			gameLocal.Printf( "%12s : %s\n", gameLocal.program.GetFilename( currentFunction->filenum ), currentFunction->Name() );
+			GameLocal()->Printf( "%12s : %s\n", GameLocal()->program.GetFilename( currentFunction->filenum ), currentFunction->Name() );
 		}
 
 		for( i = callStackDepth; i > 0; i-- ) {
-			gameLocal.Printf( "              " );
+			GameLocal()->Printf( "              " );
 			f = callStack[ i ].f;
 			if ( !f ) {
-				gameLocal.Printf( "<NO FUNCTION>\n" );
+				GameLocal()->Printf( "<NO FUNCTION>\n" );
 			} else {
-				gameLocal.Printf( "%12s : %s\n", gameLocal.program.GetFilename( f->filenum ), f->Name() );
+				GameLocal()->Printf( "%12s : %s\n", GameLocal()->program.GetFilename( f->filenum ), f->Name() );
 			}
 		}
 	}
@@ -584,10 +584,10 @@ void idInterpreter::EnterFunction( const function_t *func, bool clearStack ) {
 
 	if ( debug ) {
 		if ( currentFunction ) {
-			gameLocal.Printf( "%d: call '%s' from '%s'(line %d)%s\n", gameLocal.time, func->Name(), currentFunction->Name(), 
-				gameLocal.program.GetStatement( instructionPointer ).linenumber, clearStack ? " clear stack" : "" );
+			GameLocal()->Printf( "%d: call '%s' from '%s'(line %d)%s\n", GameLocal()->time, func->Name(), currentFunction->Name(),
+				GameLocal()->program.GetStatement( instructionPointer ).linenumber, clearStack ? " clear stack" : "" );
 		} else {
-            gameLocal.Printf( "%d: call '%s'%s\n", gameLocal.time, func->Name(), clearStack ? " clear stack" : "" );
+            GameLocal()->Printf( "%d: call '%s'%s\n", GameLocal()->time, func->Name(), clearStack ? " clear stack" : "" );
 		}
 	}
 
@@ -623,7 +623,7 @@ idInterpreter::LeaveFunction
 void idInterpreter::LeaveFunction( idVarDef *returnDef ) {
 	prstack_t *stack;
 	varEval_t ret;
-	
+
 	if ( callStackDepth <= 0 ) {
 		Error( "prog stack underflow" );
 	}
@@ -632,17 +632,17 @@ void idInterpreter::LeaveFunction( idVarDef *returnDef ) {
 	if ( returnDef ) {
 		switch( returnDef->Type() ) {
 		case ev_string :
-			gameLocal.program.ReturnString( GetString( returnDef ) );
+			GameLocal()->program.ReturnString( GetString( returnDef ) );
 			break;
 
 		case ev_vector :
 			ret = GetVariable( returnDef );
-			gameLocal.program.ReturnVector( *ret.vectorPtr );
+			GameLocal()->program.ReturnVector( *ret.vectorPtr );
 			break;
 
 		default :
 			ret = GetVariable( returnDef );
-			gameLocal.program.ReturnInteger( *ret.intPtr );
+			GameLocal()->program.ReturnInteger( *ret.intPtr );
 		}
 	}
 
@@ -651,18 +651,18 @@ void idInterpreter::LeaveFunction( idVarDef *returnDef ) {
 	assert( localstackUsed == localstackBase );
 
 	if ( debug ) {
-		statement_t &line = gameLocal.program.GetStatement( instructionPointer );
-		gameLocal.Printf( "%d: %s(%d): exit %s", gameLocal.time, gameLocal.program.GetFilename( line.file ), line.linenumber, currentFunction->Name() );
+		statement_t &line = GameLocal()->program.GetStatement( instructionPointer );
+		GameLocal()->Printf( "%d: %s(%d): exit %s", GameLocal()->time, GameLocal()->program.GetFilename( line.file ), line.linenumber, currentFunction->Name() );
 		if ( callStackDepth > 1 ) {
-			gameLocal.Printf( " return to %s(line %d)\n", callStack[ callStackDepth - 1 ].f->Name(), gameLocal.program.GetStatement( callStack[ callStackDepth - 1 ].s ).linenumber );
+			GameLocal()->Printf( " return to %s(line %d)\n", callStack[ callStackDepth - 1 ].f->Name(), GameLocal()->program.GetStatement( callStack[ callStackDepth - 1 ].s ).linenumber );
 		} else {
-			gameLocal.Printf( " done\n" );
+			GameLocal()->Printf( " done\n" );
 		}
 	}
 
 	// up stack
 	callStackDepth--;
-	stack = &callStack[ callStackDepth ]; 
+	stack = &callStack[ callStackDepth ];
 	currentFunction = stack->f;
 	localstackBase = stack->stackbase;
 	NextInstruction( stack->s );
@@ -702,31 +702,31 @@ void idInterpreter::CallEvent( const function_t *func, int argsize ) {
 	eventEntity = GetEntity( *var.entityNumberPtr );
 
 	if ( !eventEntity || !eventEntity->RespondsTo( *evdef ) ) {
-		if ( eventEntity && developer.GetBool() ) {
+		if ( eventEntity && cvarSystem->GetCVarBool( "developer" ) ) {
 			// give a warning in developer mode
 			Warning( "Function '%s' not supported on entity '%s'", evdef->GetName(), eventEntity->name.c_str() );
 		}
 		// always return a safe value when an object doesn't exist
 		switch( evdef->GetReturnType() ) {
 		case D_EVENT_INTEGER :
-			gameLocal.program.ReturnInteger( 0 );
+			GameLocal()->program.ReturnInteger( 0 );
 			break;
 
 		case D_EVENT_FLOAT :
-			gameLocal.program.ReturnFloat( 0 );
+			GameLocal()->program.ReturnFloat( 0 );
 			break;
 
 		case D_EVENT_VECTOR :
-			gameLocal.program.ReturnVector( vec3_zero );
+			GameLocal()->program.ReturnVector( vec3_zero );
 			break;
 
 		case D_EVENT_STRING :
-			gameLocal.program.ReturnString( "" );
+			GameLocal()->program.ReturnString( "" );
 			break;
 
 		case D_EVENT_ENTITY :
 		case D_EVENT_ENTITY_NULL :
-			gameLocal.program.ReturnEntity( ( idEntity * )NULL );
+			GameLocal()->program.ReturnEntity( ( idEntity * )NULL );
 			break;
 
 		case D_EVENT_TRACE :
@@ -809,7 +809,7 @@ void idInterpreter::CallEvent( const function_t *func, int argsize ) {
 idInterpreter::BeginMultiFrameEvent
 ================
 */
-bool idInterpreter::BeginMultiFrameEvent( idEntity *ent, const idEventDef *event ) { 
+bool idInterpreter::BeginMultiFrameEvent( idEntity *ent, const idEventDef *event ) {
 	if ( eventEntity != ent ) {
 		Error( "idInterpreter::BeginMultiFrameEvent called with wrong entity" );
 	}
@@ -965,7 +965,7 @@ bool idInterpreter::Execute( void ) {
 		}
 
 		// next statement
-		st = &gameLocal.program.GetStatement( instructionPointer );
+		st = &GameLocal()->program.GetStatement( instructionPointer );
 
 		switch( st->op ) {
 		case OP_RETURN:
@@ -977,7 +977,7 @@ bool idInterpreter::Execute( void ) {
 			newThread->Start();
 
 			// return the thread number to the script
-			gameLocal.program.ReturnFloat( newThread->GetThreadNum() );
+			GameLocal()->program.ReturnFloat( newThread->GetThreadNum() );
 			PopParms( st->b->value.argSize );
 			break;
 
@@ -991,10 +991,10 @@ bool idInterpreter::Execute( void ) {
 				newThread->Start();
 
 				// return the thread number to the script
-				gameLocal.program.ReturnFloat( newThread->GetThreadNum() );
+				GameLocal()->program.ReturnFloat( newThread->GetThreadNum() );
 			} else {
 				// return a null thread to the script
-				gameLocal.program.ReturnFloat( 0.0f );
+				GameLocal()->program.ReturnFloat( 0.0f );
 			}
 			PopParms( st->c->value.argSize );
 			break;
@@ -1007,7 +1007,7 @@ bool idInterpreter::Execute( void ) {
 			CallEvent( st->a->value.functionPtr, st->b->value.argSize );
 			break;
 
-		case OP_OBJECTCALL:	
+		case OP_OBJECTCALL:
 			var_a = GetVariable( st->a );
 			obj = GetScriptObject( *var_a.entityNumberPtr );
 			if ( obj ) {
@@ -1015,8 +1015,8 @@ bool idInterpreter::Execute( void ) {
 				EnterFunction( func, false );
 			} else {
 				// return a 'safe' value
-				gameLocal.program.ReturnVector( vec3_zero );
-				gameLocal.program.ReturnString( "" );
+				GameLocal()->program.ReturnVector( vec3_zero );
+				GameLocal()->program.ReturnString( "" );
 				PopParms( st->c->value.argSize );
 			}
 			break;
@@ -1224,7 +1224,7 @@ bool idInterpreter::Execute( void ) {
 			*var_c.floatPtr = ( *var_a.intPtr != 0 ) && ( *var_b.intPtr != 0 );
 			break;
 
-		case OP_OR:	
+		case OP_OR:
 			var_a = GetVariable( st->a );
 			var_b = GetVariable( st->b );
 			var_c = GetVariable( st->c );
@@ -1244,14 +1244,14 @@ bool idInterpreter::Execute( void ) {
 			var_c = GetVariable( st->c );
 			*var_c.floatPtr = ( *var_a.floatPtr != 0.0f ) || ( *var_b.intPtr != 0 );
 			break;
-			
+
 		case OP_OR_BOOLBOOL:
 			var_a = GetVariable( st->a );
 			var_b = GetVariable( st->b );
 			var_c = GetVariable( st->c );
 			*var_c.floatPtr = ( *var_a.intPtr != 0 ) || ( *var_b.intPtr != 0 );
 			break;
-			
+
 		case OP_NOT_BOOL:
 			var_a = GetVariable( st->a );
 			var_c = GetVariable( st->c );
@@ -1489,7 +1489,7 @@ bool idInterpreter::Execute( void ) {
 			*var_b.entityNumberPtr = *var_a.entityNumberPtr;
 			break;
 
-		case OP_STORE_BOOL:	
+		case OP_STORE_BOOL:
 			var_a = GetVariable( st->a );
 			var_b = GetVariable( st->b );
 			*var_b.intPtr = *var_a.intPtr;
@@ -1603,7 +1603,7 @@ bool idInterpreter::Execute( void ) {
 				*var_b.evalPtr->vectorPtr = *var_a.vectorPtr;
 			}
 			break;
-		
+
 		case OP_STOREP_FTOS:
 			var_b = GetVariable( st->b );
 			if ( var_b.evalPtr && var_b.evalPtr->stringPtr ) {

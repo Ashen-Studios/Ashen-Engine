@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -59,6 +59,8 @@ extern const idEventDef EV_StartSoundShader;
 extern const idEventDef EV_StopSound;
 extern const idEventDef EV_CacheSoundShader;
 
+void UpdateGuiParms( idUserInterface *gui, const idDict *args );
+
 // Think flags
 enum {
 	TH_ALL					= -1,
@@ -71,7 +73,7 @@ enum {
 
 //
 // Signals
-// make sure to change script/doom_defs.script if you add any, or change their order
+// make sure to change SCRIPT_DEFAULTDEFS if you add any, or change their order
 //
 typedef enum {
 	SIG_TOUCH,				// object was touched

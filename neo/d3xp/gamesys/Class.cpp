@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ instancing of objects.
 
 */
 
-#include "../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "../Game_local.h"
@@ -62,7 +62,7 @@ initialized in any order, the constructor must handle the case that subclasses
 are initialized before superclasses.
 ================
 */
-idTypeInfo::idTypeInfo( const char *classname, const char *superclass, idEventFunc<idClass> *eventCallbacks, idClass *( *CreateInstance )( void ), 
+idTypeInfo::idTypeInfo( const char *classname, const char *superclass, idEventFunc<idClass> *eventCallbacks, idClass *( *CreateInstance )( void ),
 	void ( idClass::*Spawn )( void ), void ( idClass::*Save )( idSaveGame *savefile ) const, void ( idClass::*Restore )( idRestoreGame *savefile ) ) {
 
 	idTypeInfo *type;
@@ -83,7 +83,7 @@ idTypeInfo::idTypeInfo( const char *classname, const char *superclass, idEventFu
 
 	// Check if any subclasses were initialized before their superclass
 	for( type = typelist; type != NULL; type = type->next ) {
-		if ( ( type->super == NULL ) && !idStr::Cmp( type->superclass, this->classname ) && 
+		if ( ( type->super == NULL ) && !idStr::Cmp( type->superclass, this->classname ) &&
 			idStr::Cmp( type->classname, "idClass" ) ) {
 			type->super	= this;
 		}
@@ -117,7 +117,7 @@ idTypeInfo::~idTypeInfo() {
 ================
 idTypeInfo::Init
 
-Initializes the event callback table for the class.  Creates a 
+Initializes the event callback table for the class.  Creates a
 table for fast lookups of event functions.  Should only be called once.
 ================
 */
@@ -203,7 +203,7 @@ void idTypeInfo::Init( void ) {
 idTypeInfo::Shutdown
 
 Should only be called when DLL or EXE is being shutdown.
-Although it cleans up any allocated memory, it doesn't bother to remove itself 
+Although it cleans up any allocated memory, it doesn't bother to remove itself
 from the class list since the program is shutting down.
 ================
 */
@@ -285,14 +285,24 @@ idClass::FindUninitializedMemory
 */
 void idClass::FindUninitializedMemory( void ) {
 #ifdef ID_DEBUG_UNINITIALIZED_MEMORY
-	unsigned long *ptr = ( ( unsigned long * )this ) - 1;
-	int size = *ptr;
+	unsigned int *ptr = ( unsigned int * )this;
+	int size = ptr[-1];
 	assert( ( size & 3 ) == 0 );
 	size >>= 2;
 	for ( int i = 0; i < size; i++ ) {
-		if ( ptr[i] == 0xcdcdcdcd ) {
+		//stgatilov: avoid false positives due to padding on 64-bit mode
+		//note: such false positives are possible on 32-bit mode too, but they don't happen =)
+		bool skipOnX64 = sizeof(void*) == 8 && (i & 1);
+
+		if ( ptr[i] == 0xcdcdcdcd && !skipOnX64 ) {
+#ifdef ID_USE_TYPEINFO
 			const char *varName = GetTypeVariableName( GetClassname(), i << 2 );
-			gameLocal.Warning( "type '%s' has uninitialized variable %s (offset %d)", GetClassname(), varName, i << 2 );
+			if ( varName == nullptr )
+				continue;
+#else
+			const char *varName = "[unknown]";
+#endif
+			gameLocal.Warning( "type '%s' has uninitialized variable at offset %d: %s", GetClassname(), i << 2, varName );
 		}
 	}
 #endif
@@ -440,7 +450,7 @@ void idClass::Shutdown( void ) {
 idClass::new
 ================
 */
-#ifdef ID_DEBUG_MEMORY
+#if defined(ID_DEBUG_MEMORY) && defined(ID_REDIRECT_NEWDELETE)
 #undef new
 #endif
 
@@ -452,16 +462,6 @@ void * idClass::operator new( size_t s ) {
 	*p = s;
 	memused += s;
 	numobjects++;
-
-#ifdef ID_DEBUG_UNINITIALIZED_MEMORY
-	unsigned long *ptr = (unsigned long *)p;
-	int size = s;
-	assert( ( size & 3 ) == 0 );
-	size >>= 3;
-	for ( int i = 1; i < size; i++ ) {
-		ptr[i] = 0xcdcdcdcd;
-	}
-#endif
 
 	return p + 1;
 }
@@ -475,20 +475,10 @@ void * idClass::operator new( size_t s, int, int, char *, int ) {
 	memused += s;
 	numobjects++;
 
-#ifdef ID_DEBUG_UNINITIALIZED_MEMORY
-	unsigned long *ptr = (unsigned long *)p;
-	int size = s;
-	assert( ( size & 3 ) == 0 );
-	size >>= 3;
-	for ( int i = 1; i < size; i++ ) {
-		ptr[i] = 0xcdcdcdcd;
-	}
-#endif
-
 	return p + 1;
 }
 
-#ifdef ID_DEBUG_MEMORY
+#if defined(ID_DEBUG_MEMORY) && defined(ID_REDIRECT_NEWDELETE)
 #define new ID_DEBUG_NEW
 #endif
 
@@ -629,9 +619,9 @@ bool idClass::PostEventArgs( const idEventDef *ev, int time, int numargs, ... ) 
 	idTypeInfo	*c;
 	idEvent		*event;
 	va_list		args;
-	
+
 	assert( ev );
-	
+
 	if ( !idEvent::initialized ) {
 		return false;
 	}
@@ -830,7 +820,7 @@ bool idClass::ProcessEventArgs( const idEventDef *ev, int numargs, ... ) {
 	int			num;
 	int			data[ D_EVENT_MAXARGS ];
 	va_list		args;
-	
+
 	assert( ev );
 	assert( idEvent::initialized );
 

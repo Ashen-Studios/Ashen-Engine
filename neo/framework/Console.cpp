@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 void SCR_DrawTextLeftAlign( float &y, const char *text, ... ) id_attribute((format(printf,2,3)));
@@ -224,7 +224,7 @@ SCR_DrawMemoryUsage
 */
 float SCR_DrawMemoryUsage( float y ) {
 	memoryStats_t allocs, frees;
-	
+
 	Mem_GetStats( allocs );
 	SCR_DrawTextRightAlign( y, "total allocated memory: %4d, %4dkB", allocs.num, allocs.totalSize>>10 );
 
@@ -564,15 +564,15 @@ Handles history and console scrollback
 ====================
 */
 void idConsoleLocal::KeyDownEvent( int key ) {
-	
+
 	// Execute F key bindings
 	if ( key >= K_F1 && key <= K_F12 ) {
-		idKeyInput::ExecKeyBinding( key );
+		keyInput->ExecKeyBinding( key );
 		return;
 	}
 
 	// ctrl-L clears screen
-	if ( key == 'l' && idKeyInput::IsDown( K_CTRL ) ) {
+	if ( key == 'l' && keyInput->IsDown( K_CTRL ) ) {
 		Clear();
 		return;
 	}
@@ -608,7 +608,7 @@ void idConsoleLocal::KeyDownEvent( int key ) {
 	// command history (ctrl-p ctrl-n for unix style)
 
 	if ( ( key == K_UPARROW ) ||
-		 ( ( tolower(key) == 'p' ) && idKeyInput::IsDown( K_CTRL ) ) ) {
+		 ( ( tolower(key) == 'p' ) && keyInput->IsDown( K_CTRL ) ) ) {
 		if ( nextHistoryLine - historyLine < COMMAND_HISTORY && historyLine > 0 ) {
 			historyLine--;
 		}
@@ -617,7 +617,7 @@ void idConsoleLocal::KeyDownEvent( int key ) {
 	}
 
 	if ( ( key == K_DOWNARROW ) ||
-		 ( ( tolower( key ) == 'n' ) && idKeyInput::IsDown( K_CTRL ) ) ) {
+		 ( ( tolower( key ) == 'n' ) && keyInput->IsDown( K_CTRL ) ) ) {
 		if ( historyLine == nextHistoryLine ) {
 			return;
 		}
@@ -652,13 +652,13 @@ void idConsoleLocal::KeyDownEvent( int key ) {
 	}
 
 	// ctrl-home = top of console
-	if ( key == K_HOME && idKeyInput::IsDown( K_CTRL ) ) {
+	if ( key == K_HOME && keyInput->IsDown( K_CTRL ) ) {
 		Top();
 		return;
 	}
 
 	// ctrl-end = bottom of console
-	if ( key == K_END && idKeyInput::IsDown( K_CTRL ) ) {
+	if ( key == K_END && keyInput->IsDown( K_CTRL ) ) {
 		Bottom();
 		return;
 	}
@@ -678,13 +678,13 @@ void idConsoleLocal::Scroll( ) {
 		return;
 	}
 	// console scrolling
-	if ( idKeyInput::IsDown( K_PGUP ) ) {
+	if ( keyInput->IsDown( K_PGUP ) ) {
 		PageUp();
 		nextKeyEvent = CONSOLE_REPEAT;
 		return;
 	}
 
-	if ( idKeyInput::IsDown( K_PGDN ) ) {
+	if ( keyInput->IsDown( K_PGDN ) ) {
 		PageDown();
 		nextKeyEvent = CONSOLE_REPEAT;
 		return;
@@ -745,7 +745,7 @@ bool	idConsoleLocal::ProcessEvent( const sysEvent_t *event, bool forceAccept ) {
 #if ID_CONSOLE_LOCK
 	// If the console's not already down, and we have it turned off, check for ctrl+alt
 	if ( !keyCatching && !com_allowConsole.GetBool() ) {
-		if ( !idKeyInput::IsDown( K_CTRL ) || !idKeyInput::IsDown( K_ALT ) ) {
+		if ( !keyInput->IsDown( K_CTRL ) || !keyInput->IsDown( K_ALT ) ) {
 			consoleKey = false;
 		}
 	}
@@ -768,7 +768,7 @@ bool	idConsoleLocal::ProcessEvent( const sysEvent_t *event, bool forceAccept ) {
 		} else {
 			consoleField.Clear();
 			keyCatching = true;
-			if ( idKeyInput::IsDown( K_SHIFT ) ) {
+			if ( keyInput->IsDown( K_SHIFT ) ) {
 				// if the shift key is down, don't open the console as much
 				SetDisplayFraction( 0.2f );
 			} else {
@@ -1004,7 +1004,7 @@ void idConsoleLocal::DrawNotify() {
 			continue;
 		}
 		text_p = text + (i % TOTAL_LINES)*LINE_WIDTH;
-		
+
 		for ( x = 0; x < LINE_WIDTH; x++ ) {
 			if ( ( text_p[x] & 0xff ) == ' ' ) {
 				continue;
@@ -1067,7 +1067,7 @@ void idConsoleLocal::DrawSolidConsole( float frac ) {
 	i = version.Length();
 
 	for ( x = 0; x < i; x++ ) {
-		renderSystem->DrawSmallChar( SCREEN_WIDTH - ( i - x ) * SMALLCHAR_WIDTH, 
+		renderSystem->DrawSmallChar( SCREEN_WIDTH - ( i - x ) * SMALLCHAR_WIDTH,
 			(lines-(SMALLCHAR_HEIGHT+SMALLCHAR_HEIGHT/2)), version[x], localConsole.charSetShader );
 
 	}
@@ -1089,7 +1089,7 @@ void idConsoleLocal::DrawSolidConsole( float frac ) {
 		y -= SMALLCHAR_HEIGHT;
 		rows--;
 	}
-	
+
 	row = display;
 
 	if ( x == 0 ) {
@@ -1105,7 +1105,7 @@ void idConsoleLocal::DrawSolidConsole( float frac ) {
 		}
 		if ( current - row >= TOTAL_LINES ) {
 			// past scrollback wrap point
-			continue;	
+			continue;
 		}
 
 		text_p = text + (row % TOTAL_LINES)*LINE_WIDTH;
@@ -1145,7 +1145,7 @@ void	idConsoleLocal::Draw( bool forceFullScreen ) {
 	}
 
 	if ( forceFullScreen ) {
-		// if we are forced full screen because of a disconnect, 
+		// if we are forced full screen because of a disconnect,
 		// we want the console closed when we go back to a session state
 		Close();
 		// we are however catching keyboard input

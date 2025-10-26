@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "Unzip.h"
@@ -53,7 +53,7 @@ If you have questions concerning this license or the applicable additional terms
 
 DOOM FILESYSTEM
 
-All of Doom's data access is through a hierarchical file system, but the contents of 
+All of Doom's data access is through a hierarchical file system, but the contents of
 the file system can be transparently merged from several sources.
 
 A "relativePath" is a reference to game file data, which must include a terminating zero.
@@ -70,18 +70,9 @@ to the base path, but can be overridden with a "+set fs_savepath c:\doom" on the
 command line. Any files that are created during the game (demos, screenshots, etc.) will
 be created reletive to the save path.
 
-The "cd path" is the path to an alternate hierarchy that will be searched if a file
-is not located in the base path. A user can do a partial install that copies some
-data to a base path created on their hard drive and leave the rest on the cd. It defaults
-to the current directory, but it can be overridden with "+set fs_cdpath g:\doom" on the
-command line.
-
 The "dev path" is the path to an alternate hierarchy where the editors and tools used
 during development (Radiant, AF editor, dmap, runAAS) will write files to. It defaults to
-the cd path, but can be overridden with a "+set fs_devpath c:\doom" on the command line.
-
-If a user runs the game directly from a CD, the base path would be on the CD. This
-should still function correctly, but all file writes will fail (harmlessly).
+the base path, but can be overridden with a "+set fs_devpath c:\doom" on the command line.
 
 The "base game" is the directory under the paths where data comes from by default, and
 can be either "base" or "demo".
@@ -112,43 +103,11 @@ contained in demo/pak0.pk4 will be available for loading, and only if the zip he
 verified to not have been modified. A single exception is made for DoomConfig.cfg. Files
 can still be written out in restricted mode, so screenshots and demos are allowed.
 Restricted mode can be tested by setting "+set fs_restrict 1" on the command line, even
-if there is a valid product.txt under the basepath or cdpath.
-
-If the "fs_copyfiles" cvar is set to 1, then every time a file is sourced from the cd
-path, it will be copied over to the save path. This is a development aid to help build
-test releases and to copy working sets of files.
-
-If the "fs_copyfiles" cvar is set to 2, any file found in fs_cdpath that is newer than
-it's fs_savepath version will be copied to fs_savepath (in addition to the fs_copyfiles 1
-behaviour).
-
-If the "fs_copyfiles" cvar is set to 3, files from both basepath and cdpath will be copied
-over to the save path. This is useful when copying working sets of files mainly from base
-path with an additional cd path (which can be a slower network drive for instance).
-
-If the "fs_copyfiles" cvar is set to 4, files that exist in the cd path but NOT the base path
-will be copied to the save path
-
-NOTE: fs_copyfiles and case sensitivity. On fs_caseSensitiveOS 0 filesystems ( win32 ), the
-copied files may change casing when copied over.
-
-The relative path "sound/newstuff/test.wav" would be searched for in the following places:
-
-for save path, dev path, base path, cd path:
-	for current game, base game:
-		search directory
-		search zip files
-
-downloaded files, to be written to save path + current game's directory
-
-The filesystem can be safely shutdown and reinitialized with different
-basedir / cddir / game combinations, but all other subsystems that rely on it
-(sound, video) must also be forced to restart.
-
+if there is a valid product.txt under the basepath.
 
 "fs_caseSensitiveOS":
 This cvar is set on operating systems that use case sensitive filesystems (Linux and OSX)
-It is a common situation to have the media reference filenames, whereas the file on disc 
+It is a common situation to have the media reference filenames, whereas the file on disc
 only matches in a case-insensitive way. When "fs_caseSensitiveOS" is set, the filesystem
 will always do a case insensitive search.
 IMPORTANT: This only applies to files, and not to directories. There is no case-insensitive
@@ -169,9 +128,9 @@ for instance to base a mod of D3 + D3XP assets, fs_game mymod, fs_game_base d3xp
 
 
 
-// define to fix special-cases for GetPackStatus so that files that shipped in 
+// define to fix special-cases for GetPackStatus so that files that shipped in
 // the wrong place for Doom 3 don't break pure servers.
-#define DOOM3_PURE_SPECIAL_CASES	
+#define DOOM3_PURE_SPECIAL_CASES
 
 typedef bool (*pureExclusionFunc_t)( const struct pureExclusion_s &excl, int l, const idStr &name );
 
@@ -213,7 +172,7 @@ static pureExclusion_t pureExclusions[] = {
 	{ 0,	0,	NULL,											".lang",	excludeExtension },
 	{ 0,	0,	"sound/VO",										".ogg",		excludePathPrefixAndExtension },
 	{ 0,	0,	"sound/VO",										".wav",		excludePathPrefixAndExtension },
-#if	defined DOOM3_PURE_SPECIAL_CASES	
+#if	defined DOOM3_PURE_SPECIAL_CASES
 	// add any special-case files or paths for pure servers here
 	{ 0,	0,	"sound/ed/marscity/vo_intro_cutscene.ogg",		NULL,		excludeFullName },
 	{ 0,	0,	"sound/weapons/soulcube/energize_01.ogg",		NULL,		excludeFullName },
@@ -314,9 +273,9 @@ typedef struct searchpath_s {
 #define FSFLAG_BINARY_ONLY		( 1 << 3 )
 #define FSFLAG_SEARCH_ADDONS	( 1 << 4 )
 
-// 3 search path (fs_savepath fs_basepath fs_cdpath)
+// 2 search path (fs_savepath fs_basepath)
 // + .jpg and .tga
-#define MAX_CACHED_DIRS 6
+#define MAX_CACHED_DIRS 5
 
 // how many OSes to handle game paks for ( we don't have to know them precisely )
 #define MAX_GAME_OS	6
@@ -367,7 +326,7 @@ public:
 	virtual int				ReadFile( const char *relativePath, void **buffer, ID_TIME_T *timestamp );
 	virtual void			FreeFile( void *buffer );
 	virtual int				WriteFile( const char *relativePath, const void *buffer, int size, const char *basePath = "fs_savepath" );
-	virtual void			RemoveFile( const char *relativePath );	
+	virtual void			RemoveFile( const char *relativePath );
 	virtual idFile *		OpenFileReadFlags( const char *relativePath, int searchFlags, pack_t **foundInPak = NULL, bool allowCopyFiles = true, const char* gamedir = NULL );
 	virtual idFile *		OpenFileRead( const char *relativePath, bool allowCopyFiles = true, const char* gamedir = NULL );
 	virtual idFile *		OpenFileWrite( const char *relativePath, const char *basePath = "fs_savepath" );
@@ -418,7 +377,6 @@ private:
 	static idCVar			fs_copyfiles;
 	static idCVar			fs_basepath;
 	static idCVar			fs_savepath;
-	static idCVar			fs_cdpath;
 	static idCVar			fs_devpath;
 	static idCVar			fs_game;
 	static idCVar			fs_game_base;
@@ -482,10 +440,9 @@ private:
 
 idCVar	idFileSystemLocal::fs_restrict( "fs_restrict", "", CVAR_SYSTEM | CVAR_INIT | CVAR_BOOL, "" );
 idCVar	idFileSystemLocal::fs_debug( "fs_debug", "0", CVAR_SYSTEM | CVAR_INTEGER, "", 0, 2, idCmdSystem::ArgCompletion_Integer<0,2> );
-idCVar	idFileSystemLocal::fs_copyfiles( "fs_copyfiles", "0", CVAR_SYSTEM | CVAR_INIT | CVAR_INTEGER, "", 0, 4, idCmdSystem::ArgCompletion_Integer<0,3> );
+idCVar	idFileSystemLocal::fs_copyfiles( "fs_copyfiles", "0", CVAR_SYSTEM | CVAR_INIT | CVAR_BOOL, "Copy every file touched to fs_savepath" );
 idCVar	idFileSystemLocal::fs_basepath( "fs_basepath", "", CVAR_SYSTEM | CVAR_INIT, "" );
 idCVar	idFileSystemLocal::fs_savepath( "fs_savepath", "", CVAR_SYSTEM | CVAR_INIT, "" );
-idCVar	idFileSystemLocal::fs_cdpath( "fs_cdpath", "", CVAR_SYSTEM | CVAR_INIT, "" );
 idCVar	idFileSystemLocal::fs_devpath( "fs_devpath", "", CVAR_SYSTEM | CVAR_INIT, "" );
 idCVar	idFileSystemLocal::fs_game( "fs_game", "", CVAR_SYSTEM | CVAR_INIT | CVAR_SERVERINFO, "mod path" );
 idCVar  idFileSystemLocal::fs_game_base( "fs_game_base", "", CVAR_SYSTEM | CVAR_INIT | CVAR_SERVERINFO, "alternate mod path, searched after the main fs_game path, before the basedir" );
@@ -556,7 +513,7 @@ Ignore case and separator char distinctions
 */
 bool idFileSystemLocal::FilenameCompare( const char *s1, const char *s2 ) const {
 	int		c1, c2;
-	
+
 	do {
 		c1 = *s1++;
 		c2 = *s2++;
@@ -574,12 +531,12 @@ bool idFileSystemLocal::FilenameCompare( const char *s1, const char *s2 ) const 
 		if ( c2 == '\\' || c2 == ':' ) {
 			c2 = '/';
 		}
-		
+
 		if ( c1 != c2 ) {
 			return true;		// strings not equal
 		}
 	} while( c1 );
-	
+
 	return false;		// strings are equal
 }
 
@@ -596,7 +553,7 @@ FILE *idFileSystemLocal::OpenOSFile( const char *fileName, const char *mode, idS
 	idStrList list;
 
 #ifndef __MWERKS__
-#ifndef WIN32 
+#ifndef WIN32
 	// some systems will let you fopen a directory
 	struct stat buf;
 	if ( stat( fileName, &buf ) != -1 && !S_ISREG(buf.st_mode) ) {
@@ -612,7 +569,7 @@ FILE *idFileSystemLocal::OpenOSFile( const char *fileName, const char *mode, idS
 		if ( ListOSFiles( fpath, NULL, list ) == -1 ) {
 			return NULL;
 		}
-		
+
 		for ( i = 0; i < list.Num(); i++ ) {
 			entry = fpath + PATHSEPERATOR_CHAR + list[i];
 			if ( !entry.Icmp( fileName ) ) {
@@ -680,11 +637,11 @@ Creates any directories needed to store the given filename
 */
 void idFileSystemLocal::CreateOSPath( const char *OSPath ) {
 	char	*ofs;
-	
+
 	// make absolutely sure that it can't back up the path
 	// FIXME: what about c: ?
 	if ( strstr( OSPath, ".." ) || strstr( OSPath, "::" ) ) {
-#ifdef _DEBUG		
+#ifdef _DEBUG
 		common->DPrintf( "refusing to create relative path \"%s\"\n", OSPath );
 #endif
 		return;
@@ -692,7 +649,7 @@ void idFileSystemLocal::CreateOSPath( const char *OSPath ) {
 
 	idStr path( OSPath );
 	for( ofs = &path[ 1 ]; *ofs ; ofs++ ) {
-		if ( *ofs == PATHSEPERATOR_CHAR ) {	
+		if ( *ofs == PATHSEPERATOR_CHAR ) {
 			// create the directory
 			*ofs = 0;
 			Sys_Mkdir( path );
@@ -860,13 +817,13 @@ const char *idFileSystemLocal::OSPathToRelativePath( const char *OSPath ) {
 	// which won't match any of our drive letter based search paths
 	bool ignoreWarning = false;
 #ifdef ID_DEMO_BUILD
-	base = strstr( OSPath, BASE_GAMEDIR );	
+	base = (char *)strstr( OSPath, BASE_GAMEDIR );
 	idStr tempStr = OSPath;
 	tempStr.ToLower();
 	if ( ( strstr( tempStr, "//" ) || strstr( tempStr, "w:" ) ) && strstr( tempStr, "/doom/base/") ) {
 		// will cause a warning but will load the file. ase models have
 		// hard coded doom/base/ in the material names
-		base = strstr( OSPath, "base" );
+		base = (char *)strstr( OSPath, "base" );
 		ignoreWarning = true;
 	}
 #else
@@ -991,7 +948,7 @@ bool idFileSystemLocal::FileIsInPAK( const char *relativePath ) {
 
 	// make absolutely sure that it can't back up the path.
 	// The searchpaths do guarantee that something will always
-	// be prepended, so we don't need to worry about "c:" or "//limbo" 
+	// be prepended, so we don't need to worry about "c:" or "//limbo"
 	if ( strstr( relativePath, ".." ) || strstr( relativePath, "::" ) ) {
 		return false;
 	}
@@ -1108,7 +1065,7 @@ int idFileSystemLocal::ReadFile( const char *relativePath, void **buffer, ID_TIM
 	if ( timestamp ) {
 		*timestamp = f->Timestamp();
 	}
-	
+
 	if ( !buffer ) {
 		CloseFile( f );
 		return len;
@@ -1292,11 +1249,11 @@ pack_t *idFileSystemLocal::LoadZipFile( const char *zipfile ) {
 	pack_t *		pack;
 	unzFile			uf;
 	int				err;
-	unz_global_info gi;
+	unz_global_info64 gi;
 	char			filename_inzip[MAX_ZIPPED_FILE_NAME];
-	unz_file_info	file_info;
+	unz_file_info64	file_info;
 	int				i;
-	long			hash;
+	int				hash;
 	int				fs_numHeaderLongs;
 	int *			fs_headerLongs;
 	FILE			*f;
@@ -1315,7 +1272,7 @@ pack_t *idFileSystemLocal::LoadZipFile( const char *zipfile ) {
 	fs_numHeaderLongs = 0;
 
 	uf = unzOpen( zipfile );
-	err = unzGetGlobalInfo( uf, &gi );
+	err = unzGetGlobalInfo64( uf, &gi );
 
 	if ( err != UNZ_OK ) {
 		return NULL;
@@ -1344,7 +1301,7 @@ pack_t *idFileSystemLocal::LoadZipFile( const char *zipfile ) {
 	unzGoToFirstFile(uf);
 	fs_headerLongs = (int *)Mem_ClearedAlloc( gi.number_entry * sizeof(int) );
 	for ( i = 0; i < (int)gi.number_entry; i++ ) {
-		err = unzGetCurrentFileInfo( uf, &file_info, filename_inzip, sizeof(filename_inzip), NULL, 0, NULL, 0 );
+		err = unzGetCurrentFileInfo64( uf, &file_info, filename_inzip, sizeof(filename_inzip), NULL, 0, NULL, 0 );
 		if ( err != UNZ_OK ) {
 			break;
 		}
@@ -1356,7 +1313,7 @@ pack_t *idFileSystemLocal::LoadZipFile( const char *zipfile ) {
 		buildBuffer[i].name.ToLower();
 		buildBuffer[i].name.BackSlashesToSlashes();
 		// store the file position in the zip
-		unzGetCurrentFileInfoPosition( uf, &buildBuffer[i].pos );
+		buildBuffer[i].pos = unzGetOffset64( uf );
 		// add the file to the hash
 		buildBuffer[i].next = pack->hashTable[hash];
 		pack->hashTable[hash] = &buildBuffer[i];
@@ -1368,8 +1325,8 @@ pack_t *idFileSystemLocal::LoadZipFile( const char *zipfile ) {
 	pack->addon = false;
 	confHash = HashFileName( ADDON_CONFIG );
 	for ( pakFile = pack->hashTable[confHash]; pakFile; pakFile = pakFile->next ) {
-		if ( !FilenameCompare( pakFile->name, ADDON_CONFIG ) ) {			
-			pack->addon = true;			
+		if ( !FilenameCompare( pakFile->name, ADDON_CONFIG ) ) {
+			pack->addon = true;
 			idFile_InZip *file = ReadFileFromZip( pack, pakFile, ADDON_CONFIG );
 			// may be just an empty file if you don't bother about the mapDef
 			if ( file && file->Length() ) {
@@ -1570,12 +1527,12 @@ int idFileSystemLocal::GetFileList( const char *relativePath, const idStrList &e
 				if ( pathLength && idStr::Icmpn( name, relativePath, pathLength - 1 ) != 0 ) {
 					continue;
 				}
- 
+
 				// ensure we have a path, and not just a filename containing the path
 				if ( name[ pathLength ] == '\0' || name[pathLength - 1] != '/' ) {
 					continue;
 				}
- 
+
 				// make sure the file is not in a subdirectory
 				for ( j = pathLength; name[j+1] != '\0'; j++ ) {
 					if ( name[j] == '/' ) {
@@ -1721,7 +1678,6 @@ idModList *idFileSystemLocal::ListMods( void ) {
 	search[0] = fs_savepath.GetString();
 	search[1] = fs_devpath.GetString();
 	search[2] = fs_basepath.GetString();
-	search[3] = fs_cdpath.GetString();
 
 	for ( isearch = 0; isearch < 4; isearch++ ) {
 
@@ -1734,7 +1690,6 @@ idModList *idFileSystemLocal::ListMods( void ) {
 		dirs.Remove( "." );
 		dirs.Remove( ".." );
 		dirs.Remove( "base" );
-		dirs.Remove( "pb" );
 
 		// see if there are any pk4 files in each directory
 		for( i = 0; i < dirs.Num(); i++ ) {
@@ -1750,7 +1705,7 @@ idModList *idFileSystemLocal::ListMods( void ) {
 			}
 		}
 	}
-	   
+
 	list->mods.Sort();
 
 	// read the descriptions for each mod - search all paths
@@ -1864,7 +1819,7 @@ int	idFileSystemLocal::ListOSFiles( const char *directory, const char *extension
 
 	if ( fs_debug.GetInteger() ) {
 		//common->Printf( "idFileSystemLocal::ListOSFiles: cache miss: %s\n", directory );
-	}	
+	}
 
 	ret = Sys_ListFiles( directory, extension, list );
 
@@ -2019,7 +1974,7 @@ void idFileSystemLocal::Path_f( const idCmdArgs &args ) {
 			common->Printf( "%s (%i files - 0x%x)\n", sp->pack->pakFilename.c_str(), sp->pack->numfiles, sp->pack->checksum );
 		} else {
 			common->Printf( "%s (%i files)\n", sp->pack->pakFilename.c_str(), sp->pack->numfiles );
-		}		
+		}
 	}
 }
 
@@ -2071,7 +2026,7 @@ Takes a text file and touches every file in it, use one file per line.
 ============
 */
 void idFileSystemLocal::TouchFileList_f( const idCmdArgs &args ) {
-	
+
 	if ( args.Argc() != 2 ) {
 		common->Printf( "Usage: touchFileList <filename>\n" );
 		return;
@@ -2170,11 +2125,6 @@ idFileSystemLocal::SetupGameDirectories
 ================
 */
 void idFileSystemLocal::SetupGameDirectories( const char *gameName ) {
-	// setup cdpath
-	if ( fs_cdpath.GetString()[0] ) {
-		AddGameDirectory( fs_cdpath.GetString(), gameName );
-	}
-
 	// setup basepath
 	if ( fs_basepath.GetString()[0] ) {
 		AddGameDirectory( fs_basepath.GetString(), gameName );
@@ -2306,7 +2256,7 @@ void idFileSystemLocal::Startup( void ) {
 			paksearch->next = addonPaks;
 			addonPaks = paksearch;
 			common->Printf( "Addon pk4 %s with checksum 0x%x is on addon list\n",
-							pak->pakFilename.c_str(), pak->checksum );				
+							pak->pakFilename.c_str(), pak->checksum );
 		}
 	}
 
@@ -2421,7 +2371,7 @@ void idFileSystemLocal::SetRestrictions( void ) {
 		if ( search->pack ) {
 			// a tiny attempt to keep the checksum from being scannable from the exe
 			if ( ( search->pack->checksum ^ 0x84268436u ) != ( DEMO_PAK_CHECKSUM ^ 0x84268436u ) ) {
-				common->FatalError( "Corrupted %s: 0x%x", search->pack->pakFilename.c_str(), search->pack->checksum );
+				common->Warning( "Corrupted %s: 0x%x", search->pack->pakFilename.c_str(), search->pack->checksum );
 			}
 		}
 	}
@@ -2595,7 +2545,6 @@ int idFileSystemLocal::ValidateDownloadPakForChecksum( int checksum, char path[ 
 	testList.Append( fs_savepath.GetString() );
 	testList.Append( fs_devpath.GetString() );
 	testList.Append( fs_basepath.GetString() );
-	testList.Append( fs_cdpath.GetString() );
 	for ( i = 0; i < testList.Num(); i ++ ) {
 		if ( testList[ i ].Length() && !testList[ i ].Icmpn( pak->pakFilename, testList[ i ].Length() ) ) {
 			relativePath = pak->pakFilename.c_str() + testList[ i ].Length() + 1;
@@ -2843,7 +2792,6 @@ void idFileSystemLocal::Init( void ) {
 	// has already been initialized
 	common->StartupVariable( "fs_basepath", false );
 	common->StartupVariable( "fs_savepath", false );
-	common->StartupVariable( "fs_cdpath", false );
 	common->StartupVariable( "fs_devpath", false );
 	common->StartupVariable( "fs_game", false );
 	common->StartupVariable( "fs_game_base", false );
@@ -2858,21 +2806,18 @@ void idFileSystemLocal::Init( void ) {
 	if ( fs_game_base.GetString()[0] && !idStr::Icmp( fs_game_base.GetString(), "d3xp" ) ) {
 		  fs_game_base.SetString( NULL );
 	}
-#endif	
-	
+#endif
+
 	if ( fs_basepath.GetString()[0] == '\0' ) {
 		fs_basepath.SetString( Sys_DefaultBasePath() );
 	}
 	if ( fs_savepath.GetString()[0] == '\0' ) {
 		fs_savepath.SetString( Sys_DefaultSavePath() );
 	}
-	if ( fs_cdpath.GetString()[0] == '\0' ) {
-		fs_cdpath.SetString( Sys_DefaultCDPath() );
-	}
 
 	if ( fs_devpath.GetString()[0] == '\0' ) {
 #ifdef WIN32
-		fs_devpath.SetString( fs_cdpath.GetString()[0] ? fs_cdpath.GetString() : fs_basepath.GetString() );
+		fs_devpath.SetString( fs_basepath.GetString() );
 #else
 		fs_devpath.SetString( fs_savepath.GetString() );
 #endif
@@ -2891,9 +2836,11 @@ void idFileSystemLocal::Init( void ) {
 	// busted and error out now, rather than getting an unreadable
 	// graphics screen when the font fails to load
 	// Dedicated servers can run with no outside files at all
+#ifndef ID_TYPEINFO
 	if ( ReadFile( "default.cfg", NULL, NULL ) <= 0 ) {
 		common->FatalError( "Couldn't load default.cfg" );
 	}
+#endif
 }
 
 /*
@@ -3012,7 +2959,7 @@ bool idFileSystemLocal::FileAllowedFromDir( const char *path ) {
 		 || !strcmp( path + l - 4, ".dds" )
 #endif
 		 ) {
-		// note: cd and xp keys, as well as config.spec are opened through an explicit OS path and don't hit this
+		// note: config.spec are opened through an explicit OS path and don't hit this
 		return true;
 	}
 	// savegames
@@ -3025,7 +2972,7 @@ bool idFileSystemLocal::FileAllowedFromDir( const char *path ) {
 		return true;
 	}
 	// objective tgas
-	if ( strstr( path, "maps/game" ) == path && 
+	if ( strstr( path, "maps/game" ) == path &&
 		!strcmp( path + l - 4, ".tga" ) ) {
 		return true;
 	}
@@ -3101,30 +3048,34 @@ idFileSystemLocal::ReadFileFromZip
 ===========
 */
 idFile_InZip * idFileSystemLocal::ReadFileFromZip( pack_t *pak, fileInPack_t *pakFile, const char *relativePath ) {
-	unz_s *			zfi;
-	FILE *			fp;
-	idFile_InZip *file = new idFile_InZip();
+	// relativePath == pakFile->name according to FilenameCompare()
+	// pakFile->Pos is position of that file within the zip
 
-	// open a new file on the pakfile
-	file->z = unzReOpen( pak->pakFilename, pak->handle );
-	if ( file->z == NULL ) {
+	// set position in pk4 file to the file (in the zip/pk4) we want a handle on
+	unzSetOffset64( pak->handle, pakFile->pos );
+
+	// clone handle and assign a new internal filestream to zip file to it
+	unzFile uf = unzReOpen( pak->pakFilename, pak->handle );
+	if ( uf == NULL ) {
 		common->FatalError( "Couldn't reopen %s", pak->pakFilename.c_str() );
 	}
+
+	// the following stuff is needed to get the uncompress filesize (for file->fileSize)
+	char	filename_inzip[MAX_ZIPPED_FILE_NAME];
+	unz_file_info64	file_info;
+	int err = unzGetCurrentFileInfo64( uf, &file_info, filename_inzip, sizeof(filename_inzip), NULL, 0, NULL, 0 );
+	if ( err != UNZ_OK ) {
+		common->FatalError( "Couldn't get file info for %s in %s, pos %llu", relativePath, pak->pakFilename.c_str(), pakFile->pos );
+	}
+
+	// create idFile_InZip and set fields accordingly
+	idFile_InZip *file = new idFile_InZip();
+	file->z = uf;
 	file->name = relativePath;
 	file->fullPath = pak->pakFilename + "/" + relativePath;
-	zfi = (unz_s *)file->z;
-	// in case the file was new
-	fp = zfi->file;
-	// set the file position in the zip file (also sets the current file info)
-	unzSetCurrentFileInfoPosition( pak->handle, pakFile->pos );
-	// copy the file info into the unzip structure
-	memcpy( zfi, pak->handle, sizeof(unz_s) );
-	// we copy this back into the structure
-	zfi->file = fp;
-	// open the file in the zip
-	unzOpenCurrentFile( file->z );
 	file->zipFilePos = pakFile->pos;
-	file->fileSize = zfi->cur_file_info.uncompressed_size;
+	file->fileSize = file_info.uncompressed_size;
+
 	return file;
 }
 
@@ -3146,7 +3097,7 @@ idFile *idFileSystemLocal::OpenFileReadFlags( const char *relativePath, int sear
 	directory_t *	dir;
 	long			hash;
 	FILE *			fp;
-	
+
 	if ( !searchPaths ) {
 		common->FatalError( "Filesystem call made without initialization\n" );
 	}
@@ -3166,19 +3117,13 @@ idFile *idFileSystemLocal::OpenFileReadFlags( const char *relativePath, int sear
 
 	// make absolutely sure that it can't back up the path.
 	// The searchpaths do guarantee that something will always
-	// be prepended, so we don't need to worry about "c:" or "//limbo" 
+	// be prepended, so we don't need to worry about "c:" or "//limbo"
 	if ( strstr( relativePath, ".." ) || strstr( relativePath, "::" ) ) {
 		return NULL;
 	}
-	
+
 	// edge case
 	if ( relativePath[0] == '\0' ) {
-		return NULL;
-	}
-
-	// make sure the doomkey file is only readable by game at initialization
-	// any other time the key should only be accessed in memory using the provided functions
-	if( common->IsInitialized() && ( idStr::Icmp( relativePath, CDKEY_FILE ) == 0 || idStr::Icmp( relativePath, XPKEY_FILE ) == 0 ) ) {
 		return NULL;
 	}
 
@@ -3207,7 +3152,7 @@ idFile *idFileSystemLocal::OpenFileReadFlags( const char *relativePath, int sear
 					continue;
 				}
 			}
-			
+
 			netpath = BuildOSPath( dir->path, dir->gamedir, relativePath );
 			fp = OpenOSFileCorrectName( netpath, "rb" );
 			if ( !fp ) {
@@ -3233,7 +3178,7 @@ idFile *idFileSystemLocal::OpenFileReadFlags( const char *relativePath, int sear
 			}
 
 			// if fs_copyfiles is set
-			if ( allowCopyFiles && fs_copyfiles.GetInteger() ) {
+			if ( allowCopyFiles ) {
 
 				idStr copypath;
 				idStr name;
@@ -3243,49 +3188,8 @@ idFile *idFileSystemLocal::OpenFileReadFlags( const char *relativePath, int sear
 				copypath += PATHSEPERATOR_STR;
 				copypath += name;
 
-				bool isFromCDPath = !dir->path.Cmp( fs_cdpath.GetString() );
-				bool isFromSavePath = !dir->path.Cmp( fs_savepath.GetString() );
-				bool isFromBasePath = !dir->path.Cmp( fs_basepath.GetString() );
-
-				switch ( fs_copyfiles.GetInteger() ) {
-					case 1:
-						// copy from cd path only
-						if ( isFromCDPath ) {
-							CopyFile( netpath, copypath );
-						}
-						break;
-					case 2:
-						// from cd path + timestamps
-						if ( isFromCDPath ) {
-							CopyFile( netpath, copypath );
-						} else if ( isFromSavePath || isFromBasePath ) {
-							idStr sourcepath;
-							sourcepath = BuildOSPath( fs_cdpath.GetString(), dir->gamedir, relativePath );
-							FILE *f1 = OpenOSFile( sourcepath, "r" );
-							if ( f1 ) {
-								ID_TIME_T t1 = Sys_FileTimeStamp( f1 );
-								fclose( f1 );
-								FILE *f2 = OpenOSFile( copypath, "r" );
-								if ( f2 ) {
-									ID_TIME_T t2 = Sys_FileTimeStamp( f2 );
-									fclose( f2 );
-									if ( t1 > t2 ) {
-										CopyFile( sourcepath, copypath );
-									}
-								}
-							}
-						}
-						break;
-					case 3:
-						if ( isFromCDPath || isFromBasePath ) {
-							CopyFile( netpath, copypath );
-						}
-						break;
-					case 4:
-						if ( isFromCDPath && !isFromBasePath ) {
-							CopyFile( netpath, copypath );
-						}
-						break;
+				if ( fs_copyfiles.GetBool() ) {
+					CopyFile( netpath, copypath );
 				}
 			}
 
@@ -3372,11 +3276,11 @@ idFile *idFileSystemLocal::OpenFileReadFlags( const char *relativePath, int sear
 			}
 		}
 	}
-	
+
 	if ( fs_debug.GetInteger( ) ) {
 		common->Printf( "Can't find %s\n", relativePath );
 	}
-	
+
 	return NULL;
 }
 
@@ -3595,7 +3499,7 @@ size_t idFileSystemLocal::CurlWriteFunction( void *ptr, size_t size, size_t nmem
 		return size * nmemb;
 	}
 	#ifdef _WIN32
-		return _write( static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr()->_file, ptr, size * nmemb );
+		return _write( _fileno(static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr()), ptr, size * nmemb );
 	#else
 		return fwrite( ptr, size, nmemb, static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr() );
 	#endif
@@ -3641,7 +3545,7 @@ dword BackgroundDownloadThread( void *parms ) {
 		if ( bgl->opcode == DLTYPE_FILE ) {
 			// use the low level read function, because fread may allocate memory
 			#if defined(WIN32)
-				_read( static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr()->_file, bgl->file.buffer, bgl->file.length );
+				_read( _fileno(static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr()), bgl->file.buffer, bgl->file.length );
 			#else
 				fread(  bgl->file.buffer, bgl->file.length, 1, static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr() );
 			#endif
@@ -3868,7 +3772,7 @@ void idFileSystemLocal::FindDLL( const char *name, char _dllPath[ MAX_OSPATH ], 
 	int				dllHash;
 	pack_t			*inPak;
 	pack_t			*pak;
-	fileInPack_t	*pakFile;	
+	fileInPack_t	*pakFile;
 
 	sys->DLL_GetFileName( name, dllName, MAX_OSPATH );
 	dllHash = HashFileName( dllName );
@@ -3938,7 +3842,7 @@ void idFileSystemLocal::FindDLL( const char *name, char _dllPath[ MAX_OSPATH ], 
 						} else {
 							gameDLLChecksum = GetFileChecksum( dllFile );
 							updateChecksum = false;	// don't try again below
-						}						
+						}
 					}
 				}
 			}
@@ -3992,7 +3896,7 @@ bool idFileSystemLocal::HasD3XP( void ) {
 	} else if ( d3xp == 1 ) {
 		return true;
 	}
-	
+
 #if 0
 	// check for a d3xp directory with a pk4 file
 	// copied over from ListMods - only looks in basepath
@@ -4016,7 +3920,6 @@ bool idFileSystemLocal::HasD3XP( void ) {
 	search[0] = fs_savepath.GetString();
 	search[1] = fs_devpath.GetString();
 	search[2] = fs_basepath.GetString();
-	search[3] = fs_cdpath.GetString();
 	for ( i = 0; i < 4; i++ ) {
 		pakfile = OpenExplicitFileRead( BuildOSPath( search[ i ], "d3xp", "pak000.pk4" ) );
 		if ( pakfile ) {
@@ -4033,7 +3936,7 @@ bool idFileSystemLocal::HasD3XP( void ) {
 	ListOSFiles( fs_basepath.GetString(), "/", dirs );
 	for ( i = 0; i < dirs.Num(); i++ ) {
 		if ( dirs[i].Icmp( "d3xp" ) == 0 ) {
-			
+
 			gamepath = BuildOSPath( fs_savepath.GetString(), dirs[ i ], "default.cfg" );
 			idFile* cfg = OpenExplicitFileRead(gamepath);
 			if(cfg) {
@@ -4100,7 +4003,7 @@ idFileSystemLocal::FindFile
 	}
 	// marking addons for inclusion on reload - may need to do that even when already in the search path
 	if ( scheduleAddons && pak->addon && addonChecksums.FindIndex( pak->checksum ) < 0 ) {
-		addonChecksums.Append( pak->checksum );			
+		addonChecksums.Append( pak->checksum );
 	}
 	// an addon that's not on search list yet? that will require a restart
 	if ( pak->addon && !pak->addon_search ) {
@@ -4121,7 +4024,7 @@ int idFileSystemLocal::GetNumMaps() {
 	int				i;
 	searchpath_t	*search = NULL;
 	int				ret = declManager->GetNumDecls( DECL_MAPDEF );
-	
+
 	// add to this all addon decls - coming from all addon packs ( searched or not )
 	for ( i = 0; i < 2; i++ ) {
 		if ( i == 0 ) {
@@ -4151,7 +4054,7 @@ const idDict * idFileSystemLocal::GetMapDecl( int idecl ) {
 	const idDeclEntityDef	*mapDef;
 	int						numdecls = declManager->GetNumDecls( DECL_MAPDEF );
 	searchpath_t			*search = NULL;
-	
+
 	if ( idecl < numdecls ) {
 		mapDecl = declManager->DeclByIndex( DECL_MAPDEF, idecl );
 		mapDef = static_cast<const idDeclEntityDef *>( mapDecl );
@@ -4196,7 +4099,7 @@ void idFileSystemLocal::FindMapScreenshot( const char *path, char *buf, int len 
 
 	mapname.StripPath();
 	mapname.StripFileExtension();
-	
+
 	idStr::snPrintf( buf, len, "guis/assets/splash/%s.tga", mapname.c_str() );
 	if ( ReadFile( buf, NULL, NULL ) == -1 ) {
 		// try to extract from an addon

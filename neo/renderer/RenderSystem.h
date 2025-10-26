@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -50,7 +50,6 @@ typedef struct glconfig_s {
 
 	float				glVersion;				// atof( version_string )
 
-
 	int					maxTextureSize;			// queried from GL
 	int					maxTextureUnits;
 	int					maxTextureCoords;
@@ -65,7 +64,6 @@ typedef struct glconfig_s {
 	bool				textureLODBiasAvailable;
 	bool				textureEnvAddAvailable;
 	bool				textureEnvCombineAvailable;
-	bool				registerCombinersAvailable;
 	bool				cubeMapAvailable;
 	bool				envDot3Available;
 	bool				texture3DAvailable;
@@ -73,15 +71,8 @@ typedef struct glconfig_s {
 	bool				ARBVertexBufferObjectAvailable;
 	bool				ARBVertexProgramAvailable;
 	bool				ARBFragmentProgramAvailable;
-	bool				twoSidedStencilAvailable;
 	bool				textureNonPowerOfTwoAvailable;
 	bool				depthBoundsTestAvailable;
-
-	// ati r200 extensions
-	bool				atiFragmentShaderAvailable;
-
-	// ati r300
-	bool				atiTwoSidedStencilAvailable;
 
 	int					vidWidth, vidHeight;	// passed to R_BeginFrame
 
@@ -89,17 +80,11 @@ typedef struct glconfig_s {
 
 	bool				isFullscreen;
 
-	bool				allowNV30Path;
-	bool				allowNV20Path;
-	bool				allowNV10Path;
-	bool				allowR200Path;
-	bool				allowARB2Path;
-
 	bool				isInitialized;
 } glconfig_t;
 
 
-// font support 
+// font support
 const int GLYPH_START			= 0;
 const int GLYPH_END				= 255;
 const int GLYPH_CHARSTART		= 32;
@@ -250,7 +235,6 @@ public:
 	// to use the default tga loading code without having dimmed down areas in many places
 	virtual void			CaptureRenderToFile( const char *fileName, bool fixAlpha = false ) = 0;
 	virtual void			UnCrop() = 0;
-	virtual void			GetCardCaps( bool &oldCard, bool &nv10or20 ) = 0;
 
 	// the image has to be already loaded ( most straightforward way would be through a FindMaterial )
 	// texture filter / mipmapping / repeat won't be modified by the upload

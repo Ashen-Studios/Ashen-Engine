@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "Game_local.h"
@@ -112,7 +112,7 @@ void idSound::Spawn( void ) {
 
 	if ( ( wait > 0.0f ) && ( random >= wait ) ) {
 		random = wait - 0.001;
-		gameLocal.Warning( "speaker '%s' at (%s) has random >= wait", name.c_str(), GetPhysics()->GetOrigin().ToString(0) );
+		GameLocal()->Warning( "speaker '%s' at (%s) has random >= wait", name.c_str(), GetPhysics()->GetOrigin().ToString(0) );
 	}
 
 	soundVol		= 0.0f;
@@ -124,7 +124,7 @@ void idSound::Spawn( void ) {
 
 	if ( !refSound.waitfortrigger && ( wait > 0.0f ) ) {
 		timerOn = true;
-		PostEventSec( &EV_Speaker_Timer, wait + gameLocal.random.CRandomFloat() * random );
+		PostEventSec( &EV_Speaker_Timer, wait + GameLocal()->random.CRandomFloat() * random );
 	} else {
 		timerOn = false;
 	}
@@ -145,11 +145,11 @@ void idSound::Event_Trigger( idEntity *activator ) {
 		} else {
 			timerOn = true;
 			DoSound( true );
-			PostEventSec( &EV_Speaker_Timer, wait + gameLocal.random.CRandomFloat() * random );
+			PostEventSec( &EV_Speaker_Timer, wait + GameLocal()->random.CRandomFloat() * random );
 		}
 	} else {
-		if ( gameLocal.isMultiplayer ) {
-			if ( refSound.referenceSound && ( gameLocal.time < playingUntilTime ) ) {
+		if ( GameLocal()->isMultiplayer ) {
+			if ( refSound.referenceSound && ( GameLocal()->time < playingUntilTime ) ) {
 				DoSound( false );
 			} else {
 				DoSound( true );
@@ -171,7 +171,7 @@ idSound::Event_Timer
 */
 void idSound::Event_Timer( void ) {
 	DoSound( true );
-	PostEventSec( &EV_Speaker_Timer, wait + gameLocal.random.CRandomFloat() * random );
+	PostEventSec( &EV_Speaker_Timer, wait + GameLocal()->random.CRandomFloat() * random );
 }
 
 /*
@@ -202,7 +202,7 @@ void idSound::UpdateChangeableSpawnArgs( const idDict *source ) {
 		FreeSoundEmitter( true );
 		spawnArgs.Copy( *source );
 		idSoundEmitter *saveRef = refSound.referenceSound;
-		gameEdit->ParseSpawnArgsToRefSound( &spawnArgs, &refSound );
+		GameEditLocal()->ParseSpawnArgsToRefSound( &spawnArgs, &refSound );
 		refSound.referenceSound = saveRef;
 
 		idVec3 origin;
@@ -219,14 +219,14 @@ void idSound::UpdateChangeableSpawnArgs( const idDict *source ) {
 
 		if ( ( wait > 0.0f ) && ( random >= wait ) ) {
 			random = wait - 0.001;
-			gameLocal.Warning( "speaker '%s' at (%s) has random >= wait", name.c_str(), GetPhysics()->GetOrigin().ToString(0) );
+			GameLocal()->Warning( "speaker '%s' at (%s) has random >= wait", name.c_str(), GetPhysics()->GetOrigin().ToString(0) );
 		}
 
 		if ( !refSound.waitfortrigger && ( wait > 0.0f ) ) {
 			timerOn = true;
 			DoSound( false );
 			CancelEvents( &EV_Speaker_Timer );
-			PostEventSec( &EV_Speaker_Timer, wait + gameLocal.random.CRandomFloat() * random );
+			PostEventSec( &EV_Speaker_Timer, wait + GameLocal()->random.CRandomFloat() * random );
 		} else  if ( !refSound.waitfortrigger && !(refSound.referenceSound && refSound.referenceSound->CurrentlyPlaying() ) ) {
 			// start it if it isn't already playing, and we aren't waitForTrigger
 			DoSound( true );
@@ -245,7 +245,7 @@ void idSound::SetSound( const char *sound, int channel ) {
 	if ( shader != refSound.shader ) {
 		FreeSoundEmitter( true );
 	}
-	gameEdit->ParseSpawnArgsToRefSound(&spawnArgs, &refSound);
+	GameEditLocal()->ParseSpawnArgsToRefSound(&spawnArgs, &refSound);
 	refSound.shader = shader;
 	// start it if it isn't already playing, and we aren't waitForTrigger
 	if ( !refSound.waitfortrigger && !(refSound.referenceSound && refSound.referenceSound->CurrentlyPlaying() ) ) {
@@ -261,7 +261,7 @@ idSound::DoSound
 void idSound::DoSound( bool play ) {
 	if ( play ) {
 		StartSoundShader( refSound.shader, SND_CHANNEL_ANY, refSound.parms.soundShaderFlags, true, &playingUntilTime );
-		playingUntilTime += gameLocal.time;
+		playingUntilTime += GameLocal()->time;
 	} else {
 		StopSound( SND_CHANNEL_ANY, true );
 		playingUntilTime = 0;
@@ -276,7 +276,7 @@ idSound::Event_On
 void idSound::Event_On( void ) {
 	if ( wait > 0.0f ) {
 		timerOn = true;
-		PostEventSec( &EV_Speaker_Timer, wait + gameLocal.random.CRandomFloat() * random );
+		PostEventSec( &EV_Speaker_Timer, wait + GameLocal()->random.CRandomFloat() * random );
 	}
 	DoSound( true );
 }

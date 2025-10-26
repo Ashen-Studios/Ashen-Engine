@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,12 +26,12 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "../Game_local.h"
 
-bool idAnimManager::forceExport = false;
+bool idAnimManagerLocal::forceExport = false;
 
 /***********************************************************************
 
@@ -215,8 +215,8 @@ bool idMD5Anim::LoadAnim( const char *filename ) {
 	parser.ExpectTokenString( "{" );
 	for( i = 0; i < numJoints; i++ ) {
 		parser.ReadToken( &token );
-		jointInfo[ i ].nameIndex = animationLib.JointIndex( token );
-		
+		jointInfo[ i ].nameIndex = AnimationLibLocal()->JointIndex( token );
+
 		// parse parent num
 		jointInfo[ i ].parentNum = parser.ParseInt();
 		if ( jointInfo[ i ].parentNum >= i ) {
@@ -278,7 +278,7 @@ bool idMD5Anim::LoadAnim( const char *filename ) {
 			parser.Error( "Expected frame number %d", i );
 		}
 		parser.ExpectTokenString( "{" );
-		
+
 		for( j = 0; j < numAnimatedComponents; j++, componentPtr++ ) {
 			*componentPtr = parser.ParseFloat();
 		}
@@ -402,7 +402,7 @@ void idMD5Anim::ConvertTimeToFrame( int time, int cyclecount, frameBlend_t &fram
 		frame.cycleCount	= 0;
 		return;
 	}
-	
+
 	frameTime			= time * frameRate;
 	frameNum			= frameTime / 1000;
 	frame.cycleCount	= frameNum / ( numFrames - 1 );
@@ -415,7 +415,7 @@ void idMD5Anim::ConvertTimeToFrame( int time, int cyclecount, frameBlend_t &fram
 		frame.frontlerp		= 1.0f;
 		return;
 	}
-	
+
 	frame.frame1 = frameNum % ( numFrames - 1 );
 	frame.frame2 = frame.frame1 + 1;
 	if ( frame.frame2 >= numFrames ) {
@@ -436,7 +436,7 @@ void idMD5Anim::GetOrigin( idVec3 &offset, int time, int cyclecount ) const {
 
 	offset = baseFrame[ 0 ].t;
 	if ( !( jointInfo[ 0 ].animBits & ( ANIM_TX | ANIM_TY | ANIM_TZ ) ) ) {
-		// just use the baseframe		
+		// just use the baseframe
 		return;
 	}
 
@@ -474,10 +474,10 @@ idMD5Anim::GetOriginRotation
 void idMD5Anim::GetOriginRotation( idQuat &rotation, int time, int cyclecount ) const {
 	frameBlend_t	frame;
 	int				animBits;
-	
+
 	animBits = jointInfo[ 0 ].animBits;
 	if ( !( animBits & ( ANIM_QX | ANIM_QY | ANIM_QZ ) ) ) {
-		// just use the baseframe		
+		// just use the baseframe
 		rotation = baseFrame[ 0 ].q;
 		return;
 	}
@@ -891,14 +891,14 @@ void idMD5Anim::CheckModelHierarchy( const idRenderModel *model ) const {
 	int	parent;
 
 	if ( jointInfo.Num() != model->NumJoints() ) {
-		gameLocal.Error( "Model '%s' has different # of joints than anim '%s'", model->Name(), name.c_str() );
+		GameLocal()->Error( "Model '%s' has different # of joints than anim '%s'", model->Name(), name.c_str() );
 	}
 
 	const idMD5Joint *modelJoints = model->GetJoints();
 	for( i = 0; i < jointInfo.Num(); i++ ) {
 		jointNum = jointInfo[ i ].nameIndex;
-		if ( modelJoints[ i ].name != animationLib.JointName( jointNum ) ) {
-			gameLocal.Error( "Model '%s''s joint names don't match anim '%s''s", model->Name(), name.c_str() );
+		if ( modelJoints[ i ].name != AnimationLibLocal()->JointName( jointNum ) ) {
+			GameLocal()->Error( "Model '%s''s joint names don't match anim '%s''s", model->Name(), name.c_str() );
 		}
 		if ( modelJoints[ i ].parent ) {
 			parent = modelJoints[ i ].parent - modelJoints;
@@ -906,40 +906,56 @@ void idMD5Anim::CheckModelHierarchy( const idRenderModel *model ) const {
 			parent = -1;
 		}
 		if ( parent != jointInfo[ i ].parentNum ) {
-			gameLocal.Error( "Model '%s' has different joint hierarchy than anim '%s'", model->Name(), name.c_str() );
+			GameLocal()->Error( "Model '%s' has different joint hierarchy than anim '%s'", model->Name(), name.c_str() );
 		}
 	}
 }
 
-/***********************************************************************
+/*
+===============================================================================
 
-	idAnimManager
+	idAnimManagerLocal
 
-***********************************************************************/
+===============================================================================
+*/
+
+// the rest of the engine will only reference the "animationLibLocal" variable, while all local aspects stay hidden
+idAnimManagerLocal *	animationLibLocal = NULL;
+idAnimManager *			animationLib = NULL;
 
 /*
-====================
-idAnimManager::idAnimManager
-====================
+===========
+idGameEditLocalCreateGameEditorInstance
+============
 */
-idAnimManager::idAnimManager() {
+idAnimManager * CreateAnimManagerInstance( void ) {
+	animationLibLocal = new idAnimManagerLocal();
+	return animationLibLocal;
 }
 
 /*
 ====================
-idAnimManager::~idAnimManager
+idAnimManagerLocal::idAnimManagerLocal
 ====================
 */
-idAnimManager::~idAnimManager() {
+idAnimManagerLocal::idAnimManagerLocal() {
+}
+
+/*
+====================
+idAnimManagerLocal::~idAnimManagerLocal
+====================
+*/
+idAnimManagerLocal::~idAnimManagerLocal() {
 	Shutdown();
 }
 
 /*
 ====================
-idAnimManager::Shutdown
+idAnimManagerLocal::Shutdown
 ====================
 */
-void idAnimManager::Shutdown( void ) {
+void idAnimManagerLocal::Shutdown( void ) {
 	animations.DeleteContents();
 	jointnames.Clear();
 	jointnamesHash.Free();
@@ -947,10 +963,10 @@ void idAnimManager::Shutdown( void ) {
 
 /*
 ====================
-idAnimManager::GetAnim
+idAnimManagerLocal::GetAnim
 ====================
 */
-idMD5Anim *idAnimManager::GetAnim( const char *name ) {
+idMD5Anim *idAnimManagerLocal::GetAnim( const char *name ) {
 	idMD5Anim **animptrptr;
 	idMD5Anim *anim;
 
@@ -969,7 +985,7 @@ idMD5Anim *idAnimManager::GetAnim( const char *name ) {
 
 		anim = new idMD5Anim();
 		if ( !anim->LoadAnim( filename ) ) {
-			gameLocal.Warning( "Couldn't load anim: '%s'", filename.c_str() );
+			GameLocal()->Warning( "Couldn't load anim: '%s'", filename.c_str() );
 			delete anim;
 			anim = NULL;
 		}
@@ -981,10 +997,10 @@ idMD5Anim *idAnimManager::GetAnim( const char *name ) {
 
 /*
 ================
-idAnimManager::ReloadAnims
+idAnimManagerLocal::ReloadAnims
 ================
 */
-void idAnimManager::ReloadAnims( void ) {
+void idAnimManagerLocal::ReloadAnims( void ) {
 	int			i;
 	idMD5Anim	**animptr;
 
@@ -998,10 +1014,10 @@ void idAnimManager::ReloadAnims( void ) {
 
 /*
 ================
-idAnimManager::JointIndex
+idAnimManagerLocal::JointIndex
 ================
 */
-int	idAnimManager::JointIndex( const char *name ) {
+int	idAnimManagerLocal::JointIndex( const char *name ) {
 	int i, hash;
 
 	hash = jointnamesHash.GenerateKey( name );
@@ -1018,19 +1034,19 @@ int	idAnimManager::JointIndex( const char *name ) {
 
 /*
 ================
-idAnimManager::JointName
+idAnimManagerLocal::JointName
 ================
 */
-const char *idAnimManager::JointName( int index ) const {
+const char *idAnimManagerLocal::JointName( int index ) const {
 	return jointnames[ index ];
 }
 
 /*
 ================
-idAnimManager::ListAnims
+idAnimManagerLocal::ListAnims
 ================
 */
-void idAnimManager::ListAnims( void ) const {
+void idAnimManagerLocal::ListAnims( void ) const {
 	int			i;
 	idMD5Anim	**animptr;
 	idMD5Anim	*anim;
@@ -1046,7 +1062,7 @@ void idAnimManager::ListAnims( void ) const {
 		if ( animptr && *animptr ) {
 			anim = *animptr;
 			s = anim->Size();
-			gameLocal.Printf( "%8d bytes : %2d refs : %s\n", s, anim->NumRefs(), anim->Name() );
+			GameLocal()->Printf( "%8d bytes : %2d refs : %s\n", s, anim->NumRefs(), anim->Name() );
 			size += s;
 			num++;
 		}
@@ -1057,20 +1073,20 @@ void idAnimManager::ListAnims( void ) const {
 		namesize += jointnames[ i ].Size();
 	}
 
-	gameLocal.Printf( "\n%d memory used in %d anims\n", size, num );
-	gameLocal.Printf( "%d memory used in %d joint names\n", namesize, jointnames.Num() );
+	GameLocal()->Printf( "\n%d memory used in %d anims\n", size, num );
+	GameLocal()->Printf( "%d memory used in %d joint names\n", namesize, jointnames.Num() );
 }
 
 /*
 ================
-idAnimManager::FlushUnusedAnims
+idAnimManagerLocal::FlushUnusedAnims
 ================
 */
-void idAnimManager::FlushUnusedAnims( void ) {
+void idAnimManagerLocal::FlushUnusedAnims( void ) {
 	int						i;
 	idMD5Anim				**animptr;
 	idList<idMD5Anim *>		removeAnims;
-	
+
 	for( i = 0; i < animations.Num(); i++ ) {
 		animptr = animations.GetIndex( i );
 		if ( animptr && *animptr ) {

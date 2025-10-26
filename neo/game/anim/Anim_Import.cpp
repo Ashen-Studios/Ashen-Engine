@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "../Game_local.h"
@@ -140,7 +140,7 @@ void idModelExport::LoadMayaDll( void ) {
 	}
 
 	// look up the dll interface functions
-	dllEntry = ( exporterDLLEntry_t )sys->DLL_GetProcAddress( importDLL, "dllEntry" ); 
+	dllEntry = ( exporterDLLEntry_t )sys->DLL_GetProcAddress( importDLL, "dllEntry" );
 	Maya_ConvertModel = ( exporterInterface_t )sys->DLL_GetProcAddress( importDLL, "Maya_ConvertModel" );
 	Maya_Shutdown = ( exporterShutdown_t )sys->DLL_GetProcAddress( importDLL, "Maya_Shutdown" );
 	if ( !Maya_ConvertModel || !dllEntry || !Maya_Shutdown ) {
@@ -148,7 +148,7 @@ void idModelExport::LoadMayaDll( void ) {
 		Maya_Shutdown = NULL;
 		sys->DLL_Unload( importDLL );
 		importDLL = 0;
-		gameLocal.Error( "Invalid interface on export DLL." );
+		GameLocal()->Error( "Invalid interface on export DLL." );
 		return;
 	}
 
@@ -159,7 +159,7 @@ void idModelExport::LoadMayaDll( void ) {
 		Maya_Shutdown = NULL;
 		sys->DLL_Unload( importDLL );
 		importDLL = 0;
-		gameLocal.Error( "Export DLL init failed." );
+		GameLocal()->Error( "Export DLL init failed." );
 		return;
 	}
 }
@@ -168,12 +168,12 @@ void idModelExport::LoadMayaDll( void ) {
 =====================
 idModelExport::ConvertMayaToMD5
 
-Checks if a Maya model should be converted to an MD5, and converts if if the time/date or 
+Checks if a Maya model should be converted to an MD5, and converts if if the time/date or
 version number has changed.
 =====================
 */
 bool idModelExport::ConvertMayaToMD5( void ) {
-	ID_TIME_T		
+	ID_TIME_T
 		sourceTime;
 	ID_TIME_T		destTime;
 	int			version;
@@ -186,8 +186,8 @@ bool idModelExport::ConvertMayaToMD5( void ) {
 		return false;
 	}
 
-	// if idAnimManager::forceExport is set then we always reexport Maya models
-	if ( idAnimManager::forceExport ) {
+	// if idAnimManagerLocal::forceExport is set then we always reexport Maya models
+	if ( idAnimManagerLocal::forceExport ) {
 		force = true;
 	}
 
@@ -256,7 +256,7 @@ bool idModelExport::ConvertMayaToMD5( void ) {
 	if ( Maya_Error != "Ok" ) {
 		return false;
 	}
-	
+
 	// conversion succeded
 	return true;
 }
@@ -291,7 +291,7 @@ bool idModelExport::ExportModel( const char *model ) {
 
 	sprintf( commandLine, "mesh %s -dest %s -game %s", src.c_str(), dest.c_str(), game );
 	if ( !ConvertMayaToMD5() ) {
-		gameLocal.Printf( "Failed to export '%s' : %s", src.c_str(), Maya_Error.c_str() );
+		GameLocal()->Printf( "Failed to export '%s' : %s", src.c_str(), Maya_Error.c_str() );
 		return false;
 	}
 
@@ -316,7 +316,7 @@ bool idModelExport::ExportAnim( const char *anim ) {
 
 	sprintf( commandLine, "anim %s -dest %s -game %s", src.c_str(), dest.c_str(), game );
 	if ( !ConvertMayaToMD5() ) {
-		gameLocal.Printf( "Failed to export '%s' : %s", src.c_str(), Maya_Error.c_str() );
+		GameLocal()->Printf( "Failed to export '%s' : %s", src.c_str(), Maya_Error.c_str() );
 		return false;
 	}
 
@@ -508,7 +508,7 @@ int idModelExport::ExportDefFile( const char *filename ) {
 	count = 0;
 
 	if ( !parser.LoadFile( filename ) ) {
-		gameLocal.Printf( "Could not load '%s'\n", filename );
+		GameLocal()->Printf( "Could not load '%s'\n", filename );
 		return 0;
 	}
 
@@ -542,9 +542,9 @@ int idModelExport::ExportModels( const char *pathname, const char *extension ) {
 		return 0;
 	}
 
-	gameLocal.Printf( "--------- Exporting models --------\n" );
+	GameLocal()->Printf( "--------- Exporting models --------\n" );
 	if ( !g_exportMask.GetString()[ 0 ] ) {
-		gameLocal.Printf( "  Export mask: '%s'\n", g_exportMask.GetString() );
+		GameLocal()->Printf( "  Export mask: '%s'\n", g_exportMask.GetString() );
 	}
 
 	count = 0;
@@ -555,8 +555,8 @@ int idModelExport::ExportModels( const char *pathname, const char *extension ) {
 	}
 	fileSystem->FreeFileList( files );
 
-	gameLocal.Printf( "...%d models exported.\n", count );
-	gameLocal.Printf( "-----------------------------------\n" );
+	GameLocal()->Printf( "...%d models exported.\n", count );
+	GameLocal()->Printf( "-----------------------------------\n" );
 
 	return count;
 }

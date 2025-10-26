@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "../Game_local.h"
@@ -72,7 +72,7 @@ idBlockAlloc<clipLink_t, 1024>	clipLinkAllocator;
 
 static idList<trmCache_s*>		traceModelCache;
 static idHashIndex				traceModelHash;
-	
+
 /*
 ===============
 idClipModel::ClearTraceModelCache
@@ -126,7 +126,7 @@ idClipModel::FreeTraceModel
 */
 void idClipModel::FreeTraceModel( int traceModelIndex ) {
 	if ( traceModelIndex < 0 || traceModelIndex >= traceModelCache.Num() || traceModelCache[traceModelIndex]->refCount <= 0 ) {
-		gameLocal.Warning( "idClipModel::FreeTraceModel: tried to free uncached trace model" );
+		GameLocal()->Warning( "idClipModel::FreeTraceModel: tried to free uncached trace model" );
 		return;
 	}
 	traceModelCache[traceModelIndex]->refCount--;
@@ -162,7 +162,7 @@ void idClipModel::SaveTraceModels( idSaveGame *savefile ) {
 	savefile->WriteInt( traceModelCache.Num() );
 	for ( i = 0; i < traceModelCache.Num(); i++ ) {
 		trmCache_t *entry = traceModelCache[i];
-		
+
 		savefile->WriteTraceModel( entry->trm );
 		savefile->WriteFloat( entry->volume );
 		savefile->WriteVec3( entry->centerOfMass );
@@ -185,7 +185,7 @@ void idClipModel::RestoreTraceModels( idRestoreGame *savefile ) {
 
 	for ( i = 0; i < num; i++ ) {
 		trmCache_t *entry = new trmCache_t;
-		
+
 		savefile->ReadTraceModel( entry->trm );
 
 		savefile->ReadFloat( entry->volume );
@@ -432,7 +432,7 @@ void idClipModel::Restore( idRestoreGame *savefile ) {
 	touchCount = -1;
 
 	if ( linked ) {
-		Link( gameLocal.clip, entity, id, origin, axis, renderModelHandle );
+		Link( GameLocal()->clip, entity, id, origin, axis, renderModelHandle );
 	}
 }
 
@@ -462,7 +462,7 @@ cmHandle_t idClipModel::Handle( void ) const {
 		return collisionModelManager->SetupTrmModel( *GetCachedTraceModel( traceModelIndex ), material );
 	} else {
 		// this happens in multiplayer on the combat models
-		gameLocal.Warning( "idClipModel::Handle: clip model %d on '%s' (%x) is not a collision or trace model", id, entity->name.c_str(), entity->entityNumber );
+		GameLocal()->Warning( "idClipModel::Handle: clip model %d on '%s' (%x) is not a collision or trace model", id, entity->name.c_str(), entity->entityNumber );
 		return 0;
 	}
 }
@@ -474,7 +474,7 @@ idClipModel::GetMassProperties
 */
 void idClipModel::GetMassProperties( const float density, float &mass, idVec3 &centerOfMass, idMat3 &inertiaTensor ) const {
 	if ( traceModelIndex == -1 ) {
-		gameLocal.Error( "idClipModel::GetMassProperties: clip model %d on '%s' is not a trace model\n", id, entity->name.c_str() );
+		GameLocal()->Error( "idClipModel::GetMassProperties: clip model %d on '%s' is not a trace model\n", id, entity->name.c_str() );
 	}
 
 	trmCache_t *entry = traceModelCache[traceModelIndex];
@@ -667,9 +667,9 @@ clipSector_t *idClip::CreateClipSectors_r( const int depth, const idBounds &boun
 
 	front = bounds;
 	back = bounds;
-	
+
 	front[0][anode->axis] = back[1][anode->axis] = anode->dist;
-	
+
 	anode->children[0] = CreateClipSectors_r( depth+1, front, maxSector );
 	anode->children[1] = CreateClipSectors_r( depth+1, back, maxSector );
 
@@ -697,8 +697,8 @@ void idClip::Init( void ) {
 	CreateClipSectors_r( 0, worldBounds, maxSector );
 
 	size = worldBounds[1] - worldBounds[0];
-	gameLocal.Printf( "map bounds are (%1.1f, %1.1f, %1.1f)\n", size[0], size[1], size[2] );
-	gameLocal.Printf( "max clip sector is (%1.1f, %1.1f, %1.1f)\n", maxSector[0], maxSector[1], maxSector[2] );
+	GameLocal()->Printf( "map bounds are (%1.1f, %1.1f, %1.1f)\n", size[0], size[1], size[2] );
+	GameLocal()->Printf( "max clip sector is (%1.1f, %1.1f, %1.1f)\n", maxSector[0], maxSector[1], maxSector[2] );
 
 	// initialize a default clip model
 	defaultClipModel.LoadModel( idTraceModel( idBounds( idVec3( 0, 0, 0 ) ).Expand( 8 ) ) );
@@ -786,7 +786,7 @@ void idClip::ClipModelsTouchingBounds_r( const struct clipSector_s *node, listPa
 		}
 
 		if ( parms.count >= parms.maxCount ) {
-			gameLocal.Warning( "idClip::ClipModelsTouchingBounds_r: max count" );
+			GameLocal()->Warning( "idClip::ClipModelsTouchingBounds_r: max count" );
 			return;
 		}
 
@@ -845,7 +845,7 @@ int idClip::EntitiesTouchingBounds( const idBounds &bounds, int contentMask, idE
 		}
 		if ( j >= entCount ) {
 			if ( entCount >= maxCount ) {
-				gameLocal.Warning( "idClip::EntitiesTouchingBounds: max count" );
+				GameLocal()->Warning( "idClip::EntitiesTouchingBounds: max count" );
 				return entCount;
 			}
 			entityList[entCount] = clipModelList[i]->entity;
@@ -947,9 +947,9 @@ const idTraceModel *idClip::TraceModelForClipModel( const idClipModel *mdl ) con
 	} else {
 		if ( !mdl->IsTraceModel() ) {
 			if ( mdl->GetEntity() ) {
-				gameLocal.Error( "TraceModelForClipModel: clip model %d on '%s' is not a trace model\n", mdl->GetId(), mdl->GetEntity()->name.c_str() );
+				GameLocal()->Error( "TraceModelForClipModel: clip model %d on '%s' is not a trace model\n", mdl->GetId(), mdl->GetEntity()->name.c_str() );
 			} else {
-				gameLocal.Error( "TraceModelForClipModel: clip model %d is not a trace model\n", mdl->GetId() );
+				GameLocal()->Error( "TraceModelForClipModel: clip model %d is not a trace model\n", mdl->GetId() );
 			}
 		}
 		return idClipModel::GetCachedTraceModel( mdl->traceModelIndex );
@@ -973,9 +973,9 @@ ID_INLINE bool TestHugeTranslation( trace_t &results, const idClipModel *mdl, co
 		results.c.entityNum = ENTITYNUM_WORLD;
 
 		if ( mdl->GetEntity() ) {
-			gameLocal.Printf( "huge translation for clip model %d on entity %d '%s'\n", mdl->GetId(), mdl->GetEntity()->entityNumber, mdl->GetEntity()->GetName() );
+			GameLocal()->Printf( "huge translation for clip model %d on entity %d '%s'\n", mdl->GetId(), mdl->GetEntity()->entityNumber, mdl->GetEntity()->GetName() );
 		} else {
-			gameLocal.Printf( "huge translation for clip model %d\n", mdl->GetId() );
+			GameLocal()->Printf( "huge translation for clip model %d\n", mdl->GetId() );
 		}
 		return true;
 	}
@@ -1599,7 +1599,7 @@ idClip::PrintStatistics
 ============
 */
 void idClip::PrintStatistics( void ) {
-	gameLocal.Printf( "t = %-3d, r = %-3d, m = %-3d, render = %-3d, contents = %-3d, contacts = %-3d\n",
+	GameLocal()->Printf( "t = %-3d, r = %-3d, m = %-3d, render = %-3d, contents = %-3d, contacts = %-3d\n",
 					numTranslations, numRotations, numMotions, numRenderModelTraces, numContents, numContacts );
 	numRotations = numTranslations = numMotions = numRenderModelTraces = numContents = numContacts = 0;
 }

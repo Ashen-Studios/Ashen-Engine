@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "win_local.h"
@@ -43,8 +43,10 @@ If you have questions concerning this license or the applicable additional terms
 #include <comdef.h>
 #include <comutil.h>
 #include <Wbemidl.h>
+#include <dxgi.h>
 
 #pragma comment (lib, "wbemuuid.lib")
+#pragma comment(lib, "dxgi.lib")
 #endif
 
 /*
@@ -113,52 +115,25 @@ int Sys_GetVideoRam( void ) {
 #ifdef	ID_DEDICATED
 	return 0;
 #else
-	unsigned int retSize = 64;
-
-	CComPtr<IWbemLocator> spLoc = NULL;
-	HRESULT hr = CoCreateInstance( CLSID_WbemLocator, 0, CLSCTX_SERVER, IID_IWbemLocator, ( LPVOID * ) &spLoc );
-	if ( hr != S_OK || spLoc == NULL ) {
-		return retSize;
+	IDXGIFactory *pFactory = NULL;
+	if( FAILED( CreateDXGIFactory( __uuidof( IDXGIFactory ), (void **)&pFactory ) ) ) {
+		return 0;
 	}
 
-	CComBSTR bstrNamespace( _T( "\\\\.\\root\\CIMV2" ) );
-	CComPtr<IWbemServices> spServices;
-
-	// Connect to CIM
-	hr = spLoc->ConnectServer( bstrNamespace, NULL, NULL, 0, NULL, 0, 0, &spServices );
-	if ( hr != WBEM_S_NO_ERROR ) {
-		return retSize;
+	IDXGIAdapter *pAdapter = NULL;
+	if( FAILED( pFactory->EnumAdapters( 0, &pAdapter ) ) ) {
+		pFactory->Release();
+		return 0;
 	}
 
-	// Switch the security level to IMPERSONATE so that provider will grant access to system-level objects.  
-	hr = CoSetProxyBlanket( spServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, NULL, RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE );
-	if ( hr != S_OK ) {
-		return retSize;
-	}
+	DXGI_ADAPTER_DESC desc;
+	pAdapter->GetDesc( &desc );
 
-	// Get the vid controller
-	CComPtr<IEnumWbemClassObject> spEnumInst = NULL;
-	hr = spServices->CreateInstanceEnum( CComBSTR( "Win32_VideoController" ), WBEM_FLAG_SHALLOW, NULL, &spEnumInst ); 
-	if ( hr != WBEM_S_NO_ERROR || spEnumInst == NULL ) {
-		return retSize;
-	}
+	pAdapter->Release();
+	pFactory->Release();
 
-	ULONG uNumOfInstances = 0;
-	CComPtr<IWbemClassObject> spInstance = NULL;
-	hr = spEnumInst->Next( 10000, 1, &spInstance, &uNumOfInstances );
-
-	if ( hr == S_OK && spInstance ) {
-		// Get properties from the object
-		CComVariant varSize;
-		hr = spInstance->Get( CComBSTR( _T( "AdapterRAM" ) ), 0, &varSize, 0, 0 );
-		if ( hr == S_OK ) {
-			retSize = varSize.intVal / ( 1024 * 1024 );
-			if ( retSize == 0 ) {
-				retSize = 64;
-			}
-		}
-	}
-	return retSize;
+	// DedicatedVideoMemory is in bytes
+	return static_cast<int>( desc.DedicatedVideoMemory / ( 1024 * 1024 ) );
 #endif
 }
 
@@ -250,7 +225,7 @@ char *Sys_GetCurrentUser( void ) {
 	}
 
 	return s_userName;
-}	
+}
 
 
 /*
@@ -584,7 +559,7 @@ void Sym_GetFuncInfo( long addr, idStr &module, idStr &funcName ) {
 	DWORD symDisplacement = 0;
 	if ( SymGetSymFromAddr( processHandle, addr, &symDisplacement, pSymbol ) ) {
 		// clean up name, throwing away decorations that don't affect uniqueness
-	    char undName[MAX_STRING_CHARS];
+		char undName[MAX_STRING_CHARS];
 		if ( UnDecorateSymbolName( pSymbol->Name, undName, sizeof(undName), UNDECORATE_FLAGS ) ) {
 			funcName = undName;
 		} else {
@@ -600,14 +575,14 @@ void Sym_GetFuncInfo( long addr, idStr &module, idStr &funcName ) {
 						MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
 						(LPTSTR) &lpMsgBuf,
 						0,
-						NULL 
+						NULL
 						);
 		LocalFree( lpMsgBuf );
 
 		// Couldn't retrieve symbol (no debug info?, can't load dbghelp.dll?)
 		sprintf( funcName, "0x%08x", addr );
 		module = "";
-    }
+	}
 }
 
 #else

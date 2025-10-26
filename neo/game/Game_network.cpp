@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "Game_local.h"
@@ -165,7 +165,7 @@ void idGameLocal::ServerSendDeclRemapToClient( int clientNum, declType_t type, i
 
 	const idDecl *decl = declManager->DeclByIndex( type, index, false );
 	if ( decl == NULL ) {
-		gameLocal.Error( "server tried to remap bad %s decl index %d", declManager->GetDeclNameFromType( type ), index );
+		GameLocal()->Error( "server tried to remap bad %s decl index %d", declManager->GetDeclNameFromType( type ), index );
 		return;
 	}
 
@@ -223,15 +223,15 @@ int idGameLocal::ClientRemapDecl( declType_t type, int index ) {
 
 	// make sure the index is valid
 	if ( clientDeclRemap[localClientNum][(int)type].Num() == 0 ) {
-		gameLocal.Error( "client received decl index %d before %s decl remap was initialized", index, declManager->GetDeclNameFromType( type ) );
+		GameLocal()->Error( "client received decl index %d before %s decl remap was initialized", index, declManager->GetDeclNameFromType( type ) );
 		return -1;
 	}
 	if ( index >= clientDeclRemap[localClientNum][(int)type].Num() ) {
-		gameLocal.Error( "client received unmapped %s decl index %d from server", declManager->GetDeclNameFromType( type ), index );
+		GameLocal()->Error( "client received unmapped %s decl index %d from server", declManager->GetDeclNameFromType( type ), index );
 		return -1;
 	}
 	if ( clientDeclRemap[localClientNum][(int)type][index] == -1 ) {
-		gameLocal.Error( "client received unmapped %s decl index %d from server", declManager->GetDeclNameFromType( type ), index );
+		GameLocal()->Error( "client received unmapped %s decl index %d from server", declManager->GetDeclNameFromType( type ), index );
 		return -1;
 	}
 	return clientDeclRemap[localClientNum][type][index];
@@ -566,7 +566,7 @@ void idGameLocal::ServerWriteSnapshot( int clientNum, int sequence, idBitMsg &ms
 	} else {
 		spectated = player;
 	}
-	
+
 	// free too old snapshots
 	FreeSnapshotsOlderThanSequence( clientNum, sequence - 64 );
 
@@ -581,7 +581,7 @@ void idGameLocal::ServerWriteSnapshot( int clientNum, int sequence, idBitMsg &ms
 	// get PVS for this player
 	// don't use PVSAreas for networking - PVSAreas depends on animations (and md5 bounds), which are not synchronized
 	numSourceAreas = gameRenderWorld->BoundsInAreas( spectated->GetPlayerPhysics()->GetAbsBounds(), sourceAreas, idEntity::MAX_PVS_AREAS );
-	pvsHandle = gameLocal.pvs.SetupCurrentPVS( sourceAreas, numSourceAreas, PVS_NORMAL );
+	pvsHandle = GameLocal()->pvs.SetupCurrentPVS( sourceAreas, numSourceAreas, PVS_NORMAL );
 
 #if ASYNC_WRITE_TAGS
 	idRandom tagRandom;
@@ -653,7 +653,7 @@ void idGameLocal::ServerWriteSnapshot( int clientNum, int sequence, idBitMsg &ms
 			msg.WriteLong( 0 );
 		}
 	}
-	gameLocal.pvs.WritePVS( pvsHandle, msg );
+	GameLocal()->pvs.WritePVS( pvsHandle, msg );
 #endif
 	for ( i = 0; i < ENTITY_PVS_SIZE; i++ ) {
 		msg.WriteDeltaLong( clientPVS[clientNum][i], snapshot->pvs[i] );
@@ -674,8 +674,8 @@ void idGameLocal::ServerWriteSnapshot( int clientNum, int sequence, idBitMsg &ms
 	newBase->state.Init( newBase->stateBuf, sizeof( newBase->stateBuf ) );
 	newBase->state.BeginWriting();
 	deltaMsg.Init( base ? &base->state : NULL, &newBase->state, &msg );
-	if ( player->spectating && player->spectator != player->entityNumber && gameLocal.entities[ player->spectator ] && gameLocal.entities[ player->spectator ]->IsType( idPlayer::Type ) ) {
-		static_cast< idPlayer * >( gameLocal.entities[ player->spectator ] )->WritePlayerStateToSnapshot( deltaMsg );
+	if ( player->spectating && player->spectator != player->entityNumber && GameLocal()->entities[ player->spectator ] && GameLocal()->entities[ player->spectator ]->IsType( idPlayer::Type ) ) {
+		static_cast< idPlayer * >( GameLocal()->entities[ player->spectator ] )->WritePlayerStateToSnapshot( deltaMsg );
 	} else {
 		player->WritePlayerStateToSnapshot( deltaMsg );
 	}
@@ -735,7 +735,7 @@ void idGameLocal::ServerProcessEntityNetworkEventQueue( void ) {
 		}
 
 		idEntityPtr< idEntity > entPtr;
-			
+
 		if( !entPtr.SetSpawnId( event->spawnId ) ) {
 			NetworkEventWarning( event, "Entity does not exist any longer, or has not been spawned yet." );
 		} else {
@@ -1112,7 +1112,7 @@ void idGameLocal::ClientReadSnapshot( int clientNum, int sequence, const int gam
 	// get PVS for this player
 	// don't use PVSAreas for networking - PVSAreas depends on animations (and md5 bounds), which are not synchronized
 	numSourceAreas = gameRenderWorld->BoundsInAreas( spectated->GetPlayerPhysics()->GetAbsBounds(), sourceAreas, idEntity::MAX_PVS_AREAS );
-	pvsHandle = gameLocal.pvs.SetupCurrentPVS( sourceAreas, numSourceAreas, PVS_NORMAL );
+	pvsHandle = GameLocal()->pvs.SetupCurrentPVS( sourceAreas, numSourceAreas, PVS_NORMAL );
 
 	// read the PVS from the snapshot
 #if ASYNC_WRITE_PVS
@@ -1135,7 +1135,7 @@ void idGameLocal::ClientReadSnapshot( int clientNum, int sequence, const int gam
 		}
 		common->DPrintf( "\n" );
 	}
-	gameLocal.pvs.ReadPVS( pvsHandle, msg );
+	GameLocal()->pvs.ReadPVS( pvsHandle, msg );
 #endif
 	for ( i = 0; i < ENTITY_PVS_SIZE; i++ ) {
 		snapshot->pvs[i] = msg.ReadDeltaLong( clientPVS[clientNum][i] );
@@ -1214,12 +1214,12 @@ void idGameLocal::ClientReadSnapshot( int clientNum, int sequence, const int gam
 	newBase->state.Init( newBase->stateBuf, sizeof( newBase->stateBuf ) );
 	newBase->state.BeginWriting();
 	deltaMsg.Init( base ? &base->state : NULL, &newBase->state, &msg );
-	if ( player->spectating && player->spectator != player->entityNumber && gameLocal.entities[ player->spectator ] && gameLocal.entities[ player->spectator ]->IsType( idPlayer::Type ) ) {
-		static_cast< idPlayer * >( gameLocal.entities[ player->spectator ] )->ReadPlayerStateFromSnapshot( deltaMsg );
-		weap = static_cast< idPlayer * >( gameLocal.entities[ player->spectator ] )->weapon.GetEntity();
+	if ( player->spectating && player->spectator != player->entityNumber && GameLocal()->entities[ player->spectator ] && GameLocal()->entities[ player->spectator ]->IsType( idPlayer::Type ) ) {
+		static_cast< idPlayer * >( GameLocal()->entities[ player->spectator ] )->ReadPlayerStateFromSnapshot( deltaMsg );
+		weap = static_cast< idPlayer * >( GameLocal()->entities[ player->spectator ] )->weapon.GetEntity();
 		if ( weap && ( weap->GetRenderEntity()->bounds[0] == weap->GetRenderEntity()->bounds[1] ) ) {
 			// update the weapon's viewmodel bounds so that the model doesn't flicker in the spectator's view
-			weap->GetAnimator()->GetBounds( gameLocal.time, weap->GetRenderEntity()->bounds );
+			weap->GetAnimator()->GetBounds( GameLocal()->time, weap->GetRenderEntity()->bounds );
 			weap->UpdateVisuals();
 		}
 	} else {
@@ -1262,9 +1262,9 @@ void idGameLocal::ClientProcessEntityNetworkEventQueue( void ) {
 		}
 
 		idEntityPtr< idEntity > entPtr;
-			
+
 		if( !entPtr.SetSpawnId( event->spawnId ) ) {
-			if( !gameLocal.entities[ event->spawnId & ( ( 1 << GENTITYNUM_BITS ) - 1 ) ] ) {
+			if( !GameLocal()->entities[ event->spawnId & ( ( 1 << GENTITYNUM_BITS ) - 1 ) ] ) {
 				// if new entity exists in this position, silently ignore
 				NetworkEventWarning( event, "Entity does not exist any longer, or has not been spawned yet." );
 			}
@@ -1357,7 +1357,7 @@ void idGameLocal::ClientProcessReliableMessage( int clientNum, const idBitMsg &m
 			break;
 		}
 		case GAME_RELIABLE_MESSAGE_SOUND_INDEX: {
-			int index = gameLocal.ClientRemapDecl( DECL_SOUND, msg.ReadLong() );
+			int index = GameLocal()->ClientRemapDecl( DECL_SOUND, msg.ReadLong() );
 			if ( index >= 0 && index < declManager->GetNumDecls( DECL_SOUND ) ) {
 				const idSoundShader *shader = declManager->SoundByIndex( index );
 				mpGame.PlayGlobalSound( -1, SND_COUNT, shader->GetName() );
@@ -1397,7 +1397,7 @@ void idGameLocal::ClientProcessReliableMessage( int clientNum, const idBitMsg &m
 		case GAME_RELIABLE_MESSAGE_SERVERINFO: {
 			idDict info;
 			msg.ReadDeltaDict( info, NULL );
-			gameLocal.SetServerInfo( info );
+			GameLocal()->SetServerInfo( info );
 			break;
 		}
 		case GAME_RELIABLE_MESSAGE_RESTART: {
@@ -1528,7 +1528,7 @@ idGameLocal::Tokenize
 void idGameLocal::Tokenize( idStrList &out, const char *in ) {
 	char buf[ MAX_STRING_CHARS ];
 	char *token, *next;
-	
+
 	idStr::Copynz( buf, in, MAX_STRING_CHARS );
 	token = buf;
 	next = strchr( token, ';' );
@@ -1543,7 +1543,7 @@ void idGameLocal::Tokenize( idStrList &out, const char *in ) {
 			next = strchr( token, ';' );
 		} else {
 			token = NULL;
-		}		
+		}
 	}
 }
 
@@ -1602,7 +1602,7 @@ bool idGameLocal::DownloadRequest( const char *IP, const char *guid, const char 
 				common->DPrintf( "download for %s: %s\n", IP, url.c_str() );
 			}
 		}
-		
+
 		idStr::Copynz( urls, reply, MAX_STRING_CHARS );
 		return true;
 	}
@@ -1693,7 +1693,7 @@ entityNetEvent_t* idEventQueue::RemoveLast( void ) {
 	if ( !end ) {
 		start = NULL;
 	} else {
-		end->next = NULL;		
+		end->next = NULL;
 	}
 
 	event->next = NULL;
@@ -1713,7 +1713,7 @@ void idEventQueue::Enqueue( entityNetEvent_t *event, outOfOrderBehaviour_t behav
 		// any out-of-order events
 		while ( end && end->time > event->time ) {
 			entityNetEvent_t *outOfOrder = RemoveLast();
-			common->DPrintf( "WARNING: new event with id %d ( time %d ) caused removal of event with id %d ( time %d ), game time = %d.\n", event->event, event->time, outOfOrder->event, outOfOrder->time, gameLocal.time );
+			common->DPrintf( "WARNING: new event with id %d ( time %d ) caused removal of event with id %d ( time %d ), game time = %d.\n", event->event, event->time, outOfOrder->event, outOfOrder->time, GameLocal()->time );
 			Free( outOfOrder );
 		}
 	} else if ( behaviour == OUTOFORDER_SORT && end ) {
@@ -1737,7 +1737,7 @@ void idEventQueue::Enqueue( entityNetEvent_t *event, outOfOrderBehaviour_t behav
 			cur->next = event;
 		}
 		return;
-	} 
+	}
 
 	// add the new event
 	event->next = NULL;

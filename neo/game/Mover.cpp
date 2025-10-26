@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,12 +26,12 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "Game_local.h"
 
-// a mover will update any gui entities in it's target list with 
+// a mover will update any gui entities in it's target list with
 // a key/val pair of "mover" "state" from below.. guis can represent
 // realtime info like this
 // binary only
@@ -172,7 +172,7 @@ void idMover::Save( idSaveGame *savefile ) const {
 	savefile->WriteInt( move.movetime );
 	savefile->WriteInt( move.deceleration );
 	savefile->WriteVec3( move.dir );
-	
+
 	savefile->WriteInt( rot.stage );
 	savefile->WriteInt( rot.acceleration );
 	savefile->WriteInt( rot.movetime );
@@ -180,7 +180,7 @@ void idMover::Save( idSaveGame *savefile ) const {
 	savefile->WriteFloat( rot.rot.pitch );
 	savefile->WriteFloat( rot.rot.yaw );
 	savefile->WriteFloat( rot.rot.roll );
-	
+
 	savefile->WriteInt( move_thread );
 	savefile->WriteInt( rotate_thread );
 
@@ -241,7 +241,7 @@ void idMover::Restore( idRestoreGame *savefile ) {
 	savefile->ReadInt( move.movetime );
 	savefile->ReadInt( move.deceleration );
 	savefile->ReadVec3( move.dir );
-	
+
 	savefile->ReadInt( (int&)rot.stage );
 	savefile->ReadInt( rot.acceleration );
 	savefile->ReadInt( rot.movetime );
@@ -249,7 +249,7 @@ void idMover::Restore( idRestoreGame *savefile ) {
 	savefile->ReadFloat( rot.rot.pitch );
 	savefile->ReadFloat( rot.rot.yaw );
 	savefile->ReadFloat( rot.rot.roll );
-	
+
 	savefile->ReadInt( move_thread );
 	savefile->ReadInt( rotate_thread );
 
@@ -271,7 +271,7 @@ void idMover::Restore( idRestoreGame *savefile ) {
 	if ( areaPortal > 0 ) {
 		int portalState = 0;
 		savefile->ReadInt( portalState );
-		gameLocal.SetPortalState( areaPortal, portalState );
+		GameLocal()->SetPortalState( areaPortal, portalState );
 	}
 
 	guiTargets.Clear();
@@ -297,7 +297,7 @@ void idMover::Restore( idRestoreGame *savefile ) {
 		savefile->ReadInt( useAngles );
 
 		PostEventMS( &EV_PostRestore, 0, starttime, totaltime, accel, decel, useAngles );
-	} 
+	}
 }
 
 /*
@@ -364,7 +364,7 @@ void idMover::Spawn( void ) {
 	areaPortal = gameRenderWorld->FindPortal( GetPhysics()->GetAbsBounds() );
 
 	if ( spawnArgs.MatchPrefix( "guiTarget" ) ) {
-		if ( gameLocal.GameState() == GAMESTATE_STARTUP ) {
+		if ( GameLocal()->GameState() == GAMESTATE_STARTUP ) {
 			PostEventMS( &EV_FindGuiTargets, 0 );
 		} else {
 			// not during spawn, so it's ok to get the targets
@@ -522,7 +522,7 @@ idMover::FindGuiTargets
 ================
 */
 void idMover::FindGuiTargets( void ) {
-   	gameLocal.GetTargets( spawnArgs, guiTargets, "guiTarget" );
+   	GameLocal()->GetTargets( spawnArgs, guiTargets, "guiTarget" );
 }
 
 /*
@@ -533,14 +533,14 @@ key/val will be set to any renderEntity->gui's on the list
 ==============================
 */
 void idMover::SetGuiState( const char *key, const char *val ) const {
-	gameLocal.Printf( "Setting %s to %s\n", key, val );
+	GameLocal()->Printf( "Setting %s to %s\n", key, val );
 	for( int i = 0; i < guiTargets.Num(); i++ ) {
 		idEntity *ent = guiTargets[ i ].GetEntity();
 		if ( ent ) {
 			for ( int j = 0; j < MAX_RENDERENTITY_GUI; j++ ) {
 				if ( ent->GetRenderEntity() && ent->GetRenderEntity()->gui[ j ] ) {
 					ent->GetRenderEntity()->gui[ j ]->SetStateString( key, val );
-					ent->GetRenderEntity()->gui[ j ]->StateChanged( gameLocal.time, true );
+					ent->GetRenderEntity()->gui[ j ]->StateChanged( GameLocal()->time, true );
 				}
 			}
 			ent->UpdateVisuals();
@@ -570,7 +570,7 @@ void idMover::SetGuiStates( const char *state ) {
 	for ( i = 0; i < MAX_RENDERENTITY_GUI; i++ ) {
 		if ( renderEntity.gui[ i ] ) {
 			renderEntity.gui[ i ]->SetStateString( "movestate", state );
-			renderEntity.gui[ i ]->StateChanged( gameLocal.time, true );
+			renderEntity.gui[ i ]->StateChanged( GameLocal()->time, true );
 		}
 	}
 }
@@ -587,7 +587,7 @@ void idMover::Event_InitGuiTargets( void ) {
 /***********************************************************************
 
 	Translation control functions
-	
+
 ***********************************************************************/
 
 /*
@@ -661,7 +661,7 @@ void idMover::Event_UpdateMove( void ) {
 
 	switch( move.stage ) {
 		case ACCELERATION_STAGE: {
-			physicsObj.SetLinearExtrapolation( EXTRAPOLATION_ACCELLINEAR, gameLocal.time, move.acceleration, org, move.dir, vec3_origin );
+			physicsObj.SetLinearExtrapolation( EXTRAPOLATION_ACCELLINEAR, GameLocal()->time, move.acceleration, org, move.dir, vec3_origin );
 			if ( move.movetime > 0 ) {
 				move.stage = LINEAR_STAGE;
 			} else if ( move.deceleration > 0 ) {
@@ -672,7 +672,7 @@ void idMover::Event_UpdateMove( void ) {
 			break;
 		}
 		case LINEAR_STAGE: {
-			physicsObj.SetLinearExtrapolation( EXTRAPOLATION_LINEAR, gameLocal.time, move.movetime, org, move.dir, vec3_origin );
+			physicsObj.SetLinearExtrapolation( EXTRAPOLATION_LINEAR, GameLocal()->time, move.movetime, org, move.dir, vec3_origin );
 			if ( move.deceleration ) {
 				move.stage = DECELERATION_STAGE;
 			} else {
@@ -681,13 +681,13 @@ void idMover::Event_UpdateMove( void ) {
 			break;
 		}
 		case DECELERATION_STAGE: {
-			physicsObj.SetLinearExtrapolation( EXTRAPOLATION_DECELLINEAR, gameLocal.time, move.deceleration, org, move.dir, vec3_origin );
+			physicsObj.SetLinearExtrapolation( EXTRAPOLATION_DECELLINEAR, GameLocal()->time, move.deceleration, org, move.dir, vec3_origin );
 			move.stage = FINISHED_STAGE;
 			break;
 		}
 		case FINISHED_STAGE: {
 			if ( g_debugMover.GetBool() ) {
-				gameLocal.Printf( "%d: '%s' move done\n", gameLocal.time, name.c_str() );
+				GameLocal()->Printf( "%d: '%s' move done\n", GameLocal()->time, name.c_str() );
 			}
 			DoneMoving();
 			break;
@@ -780,7 +780,7 @@ void idMover::BeginMove( idThread *thread ) {
 /***********************************************************************
 
 	Rotation control functions
-	
+
 ***********************************************************************/
 
 /*
@@ -849,7 +849,7 @@ void idMover::Event_UpdateRotation( void ) {
 
 	switch( rot.stage ) {
 		case ACCELERATION_STAGE: {
-			physicsObj.SetAngularExtrapolation( EXTRAPOLATION_ACCELLINEAR, gameLocal.time, rot.acceleration, ang, rot.rot, ang_zero );
+			physicsObj.SetAngularExtrapolation( EXTRAPOLATION_ACCELLINEAR, GameLocal()->time, rot.acceleration, ang, rot.rot, ang_zero );
 			if ( rot.movetime > 0 ) {
 				rot.stage = LINEAR_STAGE;
 			} else if ( rot.deceleration > 0 ) {
@@ -861,9 +861,9 @@ void idMover::Event_UpdateRotation( void ) {
 		}
 		case LINEAR_STAGE: {
 			if ( !stopRotation && !rot.deceleration ) {
-				physicsObj.SetAngularExtrapolation( extrapolation_t(EXTRAPOLATION_LINEAR|EXTRAPOLATION_NOSTOP), gameLocal.time, rot.movetime, ang, rot.rot, ang_zero );
+				physicsObj.SetAngularExtrapolation( extrapolation_t(EXTRAPOLATION_LINEAR|EXTRAPOLATION_NOSTOP), GameLocal()->time, rot.movetime, ang, rot.rot, ang_zero );
 			} else {
-				physicsObj.SetAngularExtrapolation( EXTRAPOLATION_LINEAR, gameLocal.time, rot.movetime, ang, rot.rot, ang_zero );
+				physicsObj.SetAngularExtrapolation( EXTRAPOLATION_LINEAR, GameLocal()->time, rot.movetime, ang, rot.rot, ang_zero );
 			}
 
 			if ( rot.deceleration ) {
@@ -874,7 +874,7 @@ void idMover::Event_UpdateRotation( void ) {
 			break;
 		}
 		case DECELERATION_STAGE: {
-			physicsObj.SetAngularExtrapolation( EXTRAPOLATION_DECELLINEAR, gameLocal.time, rot.deceleration, ang, rot.rot, ang_zero );
+			physicsObj.SetAngularExtrapolation( EXTRAPOLATION_DECELLINEAR, GameLocal()->time, rot.deceleration, ang, rot.rot, ang_zero );
 			rot.stage = FINISHED_STAGE;
 			break;
 		}
@@ -887,11 +887,11 @@ void idMover::Event_UpdateRotation( void ) {
 				stopRotation = false;
 			} else if ( physicsObj.GetAngularExtrapolationType() == EXTRAPOLATION_ACCELLINEAR ) {
 				// keep our angular velocity constant
-				physicsObj.SetAngularExtrapolation( extrapolation_t(EXTRAPOLATION_LINEAR|EXTRAPOLATION_NOSTOP), gameLocal.time, 0, ang, rot.rot, ang_zero );
+				physicsObj.SetAngularExtrapolation( extrapolation_t(EXTRAPOLATION_LINEAR|EXTRAPOLATION_NOSTOP), GameLocal()->time, 0, ang, rot.rot, ang_zero );
 			}
 
 			if ( g_debugMover.GetBool() ) {
-				gameLocal.Printf( "%d: '%s' rotation done\n", gameLocal.time, name.c_str() );
+				GameLocal()->Printf( "%d: '%s' rotation done\n", GameLocal()->time, name.c_str() );
 			}
 
 			DoneRotating();
@@ -975,8 +975,8 @@ void idMover::BeginRotation( idThread *thread, bool stopwhendone ) {
 
 /***********************************************************************
 
-	Script callable routines  
-	
+	Script callable routines
+
 ***********************************************************************/
 
 /*
@@ -986,7 +986,7 @@ idMover::Event_TeamBlocked
 */
 void idMover::Event_TeamBlocked( idEntity *blockedEntity, idEntity *blockingEntity ) {
 	if ( g_debugMover.GetBool() ) {
-		gameLocal.Printf( "%d: '%s' stopped due to team member '%s' blocked by '%s'\n", gameLocal.time, name.c_str(), blockedEntity->name.c_str(), blockingEntity->name.c_str() );
+		GameLocal()->Printf( "%d: '%s' stopped due to team member '%s' blocked by '%s'\n", GameLocal()->time, name.c_str(), blockedEntity->name.c_str(), blockingEntity->name.c_str() );
 	}
 }
 
@@ -1000,7 +1000,7 @@ void idMover::Event_PartBlocked( idEntity *blockingEntity ) {
 		blockingEntity->Damage( this, this, vec3_origin, "damage_moverCrush", damage, INVALID_JOINT );
 	}
 	if ( g_debugMover.GetBool() ) {
-		gameLocal.Printf( "%d: '%s' blocked by '%s'\n", gameLocal.time, name.c_str(), blockingEntity->name.c_str() );
+		GameLocal()->Printf( "%d: '%s' blocked by '%s'\n", GameLocal()->time, name.c_str(), blockingEntity->name.c_str() );
 	}
 }
 
@@ -1011,7 +1011,7 @@ idMover::Event_SetMoveSpeed
 */
 void idMover::Event_SetMoveSpeed( float speed ) {
 	if ( speed <= 0 ) {
-		gameLocal.Error( "Cannot set speed less than or equal to 0." );
+		GameLocal()->Error( "Cannot set speed less than or equal to 0." );
 	}
 
 	move_speed = speed;
@@ -1025,7 +1025,7 @@ idMover::Event_SetMoveTime
 */
 void idMover::Event_SetMoveTime( float time ) {
 	if ( time <= 0 ) {
-		gameLocal.Error( "Cannot set time less than or equal to 0." );
+		GameLocal()->Error( "Cannot set time less than or equal to 0." );
 	}
 
 	move_speed = 0;
@@ -1039,7 +1039,7 @@ idMover::Event_SetAccellerationTime
 */
 void idMover::Event_SetAccellerationTime( float time ) {
 	if ( time < 0 ) {
-		gameLocal.Error( "Cannot set acceleration time less than 0." );
+		GameLocal()->Error( "Cannot set acceleration time less than 0." );
 	}
 
 	acceltime = SEC2MS( time );
@@ -1052,7 +1052,7 @@ idMover::Event_SetDecelerationTime
 */
 void idMover::Event_SetDecelerationTime( float time ) {
 	if ( time < 0 ) {
-		gameLocal.Error( "Cannot set deceleration time less than 0." );
+		GameLocal()->Error( "Cannot set deceleration time less than 0." );
 	}
 
 	deceltime = SEC2MS( time );
@@ -1065,7 +1065,7 @@ idMover::Event_MoveTo
 */
 void idMover::Event_MoveTo( idEntity *ent ) {
 	if ( !ent ) {
-		gameLocal.Warning( "Entity not found" );
+		GameLocal()->Warning( "Entity not found" );
 	}
 
 	dest_position = GetLocalCoordinates( ent->GetPhysics()->GetOrigin() );
@@ -1118,7 +1118,7 @@ void idMover::Event_MoveAccelerateTo( float speed, float time ) {
 	int at;
 
 	if ( time < 0 ) {
-		gameLocal.Error( "idMover::Event_MoveAccelerateTo: cannot set acceleration time less than 0." );
+		GameLocal()->Error( "idMover::Event_MoveAccelerateTo: cannot set acceleration time less than 0." );
 	}
 
 	dir = physicsObj.GetLinearVelocity();
@@ -1126,7 +1126,7 @@ void idMover::Event_MoveAccelerateTo( float speed, float time ) {
 
 	// if not moving already
 	if ( v == 0.0f ) {
-		gameLocal.Error( "idMover::Event_MoveAccelerateTo: not moving." );
+		GameLocal()->Error( "idMover::Event_MoveAccelerateTo: not moving." );
 	}
 
 	// if already moving faster than the desired speed
@@ -1147,7 +1147,7 @@ void idMover::Event_MoveAccelerateTo( float speed, float time ) {
 
 	StartSound( "snd_accel", SND_CHANNEL_BODY2, 0, false, NULL );
 	StartSound( "snd_move", SND_CHANNEL_BODY, 0, false, NULL );
-	physicsObj.SetLinearExtrapolation( EXTRAPOLATION_ACCELLINEAR, gameLocal.time, move.acceleration, org, dir * ( speed - v ), dir * v );
+	physicsObj.SetLinearExtrapolation( EXTRAPOLATION_ACCELLINEAR, GameLocal()->time, move.acceleration, org, dir * ( speed - v ), dir * v );
 }
 
 /*
@@ -1161,7 +1161,7 @@ void idMover::Event_MoveDecelerateTo( float speed, float time ) {
 	int dt;
 
 	if ( time < 0 ) {
-		gameLocal.Error( "idMover::Event_MoveDecelerateTo: cannot set deceleration time less than 0." );
+		GameLocal()->Error( "idMover::Event_MoveDecelerateTo: cannot set deceleration time less than 0." );
 	}
 
 	dir = physicsObj.GetLinearVelocity();
@@ -1169,7 +1169,7 @@ void idMover::Event_MoveDecelerateTo( float speed, float time ) {
 
 	// if not moving already
 	if ( v == 0.0f ) {
-		gameLocal.Error( "idMover::Event_MoveDecelerateTo: not moving." );
+		GameLocal()->Error( "idMover::Event_MoveDecelerateTo: not moving." );
 	}
 
 	// if already moving slower than the desired speed
@@ -1190,7 +1190,7 @@ void idMover::Event_MoveDecelerateTo( float speed, float time ) {
 
 	StartSound( "snd_decel", SND_CHANNEL_BODY2, 0, false, NULL );
 	StartSound( "snd_move", SND_CHANNEL_BODY, 0, false, NULL );
-	physicsObj.SetLinearExtrapolation( EXTRAPOLATION_DECELLINEAR, gameLocal.time, move.deceleration, org, dir * ( v - speed ), dir * speed );
+	physicsObj.SetLinearExtrapolation( EXTRAPOLATION_DECELLINEAR, GameLocal()->time, move.deceleration, org, dir * ( v - speed ), dir * speed );
 }
 
 /*
@@ -1202,7 +1202,7 @@ void idMover::Event_RotateDownTo( int axis, float angle ) {
 	idAngles ang;
 
 	if ( ( axis < 0 ) || ( axis > 2 ) ) {
-		gameLocal.Error( "Invalid axis" );
+		GameLocal()->Error( "Invalid axis" );
 	}
 
 	physicsObj.GetLocalAngles( ang );
@@ -1224,7 +1224,7 @@ void idMover::Event_RotateUpTo( int axis, float angle ) {
 	idAngles ang;
 
 	if ( ( axis < 0 ) || ( axis > 2 ) ) {
-		gameLocal.Error( "Invalid axis" );
+		GameLocal()->Error( "Invalid axis" );
 	}
 
 	physicsObj.GetLocalAngles( ang );
@@ -1432,7 +1432,7 @@ void idMover::Event_StartSpline( idEntity *splineEntity ) {
 	move.deceleration	= deceltime;
 
 	spline->MakeUniform( move_time );
-	spline->ShiftTime( gameLocal.time - spline->GetTime( 0 ) );
+	spline->ShiftTime( GameLocal()->time - spline->GetTime( 0 ) );
 
 	physicsObj.SetSpline( spline, move.acceleration, move.deceleration, useSplineAngles );
 	physicsObj.SetLinearExtrapolation( EXTRAPOLATION_NONE, 0, 0, dest_position, vec3_origin, vec3_origin );
@@ -1530,7 +1530,7 @@ idMover::SetPortalState
 */
 void idMover::SetPortalState( bool open ) {
 	assert( areaPortal );
-	gameLocal.SetPortalState( areaPortal, open ? PS_BLOCK_NONE : PS_BLOCK_ALL );
+	GameLocal()->SetPortalState( areaPortal, open ? PS_BLOCK_NONE : PS_BLOCK_ALL );
 }
 
 /*
@@ -1694,8 +1694,8 @@ idElevator::Event_Touch
 ===============
 */
 void idElevator::Event_Touch( idEntity *other, trace_t *trace ) {
-	
-	if ( gameLocal.time < lastTouchTime + 2000 ) {
+
+	if ( GameLocal()->time < lastTouchTime + 2000 ) {
 		return;
 	}
 
@@ -1703,7 +1703,7 @@ void idElevator::Event_Touch( idEntity *other, trace_t *trace ) {
 		return;
 	}
 
-	lastTouchTime = gameLocal.time;
+	lastTouchTime = GameLocal()->time;
 
 	if ( thinkFlags & TH_PHYSICS ) {
 		return;
@@ -1756,7 +1756,7 @@ void idElevator::Think( void ) {
 				MoveToPos( fi->pos );
 			}
 		}
-	} 
+	}
 	RunPhysics();
 	Present();
 }
@@ -1911,12 +1911,12 @@ void idElevator::BeginMove( idThread *thread ) {
 	DisableAllDoors();
 	const idKeyValue *kv = spawnArgs.MatchPrefix( "statusGui" );
 	while( kv ) {
-		idEntity *ent = gameLocal.FindEntity( kv->GetValue() );
+		idEntity *ent = GameLocal()->FindEntity( kv->GetValue() );
 		if ( ent ) {
 			for ( int j = 0; j < MAX_RENDERENTITY_GUI; j++ ) {
 				if ( ent->GetRenderEntity() && ent->GetRenderEntity()->gui[ j ] ) {
 					ent->GetRenderEntity()->gui[ j ]->SetStateString( "floor", "" );
-					ent->GetRenderEntity()->gui[ j ]->StateChanged( gameLocal.time, true );
+					ent->GetRenderEntity()->gui[ j ]->StateChanged( GameLocal()->time, true );
 				}
 			}
 			ent->UpdateVisuals();
@@ -1939,7 +1939,7 @@ idDoor *idElevator::GetDoor( const char *name ) {
 
 	doorEnt = NULL;
 	if ( name && *name ) {
-		ent = gameLocal.FindEntity( name );
+		ent = GameLocal()->FindEntity( name );
 		if ( ent && ent->IsType( idDoor::Type ) ) {
 			doorEnt = static_cast<idDoor*>( ent );
 			master = doorEnt->GetMoveMaster();
@@ -1981,12 +1981,12 @@ void idElevator::DoneMoving( void ) {
 	EnableProperDoors();
 	const idKeyValue *kv = spawnArgs.MatchPrefix( "statusGui" );
 	while( kv ) {
-		idEntity *ent = gameLocal.FindEntity( kv->GetValue() );
+		idEntity *ent = GameLocal()->FindEntity( kv->GetValue() );
 		if ( ent ) {
 			for ( int j = 0; j < MAX_RENDERENTITY_GUI; j++ ) {
 				if ( ent->GetRenderEntity() && ent->GetRenderEntity()->gui[ j ] ) {
 					ent->GetRenderEntity()->gui[ j ]->SetStateString( "floor", va( "%i", currentFloor ) );
-					ent->GetRenderEntity()->gui[ j ]->StateChanged( gameLocal.time, true );
+					ent->GetRenderEntity()->gui[ j ]->StateChanged( GameLocal()->time, true );
 				}
 			}
 			ent->UpdateVisuals();
@@ -2253,7 +2253,7 @@ void idMover_Binary::Restore( idRestoreGame *savefile ) {
 	savefile->ReadInt( areaPortal );
 	if ( areaPortal ) {
 		savefile->ReadInt( portalState );
-		gameLocal.SetPortalState( areaPortal, portalState );
+		GameLocal()->SetPortalState( areaPortal, portalState );
 	}
 	savefile->ReadBool( blocked );
 
@@ -2302,7 +2302,7 @@ void idMover_Binary::Spawn( void ) {
 		ent = this;
 	} else {
 		// find the first entity spawned on this team (which could be us)
-		for( ent = gameLocal.spawnedEntities.Next(); ent != NULL; ent = ent->spawnNode.Next() ) {
+		for( ent = GameLocal()->spawnedEntities.Next(); ent != NULL; ent = ent->spawnNode.Next() ) {
 			if ( ent->IsType( idMover_Binary::Type ) && !idStr::Icmp( static_cast<idMover_Binary *>(ent)->team.c_str(), temp ) ) {
 				break;
 			}
@@ -2347,7 +2347,7 @@ void idMover_Binary::Spawn( void ) {
 	moveMaster->refSound.origin = soundOrigin.GetCenter();
 
 	if ( spawnArgs.MatchPrefix( "guiTarget" ) ) {
-		if ( gameLocal.GameState() == GAMESTATE_STARTUP ) {
+		if ( GameLocal()->GameState() == GAMESTATE_STARTUP ) {
 			PostEventMS( &EV_FindGuiTargets, 0 );
 		} else {
 			// not during spawn, so it's ok to get the targets
@@ -2498,7 +2498,7 @@ void idMover_Binary::Event_MatchActivateTeam( moverState_t newstate, int time ) 
 ================
 idMover_Binary::BindTeam
 
-All entities in a mover team will be bound 
+All entities in a mover team will be bound
 ================
 */
 void idMover_Binary::BindTeam( idEntity *bindTo ) {
@@ -2593,7 +2593,7 @@ idMover_Binary::Event_ReturnToPos1
 ================
 */
 void idMover_Binary::Event_ReturnToPos1( void ) {
-	MatchActivateTeam( MOVER_2TO1, gameLocal.time );
+	MatchActivateTeam( MOVER_2TO1, GameLocal()->time );
 }
 
 /*
@@ -2612,7 +2612,7 @@ void idMover_Binary::Event_Reached_BinaryMover( void ) {
 			StartSound( "snd_opened", SND_CHANNEL_ANY, 0, false, NULL );
 		}
 
-		SetMoverState( MOVER_POS2, gameLocal.time );
+		SetMoverState( MOVER_POS2, GameLocal()->time );
 
 		SetGuiStates( guiBinaryMoverStates[MOVER_POS2] );
 
@@ -2622,7 +2622,7 @@ void idMover_Binary::Event_Reached_BinaryMover( void ) {
 			// return to pos1 after a delay
 			PostEventSec( &EV_Mover_ReturnToPos1, wait );
 		}
-		
+
 		// fire targets
 		ActivateTargets( moveMaster->GetActivator() );
 
@@ -2632,7 +2632,7 @@ void idMover_Binary::Event_Reached_BinaryMover( void ) {
 		idThread::ObjectMoveDone( move_thread, this );
 		move_thread = 0;
 
-		SetMoverState( MOVER_POS1, gameLocal.time );
+		SetMoverState( MOVER_POS1, GameLocal()->time );
 
 		SetGuiStates( guiBinaryMoverStates[MOVER_POS1] );
 
@@ -2649,7 +2649,7 @@ void idMover_Binary::Event_Reached_BinaryMover( void ) {
 
 		SetBlocked(false);
 	} else {
-		gameLocal.Error( "Event_Reached_BinaryMover: bad moverState" );
+		GameLocal()->Error( "Event_Reached_BinaryMover: bad moverState" );
 	}
 }
 
@@ -2723,7 +2723,7 @@ void idMover_Binary::GotoPosition2( void ) {
 	}
 
 	if ( moverState == MOVER_POS1 ) {
-		MatchActivateTeam( MOVER_1TO2, gameLocal.time );
+		MatchActivateTeam( MOVER_1TO2, GameLocal()->time );
 
 		// open areaportal
 		ProcessEvent( &EV_Mover_OpenPortal );
@@ -2758,7 +2758,7 @@ void idMover_Binary::UpdateBuddies( int val ) {
 	if ( updateStatus == 2 ) {
 		 c = buddies.Num();
 		for ( i = 0; i < c; i++ ) {
-			idEntity *buddy = gameLocal.FindEntity( buddies[i] );
+			idEntity *buddy = GameLocal()->FindEntity( buddies[i] );
 			if ( buddy ) {
 				buddy->SetShaderParm( SHADERPARM_MODE, val );
 				buddy->UpdateVisuals();
@@ -2806,8 +2806,8 @@ void idMover_Binary::Use_BinaryMover( idEntity *activator ) {
 
 	if ( moverState == MOVER_POS1 ) {
 		// FIXME: start moving USERCMD_MSEC later, because if this was player
-		// triggered, gameLocal.time hasn't been advanced yet
-		MatchActivateTeam( MOVER_1TO2, gameLocal.time + USERCMD_MSEC );
+		// triggered, GameLocal()->time hasn't been advanced yet
+		MatchActivateTeam( MOVER_1TO2, GameLocal()->time + USERCMD_MSEC );
 
 		SetGuiStates( guiBinaryMoverStates[MOVER_1TO2] );
 		// open areaportal
@@ -2880,7 +2880,7 @@ idMover_Binary::FindGuiTargets
 ================
 */
 void idMover_Binary::FindGuiTargets( void ) {
-   	gameLocal.GetTargets( spawnArgs, guiTargets, "guiTarget" );
+   	GameLocal()->GetTargets( spawnArgs, guiTargets, "guiTarget" );
 }
 
 /*
@@ -2899,7 +2899,7 @@ void idMover_Binary::SetGuiState( const char *key, const char *val ) const {
 			for ( int j = 0; j < MAX_RENDERENTITY_GUI; j++ ) {
 				if ( ent->GetRenderEntity() && ent->GetRenderEntity()->gui[ j ] ) {
 					ent->GetRenderEntity()->gui[ j ]->SetStateString( key, val );
-					ent->GetRenderEntity()->gui[ j ]->StateChanged( gameLocal.time, true );
+					ent->GetRenderEntity()->gui[ j ]->StateChanged( GameLocal()->time, true );
 				}
 			}
 			ent->UpdateVisuals();
@@ -3004,7 +3004,7 @@ void idMover_Binary::SetBlocked( bool b ) {
 		if ( b ) {
 			const idKeyValue *kv = slave->spawnArgs.MatchPrefix( "triggerBlocked" );
 			while( kv ) {
-				idEntity *ent = gameLocal.FindEntity( kv->GetValue() );
+				idEntity *ent = GameLocal()->FindEntity( kv->GetValue() );
 				if ( ent ) {
 					ent->PostEventMS( &EV_Activate, 0, moveMaster->GetActivator() );
 				}
@@ -3070,7 +3070,7 @@ idMover_Binary::SetPortalState
 */
 void idMover_Binary::SetPortalState( bool open ) {
 	assert( areaPortal );
-	gameLocal.SetPortalState( areaPortal, open ? PS_BLOCK_NONE : PS_BLOCK_ALL );
+	GameLocal()->SetPortalState( areaPortal, open ? PS_BLOCK_NONE : PS_BLOCK_ALL );
 }
 
 /*
@@ -3275,7 +3275,7 @@ void idDoor::Spawn( void ) {
 	// if "start_open", reverse position 1 and 2
 	if ( start_open ) {
 		// post it after EV_SpawnBind
-		PostEventMS( &EV_Door_StartOpen, 1 );		
+		PostEventMS( &EV_Door_StartOpen, 1 );
 	}
 
 	if ( spawnArgs.GetFloat( "time", "1", time ) ) {
@@ -3290,7 +3290,7 @@ void idDoor::Spawn( void ) {
 		}
 		if ( noTouch || health ) {
 			// non touch/shoot doors
-			PostEventMS( &EV_Mover_MatchTeam, 0, moverState, gameLocal.time );
+			PostEventMS( &EV_Mover_MatchTeam, 0, moverState, GameLocal()->time );
 
 			const char *sndtemp = spawnArgs.GetString( "snd_locked" );
 			if ( spawnArgs.GetInt( "locked" ) && sndtemp && *sndtemp ) {
@@ -3343,10 +3343,10 @@ void idDoor::Think( void ) {
 		// update trigger position
 		if ( GetMasterPosition( masterOrigin, masterAxis ) ) {
 			if ( trigger ) {
-				trigger->Link( gameLocal.clip, this, 0, masterOrigin + localTriggerOrigin * masterAxis, localTriggerAxis * masterAxis );
+				trigger->Link( GameLocal()->clip, this, 0, masterOrigin + localTriggerOrigin * masterAxis, localTriggerAxis * masterAxis );
 			}
 			if ( sndTrigger ) {
-				sndTrigger->Link( gameLocal.clip, this, 0, masterOrigin + localTriggerOrigin * masterAxis, localTriggerAxis * masterAxis );
+				sndTrigger->Link( GameLocal()->clip, this, 0, masterOrigin + localTriggerOrigin * masterAxis, localTriggerAxis * masterAxis );
 			}
 		}
 	}
@@ -3378,7 +3378,7 @@ idDoor::SetAASAreaState
 */
 void idDoor::SetAASAreaState( bool closed ) {
 	aas_area_closed = closed;
-	gameLocal.SetAASAreaState( physicsObj.GetAbsBounds(), AREACONTENTS_CLUSTERPORTAL|AREACONTENTS_OBSTACLE, closed );
+	GameLocal()->SetAASAreaState( physicsObj.GetAbsBounds(), AREACONTENTS_CLUSTERPORTAL|AREACONTENTS_OBSTACLE, closed );
 }
 
 /*
@@ -3483,9 +3483,9 @@ idDoor::Use
 ================
 */
 void idDoor::Use( idEntity *other, idEntity *activator ) {
-	if ( gameLocal.RequirementMet( activator, requires, removeItem ) ) {
+	if ( GameLocal()->RequirementMet( activator, requires, removeItem ) ) {
 		if ( syncLock.Length() ) {
-			idEntity *sync = gameLocal.FindEntity( syncLock );
+			idEntity *sync = GameLocal()->FindEntity( syncLock );
 			if ( sync && sync->IsType( idDoor::Type ) ) {
 				if ( static_cast<idDoor *>( sync )->IsOpen() ) {
 					return;
@@ -3494,7 +3494,7 @@ void idDoor::Use( idEntity *other, idEntity *activator ) {
 		}
 		ActivateTargets( activator );
 		Use_BinaryMover( activator );
-	} 
+	}
 }
 
 /*
@@ -3592,7 +3592,7 @@ void idDoor::CalcTriggerBounds( float size, idBounds &bounds ) {
 
 	// find the bounds of everything on the team
 	bounds = GetPhysics()->GetAbsBounds();
-	
+
 	fl.takedamage = true;
 	for( other = activateChain; other != NULL; other = other->GetActivateChain() ) {
 		if ( other->IsType( idDoor::Type ) ) {
@@ -3689,12 +3689,12 @@ void idDoor::Event_SpawnDoorTrigger( void ) {
 
 	// create a trigger clip model
 	trigger = new idClipModel( idTraceModel( bounds ) );
-	trigger->Link( gameLocal.clip, this, 255, GetPhysics()->GetOrigin(), mat3_identity );
+	trigger->Link( GameLocal()->clip, this, 255, GetPhysics()->GetOrigin(), mat3_identity );
 	trigger->SetContents( CONTENTS_TRIGGER );
 
 	GetLocalTriggerPosition( trigger );
 
-	MatchActivateTeam( moverState, gameLocal.time );
+	MatchActivateTeam( moverState, GameLocal()->time );
 }
 
 /*
@@ -3715,7 +3715,7 @@ void idDoor::Event_SpawnSoundTrigger( void ) {
 
 	// create a trigger clip model
 	sndTrigger = new idClipModel( idTraceModel( bounds ) );
-	sndTrigger->Link( gameLocal.clip, this, 254, GetPhysics()->GetOrigin(), mat3_identity );
+	sndTrigger->Link( GameLocal()->clip, this, 254, GetPhysics()->GetOrigin(), mat3_identity );
 	sndTrigger->SetContents( CONTENTS_TRIGGER );
 
 	GetLocalTriggerPosition( sndTrigger );
@@ -3731,7 +3731,7 @@ void idDoor::Event_Reached_BinaryMover( void ) {
 		SetBlocked( false );
 		const idKeyValue *kv = spawnArgs.MatchPrefix( "triggerClosed" );
 		while( kv ) {
-			idEntity *ent = gameLocal.FindEntity( kv->GetValue() );
+			idEntity *ent = GameLocal()->FindEntity( kv->GetValue() );
 			if ( ent ) {
 				ent->PostEventMS( &EV_Activate, 0, moveMaster->GetActivator() );
 			}
@@ -3740,7 +3740,7 @@ void idDoor::Event_Reached_BinaryMover( void ) {
 	} else if ( moverState == MOVER_1TO2 ) {
 		const idKeyValue *kv = spawnArgs.MatchPrefix( "triggerOpened" );
 		while( kv ) {
-			idEntity *ent = gameLocal.FindEntity( kv->GetValue() );
+			idEntity *ent = GameLocal()->FindEntity( kv->GetValue() );
 			if ( ent ) {
 				ent->PostEventMS( &EV_Activate, 0, moveMaster->GetActivator() );
 			}
@@ -3809,9 +3809,9 @@ void idDoor::Event_Touch( idEntity *other, trace_t *trace ) {
 			Use( this, other );
 		}
 	} else if ( sndTrigger && trace->c.id == sndTrigger->GetId() ) {
-		if ( other && other->IsType( idPlayer::Type ) && IsLocked() && gameLocal.time > nextSndTriggerTime ) {
+		if ( other && other->IsType( idPlayer::Type ) && IsLocked() && GameLocal()->time > nextSndTriggerTime ) {
 			StartSound( "snd_locked", SND_CHANNEL_ANY, 0, false, NULL );
-			nextSndTriggerTime = gameLocal.time + 10000;
+			nextSndTriggerTime = GameLocal()->time + 10000;
 		}
 	}
 }
@@ -3830,7 +3830,7 @@ void idDoor::Event_SpectatorTouch( idEntity *other, trace_t *trace ) {
 
 	p = static_cast< idPlayer * >( other );
 	// avoid flicker when stopping right at clip box boundaries
-	if ( p->lastSpectateTeleport > gameLocal.time - 1000 ) {
+	if ( p->lastSpectateTeleport > GameLocal()->time - 1000 ) {
 		return;
 	}
 	if ( trigger && !IsOpen() ) {
@@ -3846,7 +3846,7 @@ void idDoor::Event_SpectatorTouch( idEntity *other, trace_t *trace ) {
 			translate[ normalAxisIndex ] += ( bounds[ 1 ][ normalAxisIndex ] - translate[ normalAxisIndex ] ) * 0.5f;
 		}
 		p->SetOrigin( translate );
-		p->lastSpectateTeleport = gameLocal.time;
+		p->lastSpectateTeleport = GameLocal()->time;
 	}
 }
 
@@ -3863,7 +3863,7 @@ void idDoor::Event_Activate( idEntity *activator ) {
 			PostEventMS( &EV_Door_SpawnDoorTrigger, 0 );
 		}
 		if ( buddyStr.Length() ) {
-			idEntity *buddy = gameLocal.FindEntity( buddyStr );
+			idEntity *buddy = GameLocal()->FindEntity( buddyStr );
 			if ( buddy ) {
 				buddy->SetShaderParm( SHADERPARM_MODE, 1 );
 				buddy->UpdateVisuals();
@@ -3878,7 +3878,7 @@ void idDoor::Event_Activate( idEntity *activator ) {
 	}
 
   	if ( syncLock.Length() ) {
-		idEntity *sync = gameLocal.FindEntity( syncLock );
+		idEntity *sync = GameLocal()->FindEntity( syncLock );
 		if ( sync && sync->IsType( idDoor::Type ) ) {
 			if ( static_cast<idDoor *>( sync )->IsOpen() ) {
   				return;
@@ -4086,7 +4086,7 @@ void idPlat::Spawn( void ) {
 		InitSpeed( pos1, pos2, speed, accel, decel );
 	}
 
-	SetMoverState( MOVER_POS1, gameLocal.time );
+	SetMoverState( MOVER_POS1, GameLocal()->time );
 	UpdateVisuals();
 
 	// spawn the trigger if one hasn't been custom made
@@ -4111,7 +4111,7 @@ void idPlat::Think( void ) {
 		// update trigger position
 		if ( GetMasterPosition( masterOrigin, masterAxis ) ) {
 			if ( trigger ) {
-				trigger->Link( gameLocal.clip, this, 0, masterOrigin + localTriggerOrigin * masterAxis, localTriggerAxis * masterAxis );
+				trigger->Link( GameLocal()->clip, this, 0, masterOrigin + localTriggerOrigin * masterAxis, localTriggerAxis * masterAxis );
 			}
 		}
 	}
@@ -4185,9 +4185,9 @@ void idPlat::SpawnPlatTrigger( idVec3 &pos ) {
 		tmin[1] = ( bounds[0][1] + bounds[1][1] ) * 0.5f;
 		tmax[1] = tmin[1] + 1;
 	}
-	
+
 	trigger = new idClipModel( idTraceModel( idBounds( tmin, tmax ) ) );
-	trigger->Link( gameLocal.clip, this, 255, GetPhysics()->GetOrigin(), mat3_identity );
+	trigger->Link( GameLocal()->clip, this, 255, GetPhysics()->GetOrigin(), mat3_identity );
 	trigger->SetContents( CONTENTS_TRIGGER );
 }
 
@@ -4378,8 +4378,8 @@ void idRotater::Spawn( void ) {
 	if ( !spawnArgs.GetBool( "nopush" ) ) {
 		physicsObj.SetPusher( 0 );
 	}
-	physicsObj.SetLinearExtrapolation( EXTRAPOLATION_NONE, gameLocal.time, 0, GetPhysics()->GetOrigin(), vec3_origin, vec3_origin );
-	physicsObj.SetAngularExtrapolation( extrapolation_t(EXTRAPOLATION_LINEAR|EXTRAPOLATION_NOSTOP), gameLocal.time, 0, GetPhysics()->GetAxis().ToAngles(), ang_zero, ang_zero );
+	physicsObj.SetLinearExtrapolation( EXTRAPOLATION_NONE, GameLocal()->time, 0, GetPhysics()->GetOrigin(), vec3_origin, vec3_origin );
+	physicsObj.SetAngularExtrapolation( extrapolation_t(EXTRAPOLATION_LINEAR|EXTRAPOLATION_NOSTOP), GameLocal()->time, 0, GetPhysics()->GetAxis().ToAngles(), ang_zero, ang_zero );
 	SetPhysics( &physicsObj );
 
 	if ( spawnArgs.GetBool( "start_on" ) ) {
@@ -4425,7 +4425,7 @@ void idRotater::Event_Activate( idEntity *activator ) {
 		spawnArgs.GetFloat( "speed", "100", speed );
 		spawnArgs.GetBool( "x_axis", "0", x_axis );
 		spawnArgs.GetBool( "y_axis", "0", y_axis );
-		
+
 		// set the axis of rotation
 		if ( x_axis ) {
 			delta[2] = speed;
@@ -4438,7 +4438,7 @@ void idRotater::Event_Activate( idEntity *activator ) {
 		spawnArgs.Set( "rotate", "0" );
 	}
 
-	physicsObj.SetAngularExtrapolation( extrapolation_t(EXTRAPOLATION_LINEAR|EXTRAPOLATION_NOSTOP), gameLocal.time, 0, physicsObj.GetAxis().ToAngles(), delta, ang_zero );
+	physicsObj.SetAngularExtrapolation( extrapolation_t(EXTRAPOLATION_LINEAR|EXTRAPOLATION_NOSTOP), GameLocal()->time, 0, physicsObj.GetAxis().ToAngles(), delta, ang_zero );
 }
 
 
@@ -4538,7 +4538,7 @@ void idPendulum::Spawn( void ) {
 
 	if ( spawnArgs.GetFloat( "freq", "", freq ) ) {
 		if ( freq <= 0.0f ) {
-			gameLocal.Error( "Invalid frequency on entity '%s'", GetName() );
+			GameLocal()->Error( "Invalid frequency on entity '%s'", GetName() );
 		}
 	} else {
 		// find pendulum length
@@ -4627,6 +4627,6 @@ void idRiser::Event_Activate( idEntity *activator ) {
 		delta = vec3_origin;
 		delta[ 2 ] = height;
 
-		physicsObj.SetLinearExtrapolation( EXTRAPOLATION_LINEAR, gameLocal.time, time * 1000, physicsObj.GetOrigin(), delta, vec3_origin );
+		physicsObj.SetLinearExtrapolation( EXTRAPOLATION_LINEAR, GameLocal()->time, time * 1000, physicsObj.GetOrigin(), delta, vec3_origin );
 	}
 }

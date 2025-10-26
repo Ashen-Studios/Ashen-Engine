@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "../Game_local.h"
@@ -58,7 +58,7 @@ void idPush::SaveEntityPosition( idEntity *ent ) {
 
 	// don't overflow
 	if ( numPushed >= MAX_GENTITIES ) {
-		gameLocal.Error( "more than MAX_GENTITIES pushed entities" );
+		gameLocal->Error( "more than MAX_GENTITIES pushed entities" );
 		return;
 	}
 
@@ -287,7 +287,7 @@ int idPush::GetPushableEntitiesForTranslation( idEntity *pusher, idEntity *initi
 	pushBounds.ExpandSelf( 2.0f );
 
 	// get all entities within the push bounds
-	n = gameLocal.clip.EntitiesTouchingBounds( pushBounds, -1, entityList, MAX_GENTITIES );
+	n = gameLocal->clip.EntitiesTouchingBounds( pushBounds, -1, entityList, MAX_GENTITIES );
 
 	for ( l = i = 0; i < n; i++ ) {
 		if ( entityList[i] == pusher || entityList[i] == initialPusher ) {
@@ -437,7 +437,7 @@ float idPush::ClipTranslationalPush( trace_t &results, idEntity *pusher, const i
 		// translate the clip models of the pusher
 		for ( i = 0; i < pusher->GetPhysics()->GetNumClipModels(); i++ ) {
 			pusher->GetPhysics()->GetClipModel(i)->Translate( results.fraction * realTranslation );
-			pusher->GetPhysics()->GetClipModel(i)->Link( gameLocal.clip );
+			pusher->GetPhysics()->GetClipModel(i)->Link( gameLocal->clip );
 		}
 	}
 
@@ -483,7 +483,7 @@ int idPush::GetPushableEntitiesForRotation( idEntity *pusher, idEntity *initialP
 	pushBounds.ExpandSelf( 2.0f );
 
 	// get all entities within the push bounds
-	n = gameLocal.clip.EntitiesTouchingBounds( pushBounds, -1, entityList, MAX_GENTITIES );
+	n = gameLocal->clip.EntitiesTouchingBounds( pushBounds, -1, entityList, MAX_GENTITIES );
 
 	for ( l = i = 0; i < n; i++ ) {
 		if ( entityList[i] == pusher || entityList[i] == initialPusher ) {
@@ -630,7 +630,7 @@ float idPush::ClipRotationalPush( trace_t &results, idEntity *pusher, const int 
 		// rotate the clip models of the pusher
 		for ( i = 0; i < pusher->GetPhysics()->GetNumClipModels(); i++ ) {
 			pusher->GetPhysics()->GetClipModel(i)->Rotate( realRotation );
-			pusher->GetPhysics()->GetClipModel(i)->Link( gameLocal.clip );
+			pusher->GetPhysics()->GetClipModel(i)->Link( gameLocal->clip );
 			pusher->GetPhysics()->GetClipModel(i)->Enable();
 		}
 		// rotate any actors back to axial
@@ -768,7 +768,7 @@ int idPush::TryRotatePushEntity( trace_t &results, idEntity *check, idClipModel 
 		if ( results.fraction >= 1.0f ) {
 #ifdef ROTATIONAL_PUSH_DEBUG
 			// set pusher into final position
-			clipModel->Link( gameLocal.clip, clipModel->GetEntity(), clipModel->GetId(), clipModel->GetOrigin(), newAxis );
+			clipModel->Link( gameLocal->clip, clipModel->GetEntity(), clipModel->GetId(), clipModel->GetOrigin(), newAxis );
 			if ( physics->ClipContents( clipModel ) ) {
 				if ( !startsolid ) {
 					int bah = 1;
@@ -810,7 +810,7 @@ int idPush::TryRotatePushEntity( trace_t &results, idEntity *check, idClipModel 
 	physics->Rotate( newRotation );
 
 	// set pusher into final position
-	clipModel->Link( gameLocal.clip, clipModel->GetEntity(), clipModel->GetId(), clipModel->GetOrigin(), newAxis );
+	clipModel->Link( gameLocal->clip, clipModel->GetEntity(), clipModel->GetId(), clipModel->GetOrigin(), newAxis );
 
 #ifdef ROTATIONAL_PUSH_DEBUG
 	if ( physics->ClipContents( clipModel ) ) {
@@ -974,7 +974,7 @@ int idPush::TryTranslatePushEntity( trace_t &results, idEntity *check, idClipMod
 
 #ifdef TRANSLATIONAL_PUSH_DEBUG
 	// set the pusher in the translated position
-	clipModel->Link( gameLocal.clip, clipModel->GetEntity(), clipModel->GetId(), newOrigin, clipModel->GetAxis() );
+	clipModel->Link( gameLocal->clip, clipModel->GetEntity(), clipModel->GetId(), newOrigin, clipModel->GetAxis() );
 	if ( physics->ClipContents( clipModel ) ) {
 		if ( !startsolid ) {
 			int bah = 1;
@@ -1080,7 +1080,7 @@ float idPush::ClipTranslationalPush( trace_t &results, idEntity *pusher, const i
 	// make sure we don't get the pushing clip model in the list
 	clipModel->Disable();
 
-	listedEntities = gameLocal.clip.EntitiesTouchingBounds( pushBounds, -1, entityList, MAX_GENTITIES );
+	listedEntities = gameLocal->clip.EntitiesTouchingBounds( pushBounds, -1, entityList, MAX_GENTITIES );
 
 	// discard entities we cannot or should not push
 	listedEntities = DiscardEntities( entityList, listedEntities, flags, pusher );
@@ -1095,7 +1095,7 @@ float idPush::ClipTranslationalPush( trace_t &results, idEntity *pusher, const i
 			entityList[i]->GetPhysics()->DisableClip();
 		}
 
-		gameLocal.clip.Translation( results, clipModel->GetOrigin(), clipModel->GetOrigin() + translation, clipModel, clipModel->GetAxis(), pusher->GetPhysics()->GetClipMask(), NULL );
+		gameLocal->clip.Translation( results, clipModel->GetOrigin(), clipModel->GetOrigin() + translation, clipModel, clipModel->GetAxis(), pusher->GetPhysics()->GetClipMask(), NULL );
 
 		// enable to be pushed entities for collision detection
 		for ( i = 0; i < listedEntities; i++ ) {
@@ -1143,11 +1143,11 @@ float idPush::ClipTranslationalPush( trace_t &results, idEntity *pusher, const i
 		// if the entity is pushed
 		if ( res == PUSH_OK ) {
 			// set the pusher in the translated position
-			clipModel->Link( gameLocal.clip, clipModel->GetEntity(), clipModel->GetId(), newOrigin, clipModel->GetAxis() );
+			clipModel->Link( gameLocal->clip, clipModel->GetEntity(), clipModel->GetId(), newOrigin, clipModel->GetAxis() );
 			// the entity might be pushed off the ground
 			physics->EvaluateContacts();
 			// put pusher back in old position
-			clipModel->Link( gameLocal.clip, clipModel->GetEntity(), clipModel->GetId(), oldOrigin, clipModel->GetAxis() );
+			clipModel->Link( gameLocal->clip, clipModel->GetEntity(), clipModel->GetId(), oldOrigin, clipModel->GetAxis() );
 
 			// wake up this object
 			if ( flags & PUSHFL_APPLYIMPULSE ) {
@@ -1256,7 +1256,7 @@ float idPush::ClipRotationalPush( trace_t &results, idEntity *pusher, const int 
 	// make sure we don't get the pushing clip model in the list
 	clipModel->Disable();
 
-	listedEntities = gameLocal.clip.EntitiesTouchingBounds( pushBounds, -1, entityList, MAX_GENTITIES );
+	listedEntities = gameLocal->clip.EntitiesTouchingBounds( pushBounds, -1, entityList, MAX_GENTITIES );
 
 	// discard entities we cannot or should not push
 	listedEntities = DiscardEntities( entityList, listedEntities, flags, pusher );
@@ -1271,7 +1271,7 @@ float idPush::ClipRotationalPush( trace_t &results, idEntity *pusher, const int 
 			entityList[i]->GetPhysics()->DisableClip();
 		}
 
-		gameLocal.clip.Rotation( results, clipModel->GetOrigin(), rotation, clipModel, clipModel->GetAxis(), pusher->GetPhysics()->GetClipMask(), NULL );
+		gameLocal->clip.Rotation( results, clipModel->GetOrigin(), rotation, clipModel, clipModel->GetAxis(), pusher->GetPhysics()->GetClipMask(), NULL );
 
 		// enable to be pushed entities for collision detection
 		for ( i = 0; i < listedEntities; i++ ) {
@@ -1318,11 +1318,11 @@ float idPush::ClipRotationalPush( trace_t &results, idEntity *pusher, const int 
 		// if the entity is pushed
 		if ( res == PUSH_OK ) {
 			// set the pusher in the rotated position
-			clipModel->Link( gameLocal.clip, clipModel->GetEntity(), clipModel->GetId(), clipModel->GetOrigin(), newAxis );
+			clipModel->Link( gameLocal->clip, clipModel->GetEntity(), clipModel->GetId(), clipModel->GetOrigin(), newAxis );
 			// the entity might be pushed off the ground
 			physics->EvaluateContacts();
 			// put pusher back in old position
-			clipModel->Link( gameLocal.clip, clipModel->GetEntity(), clipModel->GetId(), clipModel->GetOrigin(), oldAxis );
+			clipModel->Link( gameLocal->clip, clipModel->GetEntity(), clipModel->GetId(), clipModel->GetOrigin(), oldAxis );
 
 			// wake up this object
 			check->ApplyImpulse( clipModel->GetEntity(), clipModel->GetId(), clipModel->GetOrigin(), vec3_origin );

@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,13 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
-
-#define JPEG_INTERNALS
-extern "C" {
-#include "jpeg-6/jpeglib.h"
-}
 
 #include "tr_local.h"
 
@@ -161,7 +156,7 @@ void idCinematic::InitCinematic( void ) {
 	t_vg = (0.71414f/2.0f) * (float)(1<<6) + 0.5f;
 	for( i = 0; i < 256; i++ ) {
 		float x = (float)(2 * i - 255);
-	
+
 		ROQ_UB_tab[i] = (long)( ( t_ub * x) + (1<<5));
 		ROQ_VR_tab[i] = (long)( ( t_vr * x) + (1<<5));
 		ROQ_UG_tab[i] = (long)( (-t_ug * x)		 );
@@ -361,8 +356,8 @@ void idCinematicLocal::Close() {
 idCinematicLocal::AnimationLength
 ==============
 */
-int idCinematicLocal::AnimationLength() { 
-	return animationLength; 
+int idCinematicLocal::AnimationLength() {
+	return animationLength;
 }
 
 /*
@@ -823,9 +818,9 @@ void idCinematicLocal::blitVQQuad32fs( byte **status, unsigned char *data ) {
 	newd	= 0;
 	celdata = 0;
 	index	= 0;
-	
+
 	do {
-		if (!newd) { 
+		if (!newd) {
 			newd = 7;
 			celdata = data[0] + data[1]*256;
 			data += 2;
@@ -833,9 +828,9 @@ void idCinematicLocal::blitVQQuad32fs( byte **status, unsigned char *data ) {
 			newd--;
 		}
 
-		code = (unsigned short)(celdata&0xc000); 
+		code = (unsigned short)(celdata&0xc000);
 		celdata <<= 2;
-		
+
 		switch (code) {
 			case	0x8000:													// vq code
 				blit8_32( (byte *)&vq8[(*data)*128], status[index], samplesPerLine );
@@ -845,15 +840,15 @@ void idCinematicLocal::blitVQQuad32fs( byte **status, unsigned char *data ) {
 			case	0xc000:													// drop
 				index++;													// skip 8x8
 				for(i=0;i<4;i++) {
-					if (!newd) { 
+					if (!newd) {
 						newd = 7;
 						celdata = data[0] + data[1]*256;
 						data += 2;
 					} else {
 						newd--;
 					}
-						
-					code = (unsigned short)(celdata&0xc000); celdata <<= 2; 
+
+					code = (unsigned short)(celdata&0xc000); celdata <<= 2;
 
 					switch (code) {											// code in top two bits of code
 						case	0x8000:										// 4x4 vq code
@@ -912,7 +907,7 @@ void idCinematicLocal::blitVQQuad32fs( byte **status, unsigned char *data ) {
 	*d++ = b[1];	\
 	*d++ = b[1];	\
 	a += 2; b += 2; }
- 
+
 #define VQ2TO2(a,b,c,d) { \
 	*c++ = *a;	\
 	*d++ = *a;	\
@@ -931,13 +926,13 @@ void idCinematicLocal::blitVQQuad32fs( byte **status, unsigned char *data ) {
 idCinematicLocal::yuv_to_rgb
 ==============
 */
-unsigned short idCinematicLocal::yuv_to_rgb( long y, long u, long v ) { 
+unsigned short idCinematicLocal::yuv_to_rgb( long y, long u, long v ) {
 	long r,g,b,YY = (long)(ROQ_YY_tab[(y)]);
 
 	r = (YY + ROQ_VR_tab[v]) >> 9;
 	g = (YY + ROQ_UG_tab[u] + ROQ_VG_tab[v]) >> 8;
 	b = (YY + ROQ_UB_tab[u]) >> 9;
-	
+
 	if (r<0) r = 0; if (g<0) g = 0; if (b<0) b = 0;
 	if (r > 31) r = 31; if (g > 63) g = 63; if (b > 31) b = 31;
 
@@ -949,16 +944,16 @@ unsigned short idCinematicLocal::yuv_to_rgb( long y, long u, long v ) {
 idCinematicLocal::yuv_to_rgb24
 ==============
 */
-unsigned int idCinematicLocal::yuv_to_rgb24( long y, long u, long v ) { 
+unsigned int idCinematicLocal::yuv_to_rgb24( long y, long u, long v ) {
 	long r,g,b,YY = (long)(ROQ_YY_tab[(y)]);
 
 	r = (YY + ROQ_VR_tab[v]) >> 6;
 	g = (YY + ROQ_UG_tab[u] + ROQ_VG_tab[v]) >> 6;
 	b = (YY + ROQ_UB_tab[u]) >> 6;
-	
+
 	if (r<0) r = 0; if (g<0) g = 0; if (b<0) b = 0;
 	if (r > 255) r = 255; if (g > 255) g = 255; if (b > 255) b = 255;
-	
+
 	return LittleLong((r)+(g<<8)+(b<<16));
 }
 
@@ -1006,7 +1001,7 @@ void idCinematicLocal::decodeCodeBook( byte *input, unsigned short roq_flags ) {
 
 				cptr = (unsigned short *)vq4;
 				dptr = (unsigned short *)vq8;
-		
+
 				for(i=0;i<four;i++) {
 					aptr = (unsigned short *)vq2 + (*input++)*4;
 					bptr = (unsigned short *)vq2 + (*input++)*4;
@@ -1030,11 +1025,11 @@ void idCinematicLocal::decodeCodeBook( byte *input, unsigned short roq_flags ) {
 
 				icptr = (unsigned int *)vq4;
 				idptr = (unsigned int *)vq8;
-	
+
 				for(i=0;i<four;i++) {
 					iaptr = (unsigned int *)vq2 + (*input++)*4;
 					ibptr = (unsigned int *)vq2 + (*input++)*4;
-					for(j=0;j<2;j++) 
+					for(j=0;j<2;j++)
 						VQ2TO4(iaptr, ibptr, icptr, idptr);
 				}
 			}
@@ -1062,7 +1057,7 @@ void idCinematicLocal::decodeCodeBook( byte *input, unsigned short roq_flags ) {
 
 				cptr = (unsigned short *)vq4;
 				dptr = (unsigned short *)vq8;
-		
+
 				for(i=0;i<four;i++) {
 					aptr = (unsigned short *)vq2 + (*input++)*8;
 					bptr = (unsigned short *)vq2 + (*input++)*8;
@@ -1092,7 +1087,7 @@ void idCinematicLocal::decodeCodeBook( byte *input, unsigned short roq_flags ) {
 
 				icptr = (unsigned int *)vq4;
 				idptr = (unsigned int *)vq8;
-	
+
 				for(i=0;i<four;i++) {
 					iaptr = (unsigned int *)vq2 + (*input++)*8;
 					ibptr = (unsigned int *)vq2 + (*input++)*8;
@@ -1101,7 +1096,7 @@ void idCinematicLocal::decodeCodeBook( byte *input, unsigned short roq_flags ) {
 						VQ2TO4(iaptr, ibptr, icptr, idptr);
 					}
 				}
-			}			
+			}
 		}
 	} else {
 //
@@ -1119,11 +1114,11 @@ void idCinematicLocal::decodeCodeBook( byte *input, unsigned short roq_flags ) {
 
 			cptr = (unsigned short *)vq4;
 			dptr = (unsigned short *)vq8;
-	
+
 			for(i=0;i<four;i++) {
 				aptr = (unsigned short *)vq2 + (*input++)*2;
 				bptr = (unsigned short *)vq2 + (*input++)*2;
-				for(j=0;j<2;j++) { 
+				for(j=0;j<2;j++) {
 					VQ2TO2(aptr,bptr,cptr,dptr);
 				}
 			}
@@ -1140,11 +1135,11 @@ void idCinematicLocal::decodeCodeBook( byte *input, unsigned short roq_flags ) {
 
 			icptr = (unsigned int *)vq4;
 			idptr = (unsigned int *)vq8;
-	
+
 			for(i=0;i<four;i++) {
 				iaptr = (unsigned int *)vq2 + (*input++)*2;
 				ibptr = (unsigned int *)vq2 + (*input++)*2;
-				for(j=0;j<2;j++) { 
+				for(j=0;j<2;j++) {
 					VQ2TO2(iaptr,ibptr,icptr,idptr);
 				}
 			}
@@ -1163,7 +1158,7 @@ void idCinematicLocal::recurseQuad( long startX, long startY, long quadSize, lon
 	long offset;
 
 	offset = screenDelta;
-	
+
 	lowx = lowy = 0;
 	bigx = xsize;
 	bigy = ysize;
@@ -1207,8 +1202,8 @@ void idCinematicLocal::setupQuad( long xOff, long yOff ) {
 
 	onQuad = 0;
 
-	for(y=0;y<(long)ysize;y+=16) 
-		for(x=0;x<(long)xsize;x+=16) 
+	for(y=0;y<(long)ysize;y+=16)
+		for(x=0;x<(long)xsize;x+=16)
 			recurseQuad( x, y, 16, xOff, yOff );
 
 	temp = NULL;
@@ -1229,7 +1224,7 @@ void idCinematicLocal::readQuadInfo( byte *qData ) {
 	ysize    = qData[2]+qData[3]*256;
 	maxsize  = qData[4]+qData[5]*256;
 	minsize  = qData[6]+qData[7]*256;
-	
+
 	CIN_HEIGHT = ysize;
 	CIN_WIDTH  = xsize;
 
@@ -1242,7 +1237,7 @@ void idCinematicLocal::readQuadInfo( byte *qData ) {
 
 	half = false;
 	smootheddouble = false;
-	
+
 	t[0] = (0 - (unsigned int)image)+(unsigned int)image+screenDelta;
 	t[1] = (0 - ((unsigned int)image + screenDelta))+(unsigned int)image;
 
@@ -1260,7 +1255,7 @@ void idCinematicLocal::RoQPrepMcomp( long xoff, long yoff ) {
 
 	i=samplesPerLine; j=samplesPerPixel;
 	if ( xsize == (ysize*4) && !half ) { j = j+j; i = i+i; }
-	
+
 	for(y=0;y<16;y++) {
 		temp2 = (y+yoff-8)*i;
 		for(x=0;x<16;x++) {
@@ -1276,310 +1271,11 @@ idCinematicLocal::RoQReset
 ==============
 */
 void idCinematicLocal::RoQReset() {
-	
+
 	iFile->Seek( 0, FS_SEEK_SET );
 	iFile->Read( file, 16 );
 	RoQ_init();
 	status = FMV_LOOPED;
-}
-
-
-typedef struct {
-  struct jpeg_source_mgr pub;	/* public fields */
-
-  byte   *infile;		/* source stream */
-  JOCTET * buffer;		/* start of buffer */
-  boolean start_of_file;	/* have we gotten any data yet? */
-  int	memsize;
-} my_source_mgr;
-
-typedef my_source_mgr * my_src_ptr;
-
-#define INPUT_BUF_SIZE  32768	/* choose an efficiently fread'able size */
-
-/* jpeg error handling */
-struct jpeg_error_mgr jerr;
-
-/*
- * Fill the input buffer --- called whenever buffer is emptied.
- *
- * In typical applications, this should read fresh data into the buffer
- * (ignoring the current state of next_input_byte & bytes_in_buffer),
- * reset the pointer & count to the start of the buffer, and return TRUE
- * indicating that the buffer has been reloaded.  It is not necessary to
- * fill the buffer entirely, only to obtain at least one more byte.
- *
- * There is no such thing as an EOF return.  If the end of the file has been
- * reached, the routine has a choice of ERREXIT() or inserting fake data into
- * the buffer.  In most cases, generating a warning message and inserting a
- * fake EOI marker is the best course of action --- this will allow the
- * decompressor to output however much of the image is there.  However,
- * the resulting error message is misleading if the real problem is an empty
- * input file, so we handle that case specially.
- *
- * In applications that need to be able to suspend compression due to input
- * not being available yet, a FALSE return indicates that no more data can be
- * obtained right now, but more may be forthcoming later.  In this situation,
- * the decompressor will return to its caller (with an indication of the
- * number of scanlines it has read, if any).  The application should resume
- * decompression after it has loaded more data into the input buffer.  Note
- * that there are substantial restrictions on the use of suspension --- see
- * the documentation.
- *
- * When suspending, the decompressor will back up to a convenient restart point
- * (typically the start of the current MCU). next_input_byte & bytes_in_buffer
- * indicate where the restart point will be if the current call returns FALSE.
- * Data beyond this point must be rescanned after resumption, so move it to
- * the front of the buffer rather than discarding it.
- */
-
-
-METHODDEF boolean fill_input_buffer( j_decompress_ptr cinfo )
-{
-  my_src_ptr src = (my_src_ptr) cinfo->src;
-  int nbytes;
-
-  nbytes = INPUT_BUF_SIZE;
-  if (nbytes > src->memsize) nbytes = src->memsize;
-  if (nbytes == 0) {
-    /* Insert a fake EOI marker */
-    src->buffer[0] = (JOCTET) 0xFF;
-    src->buffer[1] = (JOCTET) JPEG_EOI;
-    nbytes = 2;
-  } else {
-	  memcpy( src->buffer, src->infile, INPUT_BUF_SIZE );
-	  src->infile = src->infile + nbytes;
- 	  src->memsize = src->memsize - INPUT_BUF_SIZE;
-  }
-  src->pub.next_input_byte = src->buffer;
-  src->pub.bytes_in_buffer = nbytes;
-  src->start_of_file = FALSE;
-
-  return TRUE;
-}
-/*
- * Initialize source --- called by jpeg_read_header
- * before any data is actually read.
- */
-
-
-METHODDEF void init_source (j_decompress_ptr cinfo)
-{
-  my_src_ptr src = (my_src_ptr) cinfo->src;
-
-  /* We reset the empty-input-file flag for each image,
-   * but we don't clear the input buffer.
-   * This is correct behavior for reading a series of images from one source.
-   */
-  src->start_of_file = TRUE;
-}
-
-/*
- * Skip data --- used to skip over a potentially large amount of
- * uninteresting data (such as an APPn marker).
- *
- * Writers of suspendable-input applications must note that skip_input_data
- * is not granted the right to give a suspension return.  If the skip extends
- * beyond the data currently in the buffer, the buffer can be marked empty so
- * that the next read will cause a fill_input_buffer call that can suspend.
- * Arranging for additional bytes to be discarded before reloading the input
- * buffer is the application writer's problem.
- */
-
-METHODDEF void
-skip_input_data (j_decompress_ptr cinfo, long num_bytes)
-{
-  my_src_ptr src = (my_src_ptr) cinfo->src;
-
-  /* Just a dumb implementation for now.  Could use fseek() except
-   * it doesn't work on pipes.  Not clear that being smart is worth
-   * any trouble anyway --- large skips are infrequent.
-   */
-  if (num_bytes > 0) {
-	src->infile = src->infile + num_bytes;
-    src->pub.next_input_byte += (size_t) num_bytes;
-    src->pub.bytes_in_buffer -= (size_t) num_bytes;
-  }
-}
-
-
-/*
- * An additional method that can be provided by data source modules is the
- * resync_to_restart method for error recovery in the presence of RST markers.
- * For the moment, this source module just uses the default resync method
- * provided by the JPEG library.  That method assumes that no backtracking
- * is possible.
- */
-
-
-/*
- * Terminate source --- called by jpeg_finish_decompress
- * after all data has been read.  Often a no-op.
- *
- * NB: *not* called by jpeg_abort or jpeg_destroy; surrounding
- * application must deal with any cleanup that should happen even
- * for error exit.
- */
-
-METHODDEF void
-term_source (j_decompress_ptr cinfo)
-{
-	cinfo = cinfo;
-  /* no work necessary here */
-}
-
-GLOBAL void
-jpeg_memory_src (j_decompress_ptr cinfo, byte *infile, int size)
-{
-  my_src_ptr src;
-
-  /* The source object and input buffer are made permanent so that a series
-   * of JPEG images can be read from the same file by calling jpeg_stdio_src
-   * only before the first one.  (If we discarded the buffer at the end of
-   * one image, we'd likely lose the start of the next one.)
-   * This makes it unsafe to use this manager and a different source
-   * manager serially with the same JPEG object.  Caveat programmer.
-   */
-  if (cinfo->src == NULL) {	/* first time for this JPEG object? */
-    cinfo->src = (struct jpeg_source_mgr *)
-      (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT,
-				  sizeof(my_source_mgr));
-    src = (my_src_ptr) cinfo->src;
-    src->buffer = (JOCTET *)
-      (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT,
-				  INPUT_BUF_SIZE * sizeof(JOCTET));
-  }
-
-  src = (my_src_ptr) cinfo->src;
-  src->pub.init_source = init_source;
-  src->pub.fill_input_buffer = fill_input_buffer;
-  src->pub.skip_input_data = skip_input_data;
-  src->pub.resync_to_restart = jpeg_resync_to_restart; /* use default method */
-  src->pub.term_source = term_source;
-  src->infile = infile;
-  src->memsize = size;
-  src->pub.bytes_in_buffer = 0; /* forces fill_input_buffer on first read */
-  src->pub.next_input_byte = NULL; /* until buffer loaded */
-}
-
-int JPEGBlit( byte *wStatus, byte *data, int datasize )
-{
-  /* This struct contains the JPEG decompression parameters and pointers to
-   * working space (which is allocated as needed by the JPEG library).
-   */
-  struct jpeg_decompress_struct cinfo;
-  /* We use our private extension JPEG error handler.
-   * Note that this struct must live as long as the main JPEG parameter
-   * struct, to avoid dangling-pointer problems.
-   */
-  /* More stuff */
-  JSAMPARRAY buffer;		/* Output row buffer */
-  int row_stride;		/* physical row width in output buffer */
-
-  /* Step 1: allocate and initialize JPEG decompression object */
-
-  /* We set up the normal JPEG error routines, then override error_exit. */
-  cinfo.err = jpeg_std_error(&jerr);
-
-  /* Now we can initialize the JPEG decompression object. */
-  jpeg_create_decompress(&cinfo);
-
-  /* Step 2: specify data source (eg, a file) */
-
-  jpeg_memory_src(&cinfo, data, datasize);
-
-  /* Step 3: read file parameters with jpeg_read_header() */
-
-  (void) jpeg_read_header(&cinfo, TRUE);
-  /* We can ignore the return value from jpeg_read_header since
-   *   (a) suspension is not possible with the stdio data source, and
-   *   (b) we passed TRUE to reject a tables-only JPEG file as an error.
-   * See libjpeg.doc for more info.
-   */
-
-  /* Step 4: set parameters for decompression */
-
-  /* In this example, we don't need to change any of the defaults set by
-   * jpeg_read_header(), so we do nothing here.
-   */
-
-  /* Step 5: Start decompressor */
-
-	cinfo.dct_method = JDCT_IFAST;
-    cinfo.dct_method = JDCT_FASTEST;
-	cinfo.dither_mode = JDITHER_NONE;
-    cinfo.do_fancy_upsampling = FALSE;
-//	cinfo.out_color_space = JCS_GRAYSCALE;
-	
-  (void) jpeg_start_decompress(&cinfo);
-  /* We can ignore the return value since suspension is not possible
-   * with the stdio data source.
-   */
-
-  /* We may need to do some setup of our own at this point before reading
-   * the data.  After jpeg_start_decompress() we have the correct scaled
-   * output image dimensions available, as well as the output colormap
-   * if we asked for color quantization.
-   * In this example, we need to make an output work buffer of the right size.
-   */ 
-  /* JSAMPLEs per row in output buffer */
-  row_stride = cinfo.output_width * cinfo.output_components;
-
-  /* Make a one-row-high sample array that will go away when done with image */
-  buffer = (*cinfo.mem->alloc_sarray)
-		((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
-
-  /* Step 6: while (scan lines remain to be read) */
-  /*           jpeg_read_scanlines(...); */
-
-  /* Here we use the library's state variable cinfo.output_scanline as the
-   * loop counter, so that we don't have to keep track ourselves.
-   */
-   
-  wStatus += (cinfo.output_height-1)*row_stride;
-  while (cinfo.output_scanline < cinfo.output_height) {
-    /* jpeg_read_scanlines expects an array of pointers to scanlines.
-     * Here the array is only one element long, but you could ask for
-     * more than one scanline at a time if that's more convenient.
-     */
-    (void) jpeg_read_scanlines(&cinfo, &buffer[0], 1);
-
-    /* Assume put_scanline_someplace wants a pointer and sample count. */
-	memcpy( wStatus, &buffer[0][0], row_stride );
-	/*
-	int x;
-	unsigned int *buf = (unsigned int *)&buffer[0][0];
-	unsigned int *out = (unsigned int *)wStatus;
-	for(x=0;x<cinfo.output_width;x++) {
-		unsigned int pixel = buf[x];
-		byte *roof = (byte *)&pixel;
-		byte temp = roof[0];
-		roof[0] = roof[2];
-		roof[2] = temp;
-		out[x] = pixel;
-	}
-	*/
-	wStatus -= row_stride;
-  }
-
-  /* Step 7: Finish decompression */
-
-  (void) jpeg_finish_decompress(&cinfo);
-  /* We can ignore the return value since suspension is not possible
-   * with the stdio data source.
-   */
-
-  /* Step 8: Release JPEG decompression object */
-
-  /* This is an important step since it will release a good deal of memory. */
-  jpeg_destroy_decompress(&cinfo);
-
-  /* At this point you may want to check to see whether any corrupt-data
-   * warnings occurred (test whether jerr.pub.num_warnings is nonzero).
-   */
-
-  /* And we're done! */
-  return 1;
 }
 
 /*
@@ -1591,13 +1287,13 @@ void idCinematicLocal::RoQInterrupt(void) {
 	byte				*framedata;
 
 	iFile->Read( file, RoQFrameSize+8 );
-	if ( RoQPlayed >= ROQSize ) { 
+	if ( RoQPlayed >= ROQSize ) {
 		if (looping) {
 			RoQReset();
 		} else {
 			status = FMV_EOF;
 		}
-		return; 
+		return;
 	}
 
 	framedata = file;
@@ -1605,7 +1301,7 @@ void idCinematicLocal::RoQInterrupt(void) {
 // new frame is ready
 //
 redump:
-	switch(roq_id) 
+	switch(roq_id)
 	{
 		case	ROQ_QUAD_VQ:
 			if ((numQuads&1)) {
@@ -1647,29 +1343,24 @@ redump:
 			RoQFrameSize = 0;
 			break;
 		case	ROQ_QUAD_JPEG:
-			if (!numQuads) { 
-				normalBuffer0 = t[0];
-				JPEGBlit( image, framedata, RoQFrameSize );
-				memcpy(image+screenDelta, image, samplesPerLine*ysize);
-				numQuads++;
-			}
+			common->Error( "ROQ_QUAD_JPEG not supported" );
 			break;
 		default:
 			status = FMV_EOF;
 			break;
-	}	
+	}
 //
 // read in next frame data
 //
-	if ( RoQPlayed >= ROQSize ) { 
+	if ( RoQPlayed >= ROQSize ) {
 		if (looping) {
 			RoQReset();
 		} else {
 			status = FMV_EOF;
 		}
-		return; 
+		return;
 	}
-	
+
 	framedata		 += RoQFrameSize;
 	roq_id		 = framedata[0] + framedata[1]*256;
 	RoQFrameSize = framedata[2] + framedata[3]*256 + framedata[4]*65536;
@@ -1685,8 +1376,8 @@ redump:
 		}
 		return;
 	}
-	if (inMemory && (status != FMV_EOF)) { 
-		inMemory = false; framedata += 8; goto redump; 
+	if (inMemory && (status != FMV_EOF)) {
+		inMemory = false; framedata += 8; goto redump;
 	}
 //
 // one more frame hits the dust
@@ -1707,7 +1398,7 @@ void idCinematicLocal::RoQ_init( void ) {
 
 	/*	get frame rate */
 	roqFPS	 = file[ 6] + file[ 7]*256;
-	
+
 	if (!roqFPS) roqFPS = 30;
 
 	numQuads = -1;

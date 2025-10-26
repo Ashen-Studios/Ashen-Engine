@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include <errno.h>
@@ -45,7 +45,9 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "../sys_local.h"
 #include "win_local.h"
+#ifdef ID_ALLOW_TOOLS
 #include "rc/CreateResourceIDs.h"
+#endif
 #include "../../renderer/tr_local.h"
 
 idCVar Win32Vars_t::sys_arch( "sys_arch", "", CVAR_SYSTEM | CVAR_INIT, "" );
@@ -239,7 +241,7 @@ Sys_AllocHook
 	called for every malloc/new/free/delete
 ==================
 */
-int Sys_AllocHook( int nAllocType, void *pvData, size_t nSize, int nBlockUse, long lRequest, const unsigned char * szFileName, int nLine ) 
+int Sys_AllocHook( int nAllocType, void *pvData, size_t nSize, int nBlockUse, long lRequest, const unsigned char * szFileName, int nLine )
 {
 	CrtMemBlockHeader	*pHead;
 	byte				*temp;
@@ -498,15 +500,6 @@ const char *Sys_Cwd( void ) {
 
 /*
 ==============
-Sys_DefaultCDPath
-==============
-*/
-const char *Sys_DefaultCDPath( void ) {
-	return "";
-}
-
-/*
-==============
 Sys_DefaultBasePath
 ==============
 */
@@ -596,7 +589,7 @@ char *Sys_GetClipboardData( void ) {
 				data = (char *)Mem_Alloc( GlobalSize( hClipboardData ) + 1 );
 				strcpy( data, cliptext );
 				GlobalUnlock( hClipboardData );
-				
+
 				strtok( data, "\n\r\b" );
 			}
 		}
@@ -677,7 +670,7 @@ Sys_DLL_GetProcAddress
 =====================
 */
 void *Sys_DLL_GetProcAddress( int dllHandle, const char *procName ) {
-	return GetProcAddress( (HINSTANCE)dllHandle, procName ); 
+	return GetProcAddress( (HINSTANCE)dllHandle, procName );
 }
 
 /*
@@ -699,7 +692,7 @@ void Sys_DLL_Unload( int dllHandle ) {
 			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
 			(LPTSTR) &lpMsgBuf,
 			0,
-			NULL 
+			NULL
 		);
 		Sys_Error( "Sys_DLL_Unload: FreeLibrary failed - %s (%d)", lpMsgBuf, lastError );
 	}
@@ -769,18 +762,18 @@ void Sys_PumpEvents( void ) {
 
 		// save the msg time, because wndprocs don't have access to the timestamp
 		if ( win32.sysMsgTime && win32.sysMsgTime > (int)msg.time ) {
-			// don't ever let the event times run backwards	
+			// don't ever let the event times run backwards
 //			common->Printf( "Sys_PumpEvents: win32.sysMsgTime (%i) > msg.time (%i)\n", win32.sysMsgTime, msg.time );
 		} else {
 			win32.sysMsgTime = msg.time;
 		}
 
 #ifdef ID_ALLOW_TOOLS
-		if ( GUIEditorHandleMessage ( &msg ) ) {	
+		if ( GUIEditorHandleMessage ( &msg ) ) {
 			continue;
 		}
 #endif
- 
+
 		TranslateMessage (&msg);
       	DispatchMessage (&msg);
 	}
@@ -844,7 +837,7 @@ sysEvent_t Sys_GetEvent( void ) {
 		return eventQue[ ( eventTail - 1 ) & MASK_QUED_EVENTS ];
 	}
 
-	// return the empty event 
+	// return the empty event
 	memset( &ev, 0, sizeof( ev ) );
 
 	return ev;
@@ -878,7 +871,7 @@ static void Sys_AsyncThread( void *parm ) {
 	wakeNumber = 0;
 
 	while ( 1 ) {
-#ifdef WIN32	
+#ifdef WIN32
 		// this will trigger 60 times a second
 		int r = WaitForSingleObject( hTimer, 100 );
 		if ( r != WAIT_OBJECT_0 ) {
@@ -922,7 +915,7 @@ void Sys_StartAsyncThread( void ) {
 
 	Sys_CreateThread( (xthread_t)Sys_AsyncThread, NULL, THREAD_ABOVE_NORMAL, threadInfo, "Async", g_threads,  &g_thread_count );
 
-#ifdef SET_THREAD_AFFINITY 
+#ifdef SET_THREAD_AFFINITY
 	// give the async thread an affinity for the second cpu
 	SetThreadAffinityMask( (HANDLE)threadInfo.threadHandle, 2 );
 #endif
@@ -973,8 +966,10 @@ void Sys_Init( void ) {
 //	SetTimer( NULL, 0, 100, NULL );
 
 	cmdSystem->AddCommand( "in_restart", Sys_In_Restart_f, CMD_FL_SYSTEM, "restarts the input system" );
+#ifdef ID_ALLOW_TOOLS
 #ifdef DEBUG
 	cmdSystem->AddCommand( "createResourceIDs", CreateResourceIDs_f, CMD_FL_TOOL, "assigns resource IDs in _resouce.h files" );
+#endif
 #endif
 #if 0
 	cmdSystem->AddCommand( "setAsyncSound", Sys_SetAsyncSound_f, CMD_FL_SYSTEM, "set the async sound option" );
@@ -1167,34 +1162,6 @@ void Win_Frame( void ) {
 	}
 }
 
-extern "C" { void _chkstk( int size ); };
-void clrstk( void );
-
-/*
-====================
-TestChkStk
-====================
-*/
-void TestChkStk( void ) {
-	int		buffer[0x1000];
-
-	buffer[0] = 1;
-}
-
-/*
-====================
-HackChkStk
-====================
-*/
-void HackChkStk( void ) {
-	DWORD	old;
-	VirtualProtect( _chkstk, 6, PAGE_EXECUTE_READWRITE, &old );
-	*(byte *)_chkstk = 0xe9;
-	*(int *)((int)_chkstk+1) = (int)clrstk - (int)_chkstk - 5;
-
-	TestChkStk();
-}
-
 /*
 ====================
 GetExceptionCodeInfo
@@ -1244,7 +1211,7 @@ void EmailCrashReport( LPSTR messageText ) {
 
 	lastEmailTime = Sys_Milliseconds();
 
-	HINSTANCE mapi = LoadLibrary( "MAPI32.DLL" ); 
+	HINSTANCE mapi = LoadLibrary( "MAPI32.DLL" );
 	if( mapi ) {
 		MAPISendMail = ( LPMAPISENDMAIL )GetProcAddress( mapi, "MAPISendMail" );
 		if( MAPISendMail ) {
@@ -1298,7 +1265,7 @@ EXCEPTION_DISPOSITION __cdecl _except_handler( struct _EXCEPTION_RECORD *Excepti
 										ContextRecord->FloatSave.DataSelector );
 
 
-	sprintf( msg, 
+	sprintf( msg,
 		"Please describe what you were doing when DOOM 3 crashed!\n"
 		"If this text did not pop into your email client please copy and email it to programmers@idsoftware.com\n"
 			"\n"
@@ -1425,7 +1392,7 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 		Sys_ShowConsole( 0, false );
 	}
 
-#ifdef SET_THREAD_AFFINITY 
+#ifdef SET_THREAD_AFFINITY
 	// give the main thread an affinity for the first cpu
 	SetThreadAffinityMask( GetCurrentThread(), 1 );
 #endif
@@ -1503,42 +1470,6 @@ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 	// never gets here
 	return 0;
-}
-
-/*
-====================
-clrstk
-
-I tried to get the run time to call this at every function entry, but
-====================
-*/
-static int	parmBytes;
-__declspec( naked ) void clrstk( void ) {
-	// eax = bytes to add to stack
-	__asm {
-		mov		[parmBytes],eax
-        neg     eax                     ; compute new stack pointer in eax
-        add     eax,esp
-        add     eax,4
-        xchg    eax,esp
-        mov     eax,dword ptr [eax]		; copy the return address
-        push    eax
-        
-        ; clear to zero
-        push	edi
-        push	ecx
-        mov		edi,esp
-        add		edi,12
-        mov		ecx,[parmBytes]
-		shr		ecx,2
-        xor		eax,eax
-		cld
-        rep	stosd
-        pop		ecx
-        pop		edi
-        
-        ret
-	}
 }
 
 /*

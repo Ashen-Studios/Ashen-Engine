@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -25,12 +25,23 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "TypeInfoGen.h"
 
-#define TYPE_INFO_GEN_VERSION		"1.0"
+// v1.0 - Original TypeGen from idSoftware
+// v1.1 - Add idlib directory to include path of typeinfo parser (for precompiled.h)
+//		  Substitute undefined macro with "0" and write warning, instead of breaking on it
+// v1.2 - Added a few explicit "private"-s.
+//		  Removed explicitly defaulted constructor.
+//		  Supported references in typeinfo(they are ignored).
+// v1.3 - Support braced constant initialization by counting indent of both parens and braces
+//		  Support "=delete" and "=default" at the end of method declaration(in addition to "=0")
+//		  Avoid warnings spam in 64 - bit mode by storing offsets / sizes in ptrdiff_t instead of int
+// v1.4 - More typeinfo fixes. Game seems to compile and identify uninitialized properties.
+//		  Some typeinfo is now invalid, pending C++11 parsing fixes
+#define TYPE_INFO_GEN_VERSION		"1.4"
 
 /*
 ================
@@ -207,12 +218,17 @@ void idTypeInfoGen::ParseConstantValue( const char *scope, idParser &src, idStr 
 	idStr constantString;
 
 	int indent = 0;
+	int braceIndent = 0;
 	while( src.ReadToken( &token ) ) {
 		if ( token == "(" ) {
 			indent++;
-		} else if ( token == ")" ) {
+		} else if ( token == ")" && indent > 0 ) {
 			indent--;
-		} else if ( indent == 0 && ( token == ";" || token == "," || token == "}" ) ) {
+		} else if ( token == "{" ) {
+			braceIndent++;
+		} else if ( token == "}" && braceIndent > 0 ) {
+			braceIndent--;
+		} else if ( indent == 0 && braceIndent == 0 && ( token == ";" || token == "," || token == "}" ) ) {
 			src.UnreadToken( &token );
 			break;
 		} else if ( token.type == TT_NAME ) {
@@ -387,6 +403,12 @@ idClassTypeInfo *idTypeInfoGen::ParseClassType( const char *scope, const char *t
 			typeInfo->unnamed = false;
 		}
 		src.ExpectTokenString( ";" );
+	}
+
+
+	for ( int i = 0; i < typeInfo->variables.Num(); i++ ) {
+		idClassVariableInfo &var = typeInfo->variables[i];
+		var.reference = ( var.type.Right(1) == "&" );
 	}
 
 	//common->Printf( "class %s%s : %s\n", typeInfo->scope.c_str(), typeInfo->typeName.c_str(), typeInfo->superType.c_str() );
@@ -630,7 +652,7 @@ void idTypeInfoGen::ParseScope( const char *scope, bool isTemplate, idParser &sr
 			isStatic = true;
 
 		} else if ( token.type == TT_NAME ) {
-	
+
 			assert( indent == 1 );
 
 			// if this is a class operator
@@ -671,7 +693,12 @@ void idTypeInfoGen::ParseScope( const char *scope, bool isTemplate, idParser &sr
 
 				if ( src.CheckTokenString( "=" ) ) {
 
-					src.ExpectTokenString( "0" );
+					src.ReadToken( &token );
+
+					if ( !( token == "0" || token == "delete" || token == "default" ) ) {
+						src.Error( "found '%s' after equal sign at method end", token.c_str() );
+						break;
+					}
 
 				} else if ( src.CheckTokenString( "{" ) ) {
 					indent++;
@@ -720,12 +747,13 @@ void idTypeInfoGen::ParseScope( const char *scope, bool isTemplate, idParser &sr
 						var.bits = 0;
 						typeInfo->variables.Append( var );
 						if ( !src.CheckTokenString( "," ) ) {
-                            varType = "";
+							varType = "";
 							isConst = false;
 							isStatic = false;
 							break;
 						}
 						varType.StripTrailing( "* " );
+						varType.StripTrailing( "& " );
 
 					} else {
 
@@ -746,6 +774,7 @@ void idTypeInfoGen::ParseScope( const char *scope, bool isTemplate, idParser &sr
 							var.bits = bits;
 							typeInfo->variables.Append( var );
 							varType.StripTrailing( "* " );
+							varType.StripTrailing( "& " );
 
 						} else if ( src.CheckTokenString( ";" ) ) {
 							idClassVariableInfo var;
@@ -802,14 +831,20 @@ void idTypeInfoGen::CreateTypeInfo( const char *path ) {
 	idFileList *files;
 	idParser src;
 
-	common->Printf( "Type Info Generator v"TYPE_INFO_GEN_VERSION" (c) 2004 id Software\n" );
+	common->Printf( "Type Info Generator v" TYPE_INFO_GEN_VERSION " (c) 2004 id Software\n" );
 	common->Printf( "%s\n", path );
 
 	files = fileSystem->ListFilesTree( path, ".cpp" );
 
-	for ( i = 0; i < files->GetNumFiles(); i++ ) {
-
-		fileName = fileSystem->RelativePathToOSPath( files->GetFile( i ) );
+	for ( i = -1; i < files->GetNumFiles(); i++ ) {
+		if ( i < 0 ) {
+			// Parse TypeInfo.cpp as first (and only) file
+			fileName = path;
+			fileName.AppendPath( "gamesys\\TypeInfo_GenHelper.cpp" );
+			fileName = fileSystem->RelativePathToOSPath( fileName );
+		} else {
+				fileName = fileSystem->RelativePathToOSPath( files->GetFile( i ) );
+		}
 
 		common->Printf( "processing '%s' for type info...\n", fileName.c_str() );
 
@@ -819,6 +854,12 @@ void idTypeInfoGen::CreateTypeInfo( const char *path ) {
 		}
 
 		src.SetFlags( LEXFL_NOBASEINCLUDES );
+
+		// Including "precompiled.h" from idlib's directory
+		idStr idlibPath = path;
+		idlibPath.StripFilename();
+		idlibPath += "neo/idlib";
+		src.SetIncludePath( idlibPath );
 
 		for ( j = 0; j < defines.Num(); j++ ) {
 			src.AddDefine( defines[j] );
@@ -904,7 +945,7 @@ void idTypeInfoGen::WriteTypeInfo( const char *fileName ) const {
 		"/*\n"
 		"===================================================================================\n"
 		"\n"
-		"\tThis file has been generated with the Type Info Generator v"TYPE_INFO_GEN_VERSION" (c) 2004 id Software\n"
+		"\tThis file has been generated with the Type Info Generator v" TYPE_INFO_GEN_VERSION " (c) 2004 id Software\n"
 		"\n"
 		"\t%d constants\n"
 		"\t%d enums\n"
@@ -937,14 +978,14 @@ void idTypeInfoGen::WriteTypeInfo( const char *fileName ) const {
 		"typedef struct {\n"
 		"\t"	"const char * type;\n"
 		"\t"	"const char * name;\n"
-		"\t"	"int offset;\n"
-		"\t"	"int size;\n"
+		"\t"	"ptrdiff_t offset;\n"
+		"\t"	"ptrdiff_t size;\n"
 		"} classVariableInfo_t;\n"
 		"\n"
 		"typedef struct {\n"
 		"\t"	"const char * typeName;\n"
 		"\t"	"const char * superType;\n"
-		"\t"	"int size;\n"
+		"\t"	"ptrdiff_t size;\n"
 		"\t"	"const classVariableInfo_t * variables;\n"
 		"} classTypeInfo_t;\n"
 		"\n" );
@@ -1007,16 +1048,24 @@ void idTypeInfoGen::WriteTypeInfo( const char *fileName ) const {
 		idStr typeInfoName = typeName;
 		CleanName( typeInfoName );
 
+		if ( typeInfoName.Find( "=" ) >= 0 ) {
+			file->WriteFloatString( "// FIXME C++11 %s\n", typeInfoName.c_str() );
+			continue;
+		}
+
 		file->WriteFloatString( "static classVariableInfo_t %s_typeInfo[] = {\n", typeInfoName.c_str() );
 
 		for ( j = 0; j < info->variables.Num(); j++ ) {
 			const char *varName = info->variables[j].name.c_str();
 			const char *varType = info->variables[j].type.c_str();
 
-			if ( info->unnamed || info->isTemplate || info->variables[j].bits != 0 ) {
+			if ( info->unnamed || info->isTemplate || info->variables[j].bits != 0 || info->variables[j].reference ) {
 				file->WriteFloatString( "//" );
 			}
-			file->WriteFloatString( "\t{ \"%s\", \"%s\", (int)(&((%s *)0)->%s), sizeof( ((%s *)0)->%s ) },\n",
+			if ( strstr( varType, "=" ) || !strcmp( varName, "override" ) ) {
+				file->WriteFloatString( "// FIXME C++11 " );
+			}
+			file->WriteFloatString( "\t{ \"%s\", \"%s\", (ptrdiff_t)(&((%s *)0)->%s), sizeof( ((%s *)0)->%s ) },\n",
 									varType, varName, typeName.c_str(), varName, typeName.c_str(), varName );
 		}
 

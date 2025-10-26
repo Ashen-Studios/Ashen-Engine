@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -78,7 +78,7 @@ public:
 	virtual int				VPrintf( const char *fmt, va_list arg );
 							// Write a string with high precision floating point numbers to the file.
 	virtual int				WriteFloatString( const char *fmt, ... ) id_attribute((format(printf,2,3)));
-	
+
 	// Endian portable alternatives to Read(...)
 	virtual int				ReadInt( int &value );
 	virtual int				ReadUnsignedInt( unsigned int &value );
@@ -94,7 +94,7 @@ public:
 	virtual int				ReadVec4( idVec4 &vec );
 	virtual int				ReadVec6( idVec6 &vec );
 	virtual int				ReadMat3( idMat3 &mat );
-	
+
 	// Endian portable alternatives to Write(...)
 	virtual int				WriteInt( const int value );
 	virtual int				WriteUnsignedInt( const unsigned int value );
@@ -235,7 +235,11 @@ public:
 private:
 	idStr					name;			// name of the file in the pak
 	idStr					fullPath;		// full file path including pak file name
-	int						zipFilePos;		// zip file info position in pak
+#ifdef _WIN32
+	unsigned __int64		zipFilePos;		// zip file info position in pak - should be ZPOS64_T, but I don't want miniz.h (through Unzip.h) in this header
+#else
+	unsigned long long int	zipFilePos;		// zip file info position in pak
+#endif
 	int						fileSize;		// size of the file
 	void *					z;				// unzip info
 };

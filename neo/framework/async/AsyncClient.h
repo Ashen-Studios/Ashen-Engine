@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -108,9 +108,6 @@ public:
 	void				SendReliableGameMessage( const idBitMsg &msg );
 
 	void				SendVersionCheck( bool fromMenu = false );
-	// pass NULL for the keys you don't care to auth for
-	// returns false if internet link doesn't appear to be available
-	bool				SendAuthCheck( const char *cdkey, const char *xpkey );
 
 	void				PacifierUpdate( void );
 
@@ -133,7 +130,7 @@ private:
 	int					serverId;					// server identification
 	int					serverChallenge;			// challenge from server
 	int					serverMessageSequence;		// sequence number of last server message
-	
+
 	netadr_t			lastRconAddress;			// last rcon address we emitted to
 	int					lastRconTime;				// when last rcon emitted
 
@@ -195,7 +192,6 @@ private:
 	void				ProcessInfoResponseMessage( const netadr_t from, const idBitMsg &msg );
 	void				ProcessPrintMessage( const netadr_t from, const idBitMsg &msg );
 	void				ProcessServersListMessage( const netadr_t from, const idBitMsg &msg );
-	void				ProcessAuthKeyMessage( const netadr_t from, const idBitMsg &msg );
 	void				ProcessVersionMessage( const netadr_t from, const idBitMsg &msg );
 	void				ConnectionlessMessage( const netadr_t from, const idBitMsg &msg );
 	void				ProcessMessage( const netadr_t from, idBitMsg &msg );

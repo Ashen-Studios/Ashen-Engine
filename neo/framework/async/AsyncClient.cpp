@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "AsyncNetwork.h"
@@ -193,7 +193,7 @@ void idAsyncClient::ConnectToServer( const netadr_t adr ) {
 
 	// trash any currently pending packets
 	ClearPendingPackets();
-	
+
 	serverAddress = adr;
 
 	// clear the client state
@@ -298,7 +298,7 @@ idAsyncClient::GetServerInfo
 void idAsyncClient::GetServerInfo( const netadr_t adr ) {
 	idBitMsg	msg;
 	byte		msgBuf[MAX_MESSAGE_SIZE];
-	
+
 	if ( !InitPort() ) {
 		return;
 	}
@@ -308,7 +308,7 @@ void idAsyncClient::GetServerInfo( const netadr_t adr ) {
 	msg.WriteString( "getInfo" );
 	msg.WriteLong( serverList.GetChallenge() );	// challenge
 
-	clientPort.SendPacket( adr, msg.GetData(), msg.GetSize() );	
+	clientPort.SendPacket( adr, msg.GetData(), msg.GetSize() );
 }
 
 /*
@@ -446,7 +446,7 @@ void idAsyncClient::RemoteConsole( const char *command ) {
 	} else {
 		Sys_StringToNetAdr( idAsyncNetwork::clientRemoteConsoleAddress.GetString(), &adr, true );
 	}
-	
+
 	if ( !adr.port ) {
 		adr.port = PORT_SERVER;
 	}
@@ -460,7 +460,7 @@ void idAsyncClient::RemoteConsole( const char *command ) {
 	msg.WriteString( idAsyncNetwork::clientRemoteConsolePassword.GetString() );
 	msg.WriteString( command );
 
-	clientPort.SendPacket( adr, msg.GetData(), msg.GetSize() );	
+	clientPort.SendPacket( adr, msg.GetData(), msg.GetSize() );
 }
 
 /*
@@ -586,7 +586,7 @@ void idAsyncClient::SendUserInfoToServer( void ) {
 	}
 
 	info = *cvarSystem->MoveCVarsToDict( CVAR_USERINFO );
-	
+
 	// send reliable client info to server
 	msg.Init( msgBuf, sizeof( msgBuf ) );
 	msg.WriteByte( CLIENT_RELIABLE_MESSAGE_CLIENTINFO );
@@ -892,7 +892,7 @@ void idAsyncClient::ProcessReliableMessagePure( const idBitMsg &msg ) {
 	}
 
 	if ( !ValidatePureServerChecksums( serverAddress, msg ) ) {
-		
+
 		return;
 	}
 
@@ -1053,7 +1053,7 @@ void idAsyncClient::ProcessReliableServerMessages( void ) {
 idAsyncClient::ProcessChallengeResponseMessage
 ==================
 */
-void idAsyncClient::ProcessChallengeResponseMessage( const netadr_t from, const idBitMsg &msg ) {	
+void idAsyncClient::ProcessChallengeResponseMessage( const netadr_t from, const idBitMsg &msg ) {
 	char serverGame[ MAX_STRING_CHARS ], serverGameBase[ MAX_STRING_CHARS ];
 
 	if ( clientState != CS_CHALLENGING ) {
@@ -1229,7 +1229,7 @@ void idAsyncClient::ProcessPrintMessage( const netadr_t from, const idBitMsg &ms
 			if ( retpass ) {
 				// #790
 				cvarSystem->SetCVarString( "password", "" );
-				cvarSystem->SetCVarString( "password", retpass );			
+				cvarSystem->SetCVarString( "password", retpass );
 			} else {
 				cmdSystem->BufferCommandText( CMD_EXEC_NOW, "disconnect" );
 			}
@@ -1258,93 +1258,6 @@ void idAsyncClient::ProcessServersListMessage( const netadr_t from, const idBitM
 		int a,b,c,d;
 		a = msg.ReadByte(); b = msg.ReadByte(); c = msg.ReadByte(); d = msg.ReadByte();
 		serverList.AddServer( serverList.Num(), va( "%i.%i.%i.%i:%i", a, b, c, d, msg.ReadShort() ) );
-	}
-}
-
-/*
-==================
-idAsyncClient::ProcessAuthKeyMessage
-==================
-*/
-void idAsyncClient::ProcessAuthKeyMessage( const netadr_t from, const idBitMsg &msg ) {
-	authKeyMsg_t		authMsg;
-	char				read_string[ MAX_STRING_CHARS ];
-	const char			*retkey;
-	authBadKeyStatus_t	authBadStatus;
-	int					key_index;
-	bool				valid[ 2 ];
-	idStr				auth_msg;
-
-	if ( clientState != CS_CONNECTING && !session->WaitingForGameAuth() ) {
-		common->Printf( "clientState != CS_CONNECTING, not waiting for game auth, authKey ignored\n" );
-		return;
-	}
-
-	authMsg = (authKeyMsg_t)msg.ReadByte();
-	if ( authMsg == AUTHKEY_BADKEY ) {
-		valid[ 0 ] = valid[ 1 ] = true;
-		key_index = 0;
-		authBadStatus = (authBadKeyStatus_t)msg.ReadByte();
-		switch ( authBadStatus ) {
-		case AUTHKEY_BAD_INVALID:
-			valid[ 0 ] = ( msg.ReadByte() == 1 );
-			valid[ 1 ] = ( msg.ReadByte() == 1 );
-			idAsyncNetwork::BuildInvalidKeyMsg( auth_msg, valid );
-			break;
-		case AUTHKEY_BAD_BANNED:
-			key_index = msg.ReadByte();
-			auth_msg = common->GetLanguageDict()->GetString( va( "#str_0719%1d", 6 + key_index ) );
-			auth_msg += "\n";
-			auth_msg += common->GetLanguageDict()->GetString( "#str_04304" );
-			valid[ key_index ] = false;
-			break;
-		case AUTHKEY_BAD_INUSE:
-			key_index = msg.ReadByte();
-			auth_msg = common->GetLanguageDict()->GetString( va( "#str_0719%1d", 8 + key_index ) );
-			auth_msg += "\n";
-			auth_msg += common->GetLanguageDict()->GetString( "#str_04304" );
-			valid[ key_index ] = false;
-			break;
-		case AUTHKEY_BAD_MSG:
-			// a general message explaining why this key is denied
-			// no specific use for this atm. let's not clear the keys either
-			msg.ReadString( read_string, MAX_STRING_CHARS );
-			auth_msg = read_string;
-			break;
-		}
-		common->DPrintf( "auth deny: %s\n", auth_msg.c_str() );
-		
-		// keys to be cleared. applies to both net connect and game auth
-		session->ClearCDKey( valid );
-
-		// get rid of the bad key - at least that's gonna annoy people who stole a fake key
-		if ( clientState == CS_CONNECTING ) {
-			while ( 1 ) {
-				// here we use the auth status message
-				retkey = session->MessageBox( MSG_CDKEY, auth_msg, common->GetLanguageDict()->GetString( "#str_04325" ), true );
-				if ( retkey ) {
-					if ( session->CheckKey( retkey, true, valid ) ) {
-						cmdSystem->BufferCommandText( CMD_EXEC_NOW, "reconnect" );
-					} else {
-						// build a more precise message about the offline check failure
-						idAsyncNetwork::BuildInvalidKeyMsg( auth_msg, valid );
-						session->MessageBox( MSG_OK, auth_msg.c_str(), common->GetLanguageDict()->GetString( "#str_04327" ), true );
-						continue;
-					}
-				} else {
-					cmdSystem->BufferCommandText( CMD_EXEC_NOW, "disconnect" );
-				}
-				break;
-			}
-		} else {
-			// forward the auth status information to the session code
-			session->CDKeysAuthReply( false, auth_msg );
-		}
-	} else {
-		msg.ReadString( read_string, MAX_STRING_CHARS );
-		cvarSystem->SetCVarString( "com_guid", read_string );
-		common->Printf( "guid set to %s\n", read_string );
-		session->CDKeysAuthReply( true, NULL );
 	}
 }
 
@@ -1408,7 +1321,7 @@ bool idAsyncClient::ValidatePureServerChecksums( const netadr_t from, const idBi
 			// need to restart the filesystem with a different pure configuration
 			cmdSystem->BufferCommandText( CMD_EXEC_NOW, "disconnect" );
 			// restart with the right FS configuration and get back to the server
-			clientState = CS_PURERESTART;	
+			clientState = CS_PURERESTART;
 			fileSystem->SetRestartChecksums( inChecksums, inGamePakChecksum );
 			cmdSystem->BufferCommandText( CMD_EXEC_NOW, "reloadEngine" );
 			return false;
@@ -1538,11 +1451,6 @@ void idAsyncClient::ConnectionlessMessage( const netadr_t from, const idBitMsg &
 		// server list
 		if ( idStr::Icmp( string, "servers" ) == 0 ) {
 			ProcessServersListMessage( from, msg );
-			return;
-		}
-	
-		if ( idStr::Icmp( string, "authKey" ) == 0 ) {
-			ProcessAuthKeyMessage( from, msg );
 			return;
 		}
 
@@ -1682,15 +1590,12 @@ void idAsyncClient::SetupConnection( void ) {
 		msg.WriteLong( cvarSystem->GetCVarInteger( "net_clientMaxRate" ) );
 		msg.WriteString( cvarSystem->GetCVarString( "com_guid" ) );
 		msg.WriteString( cvarSystem->GetCVarString( "password" ), -1, false );
-		// do not make the protocol depend on PB
-		msg.WriteShort( 0 );
+
 		clientPort.SendPacket( serverAddress, msg.GetData(), msg.GetSize() );
-		
+
 		if ( idAsyncNetwork::LANServer.GetBool() ) {
 			common->Printf( "net_LANServer is set, connecting in LAN mode\n" );
 		} else {
-			// emit a cd key authorization request
-			// modified at protocol 1.37 for XP key addition
 			msg.BeginWriting();
 			msg.WriteShort( CONNECTIONLESS_MESSAGE_ID );
 			msg.WriteString( "clAuth" );
@@ -1698,13 +1603,7 @@ void idAsyncClient::SetupConnection( void ) {
 			msg.WriteNetadr( serverAddress );
 			// if we don't have a com_guid, this will request a direct reply from auth with it
 			msg.WriteByte( cvarSystem->GetCVarString( "com_guid" )[0] ? 1 : 0 );
-			// send the main key, and flag an extra byte to add XP key
-			msg.WriteString( session->GetCDKey( false ) );
-			const char *xpkey = session->GetCDKey( true );
-			msg.WriteByte( xpkey ? 1 : 0 );
-			if ( xpkey ) {
-				msg.WriteString( xpkey );
-			}
+
 			clientPort.SendPacket( idAsyncNetwork::GetMasterAddress(), msg.GetData(), msg.GetSize() );
 		}
 	} else {
@@ -1973,7 +1872,7 @@ void idAsyncClient::HandleDownloads( void ) {
 	} else if ( backgroundDownload.completed ) {
 		// only enter these if the download slot is free
 		if ( updateState == UPDATE_READY ) {
-			// 
+			//
 			if ( session->MessageBox( MSG_YESNO, updateMSG, common->GetLanguageDict()->GetString ( "#str_04330" ), true, "yes" )[0] ) {
 				if ( !updateDirectDownload ) {
 					sys->OpenURL( updateURL, true );
@@ -1999,7 +1898,7 @@ void idAsyncClient::HandleDownloads( void ) {
 					SendVersionDLUpdate( 0 );
 					session->DownloadProgressBox( &backgroundDownload, va( "Downloading %s\n", updateFile.c_str() ) );
 					updateState = UPDATE_DONE;
-					if ( backgroundDownload.url.status == DL_DONE ) {				
+					if ( backgroundDownload.url.status == DL_DONE ) {
 						SendVersionDLUpdate( 1 );
 						idStr fullPath = f->GetFullPath();
 						fileSystem->CloseFile( f );
@@ -2076,7 +1975,7 @@ void idAsyncClient::HandleDownloads( void ) {
 					progress_end = 100;
 				}
 				session->DownloadProgressBox( &backgroundDownload, dltitle, progress_start, progress_end );
-				if ( backgroundDownload.url.status == DL_DONE ) {				
+				if ( backgroundDownload.url.status == DL_DONE ) {
 					idFile		*saveas;
 					const int	CHUNK_SIZE = 1024 * 1024;
 					byte		*buf;
@@ -2111,7 +2010,7 @@ void idAsyncClient::HandleDownloads( void ) {
 					fileSystem->CloseFile( saveas );
 					common->Printf( "saved as %s\n", finalPath.c_str() );
 					Mem_Free( buf );
-					
+
 					// add that file to our paks list
 					checksum = fileSystem->AddZipFile( dlList[ 0 ].filename );
 
@@ -2125,7 +2024,7 @@ void idAsyncClient::HandleDownloads( void ) {
 					}
 
 					currentDlSize += dlList[ 0 ].size;
-					
+
 				} else {
 					common->Warning( "download failed: %s", dlList[ 0 ].url.c_str() );
 					if ( backgroundDownload.url.dlerror[ 0 ] ) {
@@ -2139,35 +2038,13 @@ void idAsyncClient::HandleDownloads( void ) {
 				}
 
 				pakCount++;
-				dlList.RemoveIndex( 0 );			
+				dlList.RemoveIndex( 0 );
 			} while ( dlList.Num() );
-			
+
 			// all downloads successful - do the dew
 			cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "reconnect\n" );
 		}
 	}
-}
-
-/*
-===============
-idAsyncClient::SendAuthCheck
-===============
-*/
-bool idAsyncClient::SendAuthCheck( const char *cdkey, const char *xpkey ) {
-	idBitMsg	msg;
-	byte		msgBuf[MAX_MESSAGE_SIZE];
-
-	msg.Init( msgBuf, sizeof( msgBuf ) );
-	msg.WriteShort( CONNECTIONLESS_MESSAGE_ID );
-	msg.WriteString( "gameAuth" );
-	msg.WriteLong( ASYNC_PROTOCOL_VERSION );
-	msg.WriteByte( cdkey ? 1 : 0 );
-	msg.WriteString( cdkey ? cdkey : "" );
-	msg.WriteByte( xpkey ? 1 : 0 );
-	msg.WriteString( xpkey ? xpkey : "" );
-	InitPort();
-	clientPort.SendPacket( idAsyncNetwork::GetMasterAddress(), msg.GetData(), msg.GetSize() );
-	return true;
 }
 
 /*
@@ -2196,7 +2073,7 @@ void idAsyncClient::ProcessDownloadInfoMessage( const netadr_t from, const idBit
 	int				infoType = msg.ReadByte();
 	int				pakDl;
 	int				pakIndex;
-	
+
 	pakDlEntry_t	entry;
 	bool			gotAllFiles = true;
 	idStr			sizeStr;
@@ -2258,7 +2135,7 @@ void idAsyncClient::ProcessDownloadInfoMessage( const netadr_t from, const idBit
 				}
 			} else {
 				assert( pakDl == SERVER_PAK_END );
-			}			
+			}
 		} while ( pakDl != SERVER_PAK_END );
 		if ( dlList.Num() < dlCount ) {
 			common->Printf( "%d files were ignored by the server\n", dlCount - dlList.Num() );

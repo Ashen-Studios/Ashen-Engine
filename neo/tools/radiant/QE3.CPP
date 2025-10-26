@@ -4,7 +4,7 @@
 Doom 3 GPL Source Code
 Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").  
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -256,7 +256,7 @@ bool QE_LoadProject(char *projectfile) {
 
 /*
  =======================================================================================================================
-    QE_SaveProject £
+    QE_SaveProject ï¿½
  =======================================================================================================================
  */
 bool QE_SaveProject(const char *pProjectFile) {
@@ -388,7 +388,7 @@ void QE_Init(void) {
 	g_qeglobals.d_showgrid = true;
 
 	/*
-	 * other stuff £
+	 * other stuff ï¿½
 	 * FIXME: idMaterial Texture_Init (true); Cam_Init (); XY_Init ();
 	 */
 	Z_Init();

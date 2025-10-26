@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "dmap.h"
@@ -70,7 +70,7 @@ void Draw_ClearWindow( void ) {
 #else
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity ();
-	glOrtho( dmapGlobals.drawBounds[0][0], dmapGlobals.drawBounds[1][0], 
+	glOrtho( dmapGlobals.drawBounds[0][0], dmapGlobals.drawBounds[1][0],
 		dmapGlobals.drawBounds[0][1], dmapGlobals.drawBounds[1][1],
 		-1, 1 );
 	glMatrixMode( GL_MODELVIEW );
@@ -182,7 +182,7 @@ void DrawLine( idVec3 v1, idVec3 v2, int color ) {
 	case 6: glColor3f( 1, 1, 0 ); break;
 	case 7: glColor3f( 1, 1, 1 ); break;
 	}
-	
+
 
 	glBegin( GL_LINES );
 
@@ -203,7 +203,7 @@ int			draw_socket;
 void GLS_BeginScene (void)
 {
 	WSADATA	winsockdata;
-	WORD	wVersionRequested; 
+	WORD	wVersionRequested;
 	struct sockaddr_in	address;
 	int		r;
 
@@ -211,7 +211,7 @@ void GLS_BeginScene (void)
 	{
 		wins_init = true;
 
-		wVersionRequested = MAKEWORD(1, 1); 
+		wVersionRequested = MAKEWORD(1, 1);
 
 		r = WSAStartup (MAKEWORD(1, 1), &winsockdata);
 

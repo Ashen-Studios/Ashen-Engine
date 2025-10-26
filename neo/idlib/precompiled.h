@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -37,27 +37,14 @@ If you have questions concerning this license or the applicable additional terms
 
 #ifdef _WIN32
 
-#define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS	// prevent auto literal to string conversion
-
 #ifndef _D3SDK
 #ifndef GAME_DLL
 
 #define WINVER				0x501
 
-#if 0
-// Dedicated server hits unresolved when trying to link this way now. Likely because of the 2010/Win7 transition? - TTimo
+#ifdef ID_ALLOW_TOOLS
 
-#ifdef	ID_DEDICATED
-// dedicated sets windows version here
-#define	_WIN32_WINNT WINVER
-#define	WIN32_LEAN_AND_MEAN
-#else
-// non-dedicated includes MFC and sets windows version here
-#include "../tools/comafx/StdAfx.h"			// this will go away when MFC goes away
-#endif
-
-#else
-
+#define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS	// prevent auto literal to string conversion
 #include "../tools/comafx/StdAfx.h"
 
 #endif
@@ -81,8 +68,14 @@ If you have questions concerning this license or the applicable additional terms
 #pragma warning(disable : 4996)				// unsafe string operations
 
 #include <malloc.h>							// no malloc.h on mac or unix
-#include <windows.h>						// for qgl.h
-#undef FindText								// stupid namespace poluting Microsoft monkeys
+#include <windows.h>						// for gl.h
+
+// fix namespace pollution
+#undef FindText
+#undef DrawText
+#undef CopyFile
+#undef LoadImage
+#undef MessageBox
 
 #endif /* _WIN32 */
 
@@ -139,7 +132,9 @@ const int MAX_EXPRESSION_OPS = 4096;
 const int MAX_EXPRESSION_REGISTERS = 4096;
 
 // renderer
+#ifndef ID_TYPEINFO
 #include "../renderer/qgl.h"
+#endif
 #include "../renderer/Cinematic.h"
 #include "../renderer/Material.h"
 #include "../renderer/Model.h"
@@ -165,11 +160,7 @@ const int MAX_EXPRESSION_REGISTERS = 4096;
 #include "../tools/compilers/aas/AASFileManager.h"
 
 // game
-#if defined(_D3XP)
-#include "../d3xp/Game.h"
-#else
-#include "../game/Game.h"
-#endif
+#include "../framework/Game.h"
 
 //-----------------------------------------------------
 
@@ -180,7 +171,7 @@ const int MAX_EXPRESSION_REGISTERS = 4096;
 #if defined(_D3XP)
 #include "../d3xp/Game_local.h"
 #else
-#include "../game/Game_local.h"
+#include "../game/Game_Local.h"
 #endif
 
 #else

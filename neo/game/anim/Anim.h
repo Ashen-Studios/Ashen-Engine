@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ const int ANIM_MaxAnimsPerChannel	= 3;
 const int ANIM_MaxSyncedAnims		= 3;
 
 //
-// animation channels.  make sure to change script/doom_defs.script if you add any channels, or change their order
+// animation channels.  make sure to change SCRIPT_DEFAULTDEFS if you add any channels, or change their order
 //
 const int ANIMCHANNEL_ALL			= 0;
 const int ANIMCHANNEL_TORSO			= 1;
@@ -79,7 +79,7 @@ typedef struct {
 } jointInfo_t;
 
 //
-// joint modifier modes.  make sure to change script/doom_defs.script if you add any, or change their order.
+// joint modifier modes.  make sure to change SCRIPT_DEFAULTDEFS if you add any, or change their order.
 //
 typedef enum {
 	JOINTMOD_NONE,				// no modification
@@ -245,7 +245,7 @@ public:
 	void					IncreaseRefs( void ) const;
 	void					DecreaseRefs( void ) const;
 	int						NumRefs( void ) const;
-	
+
 	void					CheckModelHierarchy( const idRenderModel *model ) const;
 	void					GetInterpolatedFrame( frameBlend_t &frame, idJointQuat *joints, const int *index, int numIndexes ) const;
 	void					GetSingleFrame( int framenum, idJointQuat *joints, const int *index, int numIndexes ) const;
@@ -590,27 +590,27 @@ private:
 /*
 ==============================================================================================
 
-	idAnimManager
+	idAnimManagerLocal
 
 ==============================================================================================
 */
 
-class idAnimManager {
+class idAnimManagerLocal : public idAnimManager {
 public:
-								idAnimManager();
-								~idAnimManager();
+								idAnimManagerLocal();
+								~idAnimManagerLocal();
 
 	static bool					forceExport;
 
-	void						Shutdown( void );
-	idMD5Anim *					GetAnim( const char *name );
-	void						ReloadAnims( void );
-	void						ListAnims( void ) const;
-	int							JointIndex( const char *name );
-	const char *				JointName( int index ) const;
+	virtual void				Shutdown( void );
+	virtual idMD5Anim *			GetAnim( const char *name );
+	virtual void				ReloadAnims( void );
+	virtual void				ListAnims( void ) const;
+	virtual int					JointIndex( const char *name );
+	virtual const char *		JointName( int index ) const;
 
-	void						ClearAnimsInUse( void );
-	void						FlushUnusedAnims( void );
+	virtual void				ClearAnimsInUse( void ) {}
+	virtual void				FlushUnusedAnims( void );
 
 private:
 	idHashTable<idMD5Anim *>	animations;

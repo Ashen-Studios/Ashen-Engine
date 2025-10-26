@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "Game_local.h"
@@ -258,7 +258,7 @@ void idPVS::FrontPortalPVS( void ) const {
 			}
 
 			for ( p = 0; p < area->numPortals; p++ ) {
-	
+
 				p2 = area->portals[p];
 
 				// if we the whole area is not at the front we need to check
@@ -456,7 +456,7 @@ void idPVS::AddPassageBoundaries( const idWinding &source, const idWinding &pass
 	idPlane		plane;
 
 
-	// check all combinations	
+	// check all combinations
 	for ( i = 0; i < source.GetNumPoints(); i++ ) {
 
 		l = (i + 1) % source.GetNumPoints();
@@ -551,7 +551,7 @@ void idPVS::AddPassageBoundaries( const idWinding &source, const idWinding &pass
 			}
 
 			if ( numBounds >= maxBounds ) {
-				gameLocal.Warning( "max passage boundaries." );
+				GameLocal()->Warning( "max passage boundaries." );
 				break;
 			}
 			bounds[numBounds] = plane;
@@ -623,7 +623,7 @@ void idPVS::CreatePassages( void ) const {
 					}
 
 					p = &pvsPortals[(byteNum << 3) + bitNum];
-	
+
 					if ( p->areaNum == source->areaNum ) {
 						continue;
 					}
@@ -679,10 +679,10 @@ void idPVS::CreatePassages( void ) const {
 		}
 	}
 	if ( passageMemory < 1024 ) {
-		gameLocal.Printf( "%5d bytes passage memory used to build PVS\n", passageMemory );
+		GameLocal()->Printf( "%5d bytes passage memory used to build PVS\n", passageMemory );
 	}
 	else {
-		gameLocal.Printf( "%5d KB passage memory used to build PVS\n", passageMemory>>10 );
+		GameLocal()->Printf( "%5d KB passage memory used to build PVS\n", passageMemory>>10 );
 	}
 }
 
@@ -841,15 +841,15 @@ void idPVS::Init( void ) {
 
 	timer.Stop();
 
-	gameLocal.Printf( "%5.0f msec to calculate PVS\n", timer.Milliseconds() );
-	gameLocal.Printf( "%5d areas\n", numAreas );
-	gameLocal.Printf( "%5d portals\n", numPortals );
-	gameLocal.Printf( "%5d areas visible on average\n", totalVisibleAreas / numAreas );
+	GameLocal()->Printf( "%5.0f msec to calculate PVS\n", timer.Milliseconds() );
+	GameLocal()->Printf( "%5d areas\n", numAreas );
+	GameLocal()->Printf( "%5d portals\n", numPortals );
+	GameLocal()->Printf( "%5d areas visible on average\n", totalVisibleAreas / numAreas );
 	if ( numAreas * areaVisBytes < 1024 ) {
-		gameLocal.Printf( "%5d bytes PVS data\n", numAreas * areaVisBytes );
+		GameLocal()->Printf( "%5d bytes PVS data\n", numAreas * areaVisBytes );
 	}
 	else {
-		gameLocal.Printf( "%5d KB PVS data\n", (numAreas * areaVisBytes) >> 10 );
+		GameLocal()->Printf( "%5d KB PVS data\n", (numAreas * areaVisBytes) >> 10 );
 	}
 }
 
@@ -1079,7 +1079,7 @@ pvsHandle_t idPVS::MergeCurrentPVS( pvsHandle_t pvs1, pvsHandle_t pvs2 ) const {
 
 	if ( pvs1.i < 0 || pvs1.i >= MAX_CURRENT_PVS || pvs1.h != currentPVS[pvs1.i].handle.h ||
 		pvs2.i < 0 || pvs2.i >= MAX_CURRENT_PVS || pvs2.h != currentPVS[pvs2.i].handle.h ) {
-		gameLocal.Error( "idPVS::MergeCurrentPVS: invalid handle" );
+		GameLocal()->Error( "idPVS::MergeCurrentPVS: invalid handle" );
 	}
 
 	handle = AllocCurrentPVS( pvs1.h ^ pvs2.h );
@@ -1112,7 +1112,7 @@ pvsHandle_t idPVS::AllocCurrentPVS( unsigned int h ) const {
 		}
 	}
 
-	gameLocal.Error( "idPVS::AllocCurrentPVS: no free PVS left" );
+	GameLocal()->Error( "idPVS::AllocCurrentPVS: no free PVS left" );
 
 	handle.i = -1;
 	handle.h = 0;
@@ -1126,7 +1126,7 @@ idPVS::FreeCurrentPVS
 */
 void idPVS::FreeCurrentPVS( pvsHandle_t handle ) const {
 	if ( handle.i < 0 || handle.i >= MAX_CURRENT_PVS || handle.h != currentPVS[handle.i].handle.h ) {
-		gameLocal.Error( "idPVS::FreeCurrentPVS: invalid handle" );
+		GameLocal()->Error( "idPVS::FreeCurrentPVS: invalid handle" );
 	}
 	currentPVS[handle.i].handle.i = -1;
 }
@@ -1141,7 +1141,7 @@ bool idPVS::InCurrentPVS( const pvsHandle_t handle, const idVec3 &target ) const
 
 	if ( handle.i < 0 || handle.i >= MAX_CURRENT_PVS ||
 		handle.h != currentPVS[handle.i].handle.h ) {
-		gameLocal.Error( "idPVS::InCurrentPVS: invalid handle" );
+		GameLocal()->Error( "idPVS::InCurrentPVS: invalid handle" );
 	}
 
 	targetArea = gameRenderWorld->PointInArea( target );
@@ -1163,7 +1163,7 @@ bool idPVS::InCurrentPVS( const pvsHandle_t handle, const idBounds &target ) con
 
 	if ( handle.i < 0 || handle.i >= MAX_CURRENT_PVS ||
 		handle.h != currentPVS[handle.i].handle.h ) {
-		gameLocal.Error( "idPVS::InCurrentPVS: invalid handle" );
+		GameLocal()->Error( "idPVS::InCurrentPVS: invalid handle" );
 	}
 
 	numTargetAreas = gameRenderWorld->BoundsInAreas( target, targetAreas, MAX_BOUNDS_AREAS );
@@ -1185,7 +1185,7 @@ bool idPVS::InCurrentPVS( const pvsHandle_t handle, const int targetArea ) const
 
 	if ( handle.i < 0 || handle.i >= MAX_CURRENT_PVS ||
 		handle.h != currentPVS[handle.i].handle.h ) {
-		gameLocal.Error( "idPVS::InCurrentPVS: invalid handle" );
+		GameLocal()->Error( "idPVS::InCurrentPVS: invalid handle" );
 	}
 
 	if ( targetArea < 0 || targetArea >= numAreas ) {
@@ -1205,7 +1205,7 @@ bool idPVS::InCurrentPVS( const pvsHandle_t handle, const int *targetAreas, int 
 
 	if ( handle.i < 0 || handle.i >= MAX_CURRENT_PVS ||
 		handle.h != currentPVS[handle.i].handle.h ) {
-		gameLocal.Error( "idPVS::InCurrentPVS: invalid handle" );
+		GameLocal()->Error( "idPVS::InCurrentPVS: invalid handle" );
 	}
 
 	for ( i = 0; i < numTargetAreas; i++ ) {
@@ -1344,7 +1344,7 @@ void idPVS::DrawCurrentPVS( const pvsHandle_t handle, const idVec3 &source ) con
 
 	if ( handle.i < 0 || handle.i >= MAX_CURRENT_PVS ||
 		handle.h != currentPVS[handle.i].handle.h ) {
-		gameLocal.Error( "idPVS::DrawCurrentPVS: invalid handle" );
+		GameLocal()->Error( "idPVS::DrawCurrentPVS: invalid handle" );
 	}
 
 	sourceArea = gameRenderWorld->PointInArea( source );

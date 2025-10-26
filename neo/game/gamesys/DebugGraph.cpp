@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-#include "../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "../Game_local.h"
@@ -76,8 +76,8 @@ void idDebugGraph::Draw( const idVec4 &color, float scale ) const {
 	idVec3 vec1;
 	idVec3 vec2;
 
-	const idMat3 &axis = gameLocal.GetLocalPlayer()->viewAxis;
-	const idVec3 pos = gameLocal.GetLocalPlayer()->GetPhysics()->GetOrigin() + axis[ 1 ] * samples.Num() * 0.5f;
+	const idMat3 &axis = gameLocal->GetLocalPlayer()->viewAxis;
+	const idVec3 pos = gameLocal->GetLocalPlayer()->GetPhysics()->GetOrigin() + axis[ 1 ] * samples.Num() * 0.5f;
 
 	value1 = samples[ index ] * scale;
 	for( i = 1; i < samples.Num(); i++ ) {
@@ -86,7 +86,7 @@ void idDebugGraph::Draw( const idVec4 &color, float scale ) const {
 		vec1 = pos + axis[ 2 ] * value1 - axis[ 1 ] * ( i - 1 ) + axis[ 0 ] * samples.Num();
 		vec2 = pos + axis[ 2 ] * value2 - axis[ 1 ] * i + axis[ 0 ] * samples.Num();
 
-		gameRenderWorld->DebugLine( color, vec1, vec2, gameLocal.msec, false );
+		gameRenderWorld->DebugLine( color, vec1, vec2, gameLocal->msec, false );
 		value1 = value2;
 	}
 }

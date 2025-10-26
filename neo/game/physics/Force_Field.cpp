@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "../Game_local.h"
@@ -159,7 +159,7 @@ void idForce_Field::Evaluate( int time ) {
 	assert( clipModel );
 
 	bounds.FromTransformedBounds( clipModel->GetBounds(), clipModel->GetOrigin(), clipModel->GetAxis() );
-	numClipModels = gameLocal.clip.ClipModelsTouchingBounds( bounds, -1, clipModelList, MAX_GENTITIES );
+	numClipModels = GameLocal()->clip.ClipModelsTouchingBounds( bounds, -1, clipModelList, MAX_GENTITIES );
 
 	for ( i = 0; i < numClipModels; i++ ) {
 		cm = clipModelList[ i ];
@@ -173,7 +173,7 @@ void idForce_Field::Evaluate( int time ) {
 		if ( !entity ) {
 			continue;
 		}
-		
+
 		idPhysics *physics = entity->GetPhysics();
 
 		if ( playerOnly ) {
@@ -186,7 +186,7 @@ void idForce_Field::Evaluate( int time ) {
 			}
 		}
 
-		if ( !gameLocal.clip.ContentsModel( cm->GetOrigin(), cm, cm->GetAxis(), -1,
+		if ( !GameLocal()->clip.ContentsModel( cm->GetOrigin(), cm, cm->GetAxis(), -1,
 									clipModel->Handle(), clipModel->GetOrigin(), clipModel->GetAxis() ) ) {
 			continue;
 		}
@@ -207,15 +207,15 @@ void idForce_Field::Evaluate( int time ) {
 				break;
 			}
 			default: {
-				gameLocal.Error( "idForce_Field: invalid type" );
+				GameLocal()->Error( "idForce_Field: invalid type" );
 				break;
 			}
 		}
 
 		if ( randomTorque != 0.0f ) {
-			torque[0] = gameLocal.random.CRandomFloat();
-			torque[1] = gameLocal.random.CRandomFloat();
-			torque[2] = gameLocal.random.CRandomFloat();
+			torque[0] = GameLocal()->random.CRandomFloat();
+			torque[1] = GameLocal()->random.CRandomFloat();
+			torque[2] = GameLocal()->random.CRandomFloat();
 			if ( torque.Normalize() == 0.0f ) {
 				torque[2] = 1.0f;
 			}
@@ -224,10 +224,10 @@ void idForce_Field::Evaluate( int time ) {
 		switch( applyType ) {
 			case FORCEFIELD_APPLY_FORCE: {
 				if ( randomTorque != 0.0f ) {
-					entity->AddForce( gameLocal.world, cm->GetId(), cm->GetOrigin() + torque.Cross( dir ) * randomTorque, dir * magnitude );
+					entity->AddForce( GameLocal()->world, cm->GetId(), cm->GetOrigin() + torque.Cross( dir ) * randomTorque, dir * magnitude );
 				}
 				else {
-					entity->AddForce( gameLocal.world, cm->GetId(), cm->GetOrigin(), force * magnitude );
+					entity->AddForce( GameLocal()->world, cm->GetId(), cm->GetOrigin(), force * magnitude );
 				}
 				break;
 			}
@@ -241,15 +241,15 @@ void idForce_Field::Evaluate( int time ) {
 			}
 			case FORCEFIELD_APPLY_IMPULSE: {
 				if ( randomTorque != 0.0f ) {
-					entity->ApplyImpulse( gameLocal.world, cm->GetId(), cm->GetOrigin() + torque.Cross( dir ) * randomTorque, dir * magnitude );
+					entity->ApplyImpulse( GameLocal()->world, cm->GetId(), cm->GetOrigin() + torque.Cross( dir ) * randomTorque, dir * magnitude );
 				}
 				else {
-					entity->ApplyImpulse( gameLocal.world, cm->GetId(), cm->GetOrigin(), force * magnitude );
+					entity->ApplyImpulse( GameLocal()->world, cm->GetId(), cm->GetOrigin(), force * magnitude );
 				}
 				break;
 			}
 			default: {
-				gameLocal.Error( "idForce_Field: invalid apply type" );
+				GameLocal()->Error( "idForce_Field: invalid apply type" );
 				break;
 			}
 		}

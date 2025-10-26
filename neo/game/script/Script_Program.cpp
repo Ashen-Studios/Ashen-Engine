@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "../Game_local.h"
@@ -141,7 +141,7 @@ idTypeDef::idTypeDef( etype_t etype, idVarDef *edef, const char *ename, int esiz
 	def			= edef;
 	size		= esize;
 	auxType		= aux;
-	
+
 	parmTypes.SetGranularity( 1 );
 	parmNames.SetGranularity( 1 );
 	functions.SetGranularity( 1 );
@@ -724,7 +724,7 @@ void idVarDef::SetString( const char *string, bool constant ) {
 	} else {
 		initialized = initializedVariable;
 	}
-	
+
 	assert( typeDef && ( typeDef->Type() == ev_string ) );
 	idStr::Copynz( value.stringPtr, string, MAX_STRING_LEN );
 }
@@ -750,8 +750,8 @@ void idVarDef::PrintInfo( idFile *file, int instructionPointer ) const {
 	switch( etype ) {
 	case ev_jumpoffset :
 		jumpto = instructionPointer + value.jumpOffset;
-		jumpst = &gameLocal.program.GetStatement( jumpto );
-		file->Printf( "address %d [%s(%d)]", jumpto, gameLocal.program.GetFilename( jumpst->file ), jumpst->linenumber );
+		jumpst = &GameLocal()->program.GetStatement( jumpto );
+		file->Printf( "address %d [%s(%d)]", jumpto, GameLocal()->program.GetFilename( jumpst->file ), jumpst->linenumber );
 		break;
 
 	case ev_function :
@@ -951,18 +951,18 @@ bool idScriptObject::SetType( const char *typeName ) {
 	idTypeDef *newtype;
 
 	// lookup the type
-	newtype = gameLocal.program.FindType( typeName );
+	newtype = GameLocal()->program.FindType( typeName );
 
 	// only allocate memory if the object type changes
-	if ( newtype != type ) {	
+	if ( newtype != type ) {
 		Free();
 		if ( !newtype ) {
-			gameLocal.Warning( "idScriptObject::SetType: Unknown type '%s'", typeName );
+			GameLocal()->Warning( "idScriptObject::SetType: Unknown type '%s'", typeName );
 			return false;
 		}
 
 		if ( !newtype->Inherits( &type_object ) ) {
-			gameLocal.Warning( "idScriptObject::SetType: Can't create object of type '%s'.  Must be an object type.", newtype->Name() );
+			GameLocal()->Warning( "idScriptObject::SetType: Can't create object of type '%s'.  Must be an object type.", newtype->Name() );
 			return false;
 		}
 
@@ -1060,7 +1060,7 @@ const function_t *idScriptObject::GetFunction( const char *name ) const {
 		return NULL;
 	}
 
-	func = gameLocal.program.FindFunction( name, type );
+	func = GameLocal()->program.FindFunction( name, type );
 	return func;
 }
 
@@ -1121,7 +1121,7 @@ idProgram::AllocType
 idTypeDef *idProgram::AllocType( idTypeDef &type ) {
 	idTypeDef *newtype;
 
-	newtype	= new idTypeDef( type ); 
+	newtype	= new idTypeDef( type );
 	types.Append( newtype );
 
 	return newtype;
@@ -1418,7 +1418,7 @@ idProgram::FindFreeResultDef
 */
 idVarDef *idProgram::FindFreeResultDef( idTypeDef *type, const char *name, idVarDef *scope, const idVarDef *a, const idVarDef *b ) {
 	idVarDef *def;
-	
+
 	for( def = GetDefList( name ); def != NULL; def = def->Next() ) {
 		if ( def == a || def == b ) {
 			continue;
@@ -1617,7 +1617,7 @@ void idProgram::BeginCompilation( void ) {
 	}
 
 	catch( idCompileError &err ) {
-		gameLocal.Error( "%s", err.error );
+		GameLocal()->Error( "%s", err.error );
 	}
 }
 
@@ -1677,7 +1677,7 @@ void idProgram::Disassemble( void ) const {
 		for( instructionPointer = 0; instructionPointer < func->numStatements; instructionPointer++ ) {
 			DisassembleStatement( file, func->firstStatement + instructionPointer );
 		}
-	
+
 		file->Printf( "}\n" );
 	}
 
@@ -1723,12 +1723,12 @@ void idProgram::CompileStats( void ) {
 	int funcMem;
 	int	i;
 
-	gameLocal.Printf( "---------- Compile stats ----------\n" );
-	gameLocal.DPrintf( "Files loaded:\n" );
+	GameLocal()->Printf( "---------- Compile stats ----------\n" );
+	GameLocal()->DPrintf( "Files loaded:\n" );
 
 	stringspace = 0;
 	for( i = 0; i < fileList.Num(); i++ ) {
-		gameLocal.DPrintf( "   %s\n", fileList[ i ].c_str() );
+		GameLocal()->DPrintf( "   %s\n", fileList[ i ].c_str() );
 		stringspace += fileList[ i ].Allocated();
 	}
 	stringspace += fileList.Size();
@@ -1753,15 +1753,15 @@ void idProgram::CompileStats( void ) {
 	memused += functions.MemoryUsed();	// name and filename of functions are shared, so no need to include them
 	memused += sizeof( variables );
 
-	gameLocal.Printf( "\nMemory usage:\n" );
-	gameLocal.Printf( "     Strings: %d, %d bytes\n", fileList.Num(), stringspace );
-	gameLocal.Printf( "  Statements: %d, %d bytes\n", statements.Num(), statements.MemoryUsed() );
-	gameLocal.Printf( "   Functions: %d, %d bytes\n", functions.Num(), funcMem );
-	gameLocal.Printf( "   Variables: %d bytes\n", numVariables );
-	gameLocal.Printf( "    Mem used: %d bytes\n", memused );
-	gameLocal.Printf( " Static data: %d bytes\n", sizeof( idProgram ) );
-	gameLocal.Printf( "   Allocated: %d bytes\n", memallocated );
-	gameLocal.Printf( " Thread size: %d bytes\n\n", sizeof( idThread ) );
+	GameLocal()->Printf( "\nMemory usage:\n" );
+	GameLocal()->Printf( "     Strings: %d, %d bytes\n", fileList.Num(), stringspace );
+	GameLocal()->Printf( "  Statements: %d, %d bytes\n", statements.Num(), statements.MemoryUsed() );
+	GameLocal()->Printf( "   Functions: %d, %d bytes\n", functions.Num(), funcMem );
+	GameLocal()->Printf( "   Variables: %d bytes\n", numVariables );
+	GameLocal()->Printf( "    Mem used: %d bytes\n", memused );
+	GameLocal()->Printf( " Static data: %d bytes\n", sizeof( idProgram ) );
+	GameLocal()->Printf( "   Allocated: %d bytes\n", memallocated );
+	GameLocal()->Printf( " Thread size: %d bytes\n\n", sizeof( idThread ) );
 }
 
 /*
@@ -1792,13 +1792,13 @@ bool idProgram::CompileText( const char *source, const char *text, bool console 
 			}
 		}
 	}
-	
+
 	catch( idCompileError &err ) {
 		if ( console ) {
-			gameLocal.Printf( "%s\n", err.error );
+			GameLocal()->Printf( "%s\n", err.error );
 			return false;
 		} else {
-			gameLocal.Error( "%s\n", err.error );
+			GameLocal()->Error( "%s\n", err.error );
 		}
 	};
 
@@ -1824,7 +1824,7 @@ const function_t *idProgram::CompileFunction( const char *functionName, const ch
 	}
 
 	if ( !result ) {
-		gameLocal.Error( "Compile failed." );
+		GameLocal()->Error( "Compile failed." );
 	}
 
 	return FindFunction( functionName );
@@ -1840,7 +1840,7 @@ void idProgram::CompileFile( const char *filename ) {
 	bool result;
 
 	if ( fileSystem->ReadFile( filename, ( void ** )&src, NULL ) < 0 ) {
-		gameLocal.Error( "Couldn't load %s\n", filename );
+		GameLocal()->Error( "Couldn't load %s\n", filename );
 	}
 
 	result = CompileText( filename, src, false );
@@ -1852,7 +1852,7 @@ void idProgram::CompileFile( const char *filename ) {
 	}
 
 	if ( !result ) {
-		gameLocal.Error( "Compile failed in file %s.", filename );
+		GameLocal()->Error( "Compile failed in file %s.", filename );
 	}
 }
 
@@ -1906,7 +1906,7 @@ idProgram::Startup
 ================
 */
 void idProgram::Startup( const char *defaultScript ) {
-	gameLocal.Printf( "Initializing scripts\n" );
+	GameLocal()->Printf( "Initializing scripts\n" );
 
 	// make sure all data is freed up
 	idThread::Restart();
@@ -2081,7 +2081,7 @@ void idProgram::Restart( void ) {
 	statements.SetNum( top_statements );
 	fileList.SetNum( top_files, false );
 	filename.Clear();
-	
+
 	// reset the variables to their default values
 	numVariables = variableDefaults.Num();
 	for( i = 0; i < numVariables; i++ ) {

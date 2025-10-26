@@ -2,9 +2,9 @@
 ===========================================================================
 
 Doom 3 GPL Source Code
-Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company. 
+Copyright (C) 1999-2011 id Software LLC, a ZeniMax Media company.
 
-This file is part of the Doom 3 GPL Source Code (?Doom 3 Source Code?).  
+This file is part of the Doom 3 GPL Source Code ("Doom 3 Source Code").
 
 Doom 3 Source Code is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../idlib/precompiled.h"
+#include "precompiled.h"
 #pragma hdrstop
 
 #include "tr_local.h"
@@ -67,7 +67,7 @@ idCVar idImageManager::image_downSizeBump( "image_downSizeBump", "0", CVAR_RENDE
 idCVar idImageManager::image_downSizeSpecularLimit( "image_downSizeSpecularLimit", "64", CVAR_RENDERER | CVAR_ARCHIVE, "controls specular downsampled limit" );
 idCVar idImageManager::image_downSizeBumpLimit( "image_downSizeBumpLimit", "128", CVAR_RENDERER | CVAR_ARCHIVE, "controls normal map downsample limit" );
 idCVar idImageManager::image_ignoreHighQuality( "image_ignoreHighQuality", "0", CVAR_RENDERER | CVAR_ARCHIVE, "ignore high quality setting on materials" );
-idCVar idImageManager::image_downSizeLimit( "image_downSizeLimit", "256", CVAR_RENDERER | CVAR_ARCHIVE, "controls diffuse map downsample limit" ); 
+idCVar idImageManager::image_downSizeLimit( "image_downSizeLimit", "256", CVAR_RENDERER | CVAR_ARCHIVE, "controls diffuse map downsample limit" );
 // do this with a pointer, in case we want to make the actual manager
 // a private virtual subclass
 idImageManager	imageManager;
@@ -134,13 +134,13 @@ static void R_RampImage( idImage *image ) {
 	byte	data[256][4];
 
 	for (x=0 ; x<256 ; x++) {
-		data[x][0] = 
-		data[x][1] = 
-		data[x][2] = 
-		data[x][3] = x;			
+		data[x][0] =
+		data[x][1] =
+		data[x][2] =
+		data[x][3] = x;
 	}
 
-	image->GenerateImage( (byte *)data, 256, 1, 
+	image->GenerateImage( (byte *)data, 256, 1,
 		TF_NEAREST, false, TR_CLAMP, TD_HIGH_QUALITY );
 }
 
@@ -170,51 +170,15 @@ static void R_SpecularTableImage( idImage *image ) {
 #endif
 		int		b = (int)(f * 255);
 
-		data[x][0] = 
-		data[x][1] = 
-		data[x][2] = 
+		data[x][0] =
+		data[x][1] =
+		data[x][2] =
 		data[x][3] = b;
 	}
 
-	image->GenerateImage( (byte *)data, 256, 1, 
+	image->GenerateImage( (byte *)data, 256, 1,
 		TF_LINEAR, false, TR_CLAMP, TD_HIGH_QUALITY );
 }
-
-
-/*
-================
-R_Specular2DTableImage
-
-Create a 2D table that calculates ( reflection dot , specularity )
-================
-*/
-static void R_Specular2DTableImage( idImage *image ) {
-	int		x, y;
-	byte	data[256][256][4];
-
-	memset( data, 0, sizeof( data ) );
-		for ( x = 0 ; x < 256 ; x++ ) {
-			float f = x / 255.0f;
-		for ( y = 0; y < 256; y++ ) {
-
-			int b = (int)( pow( f, y ) * 255.0f );
-			if ( b == 0 ) {
-				// as soon as b equals zero all remaining values in this column are going to be zero
-				// we early out to avoid pow() underflows
-				break;
-			}
-
-			data[y][x][0] = 
-			data[y][x][1] = 
-			data[y][x][2] = 
-			data[y][x][3] = b;
-		}
-	}
-
-	image->GenerateImage( (byte *)data, 256, 256, TF_LINEAR, false, TR_CLAMP, TD_HIGH_QUALITY );
-}
-
-
 
 /*
 ================
@@ -228,13 +192,13 @@ static void R_AlphaRampImage( idImage *image ) {
 	byte	data[256][4];
 
 	for (x=0 ; x<256 ; x++) {
-		data[x][0] = 
-		data[x][1] = 
+		data[x][0] =
+		data[x][1] =
 		data[x][2] = 255;
-		data[x][3] = x;			
+		data[x][3] = x;
 	}
 
-	image->GenerateImage( (byte *)data, 256, 1, 
+	image->GenerateImage( (byte *)data, 256, 1,
 		TF_NEAREST, false, TR_CLAMP, TD_HIGH_QUALITY );
 }
 
@@ -297,8 +261,8 @@ void idImage::MakeDefault() {
 		}
 	}
 
-	GenerateImage( (byte *)data, 
-		DEFAULT_SIZE, DEFAULT_SIZE, 
+	GenerateImage( (byte *)data,
+		DEFAULT_SIZE, DEFAULT_SIZE,
 		TF_DEFAULT, true, TR_REPEAT, TD_DEFAULT );
 
 	defaulted = true;
@@ -313,7 +277,7 @@ static void R_WhiteImage( idImage *image ) {
 
 	// solid white texture
 	memset( data, 255, sizeof( data ) );
-	image->GenerateImage( (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, 
+	image->GenerateImage( (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE,
 		TF_DEFAULT, false, TR_REPEAT, TD_DEFAULT );
 }
 
@@ -322,7 +286,7 @@ static void R_BlackImage( idImage *image ) {
 
 	// solid black texture
 	memset( data, 0, sizeof( data ) );
-	image->GenerateImage( (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, 
+	image->GenerateImage( (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE,
 		TF_DEFAULT, false, TR_REPEAT, TD_DEFAULT );
 }
 
@@ -335,38 +299,38 @@ static void R_BorderClampImage( idImage *image ) {
 	// solid white texture with a single pixel black border
 	memset( data, 255, sizeof( data ) );
 	for ( int i = 0 ; i < BORDER_CLAMP_SIZE ; i++ ) {
-		data[i][0][0] = 
-		data[i][0][1] = 
-		data[i][0][2] = 
-		data[i][0][3] = 
+		data[i][0][0] =
+		data[i][0][1] =
+		data[i][0][2] =
+		data[i][0][3] =
 
-		data[i][BORDER_CLAMP_SIZE-1][0] = 
-		data[i][BORDER_CLAMP_SIZE-1][1] = 
-		data[i][BORDER_CLAMP_SIZE-1][2] = 
-		data[i][BORDER_CLAMP_SIZE-1][3] = 
+		data[i][BORDER_CLAMP_SIZE-1][0] =
+		data[i][BORDER_CLAMP_SIZE-1][1] =
+		data[i][BORDER_CLAMP_SIZE-1][2] =
+		data[i][BORDER_CLAMP_SIZE-1][3] =
 
-		data[0][i][0] = 
-		data[0][i][1] = 
-		data[0][i][2] = 
-		data[0][i][3] = 
+		data[0][i][0] =
+		data[0][i][1] =
+		data[0][i][2] =
+		data[0][i][3] =
 
-		data[BORDER_CLAMP_SIZE-1][i][0] = 
-		data[BORDER_CLAMP_SIZE-1][i][1] = 
-		data[BORDER_CLAMP_SIZE-1][i][2] = 
+		data[BORDER_CLAMP_SIZE-1][i][0] =
+		data[BORDER_CLAMP_SIZE-1][i][1] =
+		data[BORDER_CLAMP_SIZE-1][i][2] =
 		data[BORDER_CLAMP_SIZE-1][i][3] = 0;
 	}
 
-	image->GenerateImage( (byte *)data, BORDER_CLAMP_SIZE, BORDER_CLAMP_SIZE, 
+	image->GenerateImage( (byte *)data, BORDER_CLAMP_SIZE, BORDER_CLAMP_SIZE,
 		TF_LINEAR /* TF_NEAREST */, false, TR_CLAMP_TO_BORDER, TD_DEFAULT );
 
 	if ( !glConfig.isInitialized ) {
-		// can't call qglTexParameterfv yet
+		// can't call glTexParameterfv yet
 		return;
 	}
 	// explicit zero border
 	float	color[4];
 	color[0] = color[1] = color[2] = color[3] = 0;
-	qglTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, color );
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, color );
 }
 
 static void R_RGBA8Image( idImage *image ) {
@@ -378,7 +342,7 @@ static void R_RGBA8Image( idImage *image ) {
 	data[0][0][2] = 48;
 	data[0][0][3] = 96;
 
-	image->GenerateImage( (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, 
+	image->GenerateImage( (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE,
 		TF_DEFAULT, false, TR_REPEAT, TD_HIGH_QUALITY );
 }
 
@@ -391,7 +355,7 @@ static void R_RGB8Image( idImage *image ) {
 	data[0][0][2] = 48;
 	data[0][0][3] = 255;
 
-	image->GenerateImage( (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, 
+	image->GenerateImage( (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE,
 		TF_DEFAULT, false, TR_REPEAT, TD_HIGH_QUALITY );
 }
 
@@ -405,7 +369,7 @@ static void R_AlphaNotchImage( idImage *image ) {
 	data[1][0] = data[1][1] = data[1][2] = 255;
 	data[1][3] = 255;
 
-	image->GenerateImage( (byte *)data, 2, 1, 
+	image->GenerateImage( (byte *)data, 2, 1,
 		TF_NEAREST, false, TR_CLAMP, TD_HIGH_QUALITY );
 }
 
@@ -422,7 +386,7 @@ static void R_FlatNormalImage( idImage *image ) {
 		data[0][i][2] = 255;
 		data[0][i][alpha] = 255;
 	}
-	image->GenerateImage( (byte *)data, 2, 2, 
+	image->GenerateImage( (byte *)data, 2, 2,
 		TF_DEFAULT, true, TR_REPEAT, TD_HIGH_QUALITY );
 }
 
@@ -538,8 +502,8 @@ void CreatePitFogImage( void ) {
 #if 0
 		if ( i > 14 ) {
 			a = 0;
-		} else 
-#endif		
+		} else
+#endif
 		{
 			a = i * 255 / 15;
 			if ( a > 255 ) {
@@ -669,7 +633,7 @@ static void makeNormalizeVectorCubeMap( idImage *image ) {
 	}
 
 	image->GenerateCubeImage( (const byte **)pixels, size,
-						   TF_LINEAR, false, TD_HIGH_QUALITY ); 
+						   TF_LINEAR, false, TD_HIGH_QUALITY );
 
 	Mem_Free(pixels[0]);
 }
@@ -729,7 +693,7 @@ for ( i = 0 ; i < 256 ; i++ ) {
 		for (y=0 ; y<FOG_SIZE ; y++) {
 			float	d;
 
-			d = idMath::Sqrt( (x - FOG_SIZE/2) * (x - FOG_SIZE/2) 
+			d = idMath::Sqrt( (x - FOG_SIZE/2) * (x - FOG_SIZE/2)
 				+ (y - FOG_SIZE/2) * (y - FOG_SIZE / 2) );
 			d /= FOG_SIZE/2-1;
 
@@ -750,7 +714,7 @@ b = (byte)(255 * ( 1.0 - step[b] ));
 		}
 	}
 
-	image->GenerateImage( (byte *)data, FOG_SIZE, FOG_SIZE, 
+	image->GenerateImage( (byte *)data, FOG_SIZE, FOG_SIZE,
 		TF_LINEAR, false, TR_CLAMP, TD_HIGH_QUALITY );
 }
 
@@ -858,7 +822,7 @@ void R_FogEnterImage( idImage *image ) {
 	}
 
 	// if mipmapped, acutely viewed surfaces fade wrong
-	image->GenerateImage( (byte *)data, FOG_ENTER_SIZE, FOG_ENTER_SIZE, 
+	image->GenerateImage( (byte *)data, FOG_ENTER_SIZE, FOG_ENTER_SIZE,
 		TF_LINEAR, false, TR_CLAMP, TD_HIGH_QUALITY );
 }
 
@@ -886,7 +850,7 @@ void R_QuadraticImage( idImage *image ) {
 			d = idMath::Fabs( d );
 			d -= 0.5;
 			d /= QUADRATIC_WIDTH/2;
-		
+
 			d = 1.0 - d;
 			d = d * d;
 
@@ -903,7 +867,7 @@ void R_QuadraticImage( idImage *image ) {
 		}
 	}
 
-	image->GenerateImage( (byte *)data, QUADRATIC_WIDTH, QUADRATIC_HEIGHT, 
+	image->GenerateImage( (byte *)data, QUADRATIC_WIDTH, QUADRATIC_HEIGHT,
 		TF_DEFAULT, false, TR_CLAMP, TD_HIGH_QUALITY );
 }
 
@@ -992,14 +956,14 @@ static filterName_t textureFilters[] = {
 		}
 		glt->Bind();
 		if ( glt->filter == TF_DEFAULT ) {
-			qglTexParameterf(texEnum, GL_TEXTURE_MIN_FILTER, globalImages->textureMinFilter );
-			qglTexParameterf(texEnum, GL_TEXTURE_MAG_FILTER, globalImages->textureMaxFilter );
+			glTexParameterf(texEnum, GL_TEXTURE_MIN_FILTER, globalImages->textureMinFilter );
+			glTexParameterf(texEnum, GL_TEXTURE_MAG_FILTER, globalImages->textureMaxFilter );
 		}
 		if ( glConfig.anisotropicAvailable ) {
-			qglTexParameterf(texEnum, GL_TEXTURE_MAX_ANISOTROPY_EXT, globalImages->textureAnisotropy );
-		}	
+			glTexParameterf(texEnum, GL_TEXTURE_MAX_ANISOTROPY_EXT, globalImages->textureAnisotropy );
+		}
 		if ( glConfig.textureLODBiasAvailable ) {
-			qglTexParameterf(texEnum, GL_TEXTURE_LOD_BIAS_EXT, globalImages->textureLODBias );
+			glTexParameterf(texEnum, GL_TEXTURE_LOD_BIAS_EXT, globalImages->textureLODBias );
 		}
 	}
 }
@@ -1246,7 +1210,7 @@ void R_ListImages_f( const idCmdArgs &args ) {
 			sortedArray[i].image->Print();
 			partialSize += sortedArray[i].image->StorageSize();
 			if ( ( (i+1) % 10 ) == 0 ) {
-				common->Printf( "-------- %5.1f of %5.1f megs --------\n", 
+				common->Printf( "-------- %5.1f of %5.1f megs --------\n",
 					partialSize / (1024*1024.0), totalSize / (1024*1024.0) );
 			}
 		}
@@ -1383,14 +1347,14 @@ void idImageManager::SetNormalPalette( void ) {
 		return;
 	}
 
-	qglColorTableEXT( GL_SHARED_TEXTURE_PALETTE_EXT,
+	glColorTableEXT( GL_SHARED_TEXTURE_PALETTE_EXT,
 					   GL_RGB,
 					   256,
 					   GL_RGB,
 					   GL_UNSIGNED_BYTE,
 					   temptable );
 
-	qglEnable( GL_SHARED_TEXTURE_PALETTE_EXT );
+	glEnable( GL_SHARED_TEXTURE_PALETTE_EXT );
 }
 
 /*
@@ -1573,7 +1537,7 @@ idImage	*idImageManager::ImageFromFile( const char *_name, textureFilter_t filte
 	image->type = TT_2D;
 	image->cubeFiles = cubeMap;
 	image->filter = filter;
-	
+
 	image->levelLoadReferenced = true;
 
 	// also create a shrunken version if we are going to dynamically cache the full size image
@@ -1922,11 +1886,11 @@ void idImageManager::BindNull() {
 
 	RB_LogComment( "BindNull()\n" );
 	if ( tmu->textureType == TT_CUBIC ) {
-		qglDisable( GL_TEXTURE_CUBE_MAP_EXT );
+		glDisable( GL_TEXTURE_CUBE_MAP_EXT );
 	} else if ( tmu->textureType == TT_3D ) {
-		qglDisable( GL_TEXTURE_3D );
+		glDisable( GL_TEXTURE_3D );
 	} else if ( tmu->textureType == TT_2D ) {
-		qglDisable( GL_TEXTURE_2D );
+		glDisable( GL_TEXTURE_2D );
 	}
 	tmu->textureType = TT_DISABLED;
 }
@@ -1957,7 +1921,6 @@ void idImageManager::Init() {
 	flatNormalMap = ImageFromFunction( "_flat", R_FlatNormalImage );
 	ambientNormalMap = ImageFromFunction( "_ambient", R_AmbientNormalImage );
 	specularTableImage = ImageFromFunction( "_specularTable", R_SpecularTableImage );
-	specular2DTableImage = ImageFromFunction( "_specular2DTable", R_Specular2DTableImage );
 	rampImage = ImageFromFunction( "_ramp", R_RampImage );
 	alphaRampImage = ImageFromFunction( "_alphaRamp", R_RampImage );
 	alphaNotchImage = ImageFromFunction( "_alphaNotch", R_AlphaNotchImage );
