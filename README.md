@@ -6,7 +6,7 @@
 
 * **Engine-Faithful** — Preserves Doom 3’s original limits for authentic behavior.
 * **Simple** — No excess; just the essentials for indie projects.
-* **Transparent** — Clean structure, readable code, and reproducible builds.
+* **Transparent** — Clean structure, readable code, and modularity.
 
 * * *
 
