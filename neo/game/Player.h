@@ -120,6 +120,8 @@ typedef struct {
 	idVec3	pos;
 } aasLocation_t;
 
+#include "Inventory.h"
+
 class idPlayer : public idActor {
 public:
 	enum {

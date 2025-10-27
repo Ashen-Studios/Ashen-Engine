@@ -697,6 +697,7 @@ public:
 #include "SmokeParticles.h"
 
 #include "Entity.h"
+#include "AnimatedEntity.h"
 #include "Game_Edit.h"
 #include "AF.h"
 #include "IK.h"
@@ -708,7 +709,6 @@ public:
 #include "Light.h"
 #include "WorldSpawn.h"
 #include "Item.h"
-#include "Inventory.h"
 #include "PlayerView.h"
 #include "PlayerIcon.h"
 #include "Player.h"
