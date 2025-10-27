@@ -1045,26 +1045,20 @@ static void RB_T_Shadow( const drawSurf_t *surf ) {
 		return;
 	}
 
-	// patent-free work around
+	// patented depth-fail stencil shadows
 	if ( !external ) {
-		// "preload" the stencil buffer with the number of volumes
-		// that get clipped by the near or far clip plane
-		glStencilOp( GL_KEEP, tr.stencilDecr, tr.stencilDecr );
-		GL_Cull( CT_FRONT_SIDED );
+		// depth-fail stencil shadows
+		glStencilOpSeparate( backEnd.viewDef->isMirror ? GL_FRONT : GL_BACK, GL_KEEP, tr.stencilDecr, GL_KEEP );
+		glStencilOpSeparate( backEnd.viewDef->isMirror ? GL_BACK : GL_FRONT, GL_KEEP, tr.stencilIncr, GL_KEEP );
+		GL_Cull( CT_TWO_SIDED );
 		RB_DrawShadowElementsWithCounters( tri, numIndexes );
-		glStencilOp( GL_KEEP, tr.stencilIncr, tr.stencilIncr );
-		GL_Cull( CT_BACK_SIDED );
+	} else {
+		// traditional depth-pass stencil shadows
+		glStencilOpSeparate( backEnd.viewDef->isMirror ? GL_FRONT : GL_BACK, GL_KEEP, GL_KEEP, tr.stencilIncr );
+		glStencilOpSeparate( backEnd.viewDef->isMirror ? GL_BACK : GL_FRONT, GL_KEEP, GL_KEEP, tr.stencilDecr );
+		GL_Cull( CT_TWO_SIDED );
 		RB_DrawShadowElementsWithCounters( tri, numIndexes );
 	}
-
-	// traditional depth-pass stencil shadows
-	glStencilOp( GL_KEEP, GL_KEEP, tr.stencilIncr );
-	GL_Cull( CT_FRONT_SIDED );
-	RB_DrawShadowElementsWithCounters( tri, numIndexes );
-
-	glStencilOp( GL_KEEP, GL_KEEP, tr.stencilDecr );
-	GL_Cull( CT_BACK_SIDED );
-	RB_DrawShadowElementsWithCounters( tri, numIndexes );
 }
 
 /*
@@ -1524,7 +1518,7 @@ void RB_STD_LightScale( void ) {
 	glMatrixMode( GL_PROJECTION );
 	glPushMatrix();
 	glLoadIdentity();
-    glOrtho( 0, 1, 0, 1, -1, 1 );
+	glOrtho( 0, 1, 0, 1, -1, 1 );
 
 	GL_State( GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_SRC_COLOR );
 	GL_Cull( CT_TWO_SIDED );	// so mirror views also get it
