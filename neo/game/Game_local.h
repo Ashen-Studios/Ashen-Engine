@@ -708,6 +708,7 @@ public:
 #include "Light.h"
 #include "WorldSpawn.h"
 #include "Item.h"
+#include "Inventory.h"
 #include "PlayerView.h"
 #include "PlayerIcon.h"
 #include "Player.h"
