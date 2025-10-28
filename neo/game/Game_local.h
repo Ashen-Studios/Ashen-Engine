@@ -61,8 +61,6 @@ class idLocationEntity;
 
 void gameError( const char *fmt, ... );
 
-#include "Game_Defines.h"
-
 #include "gamesys/Event.h"
 #include "gamesys/Class.h"
 #include "gamesys/SysCvar.h"
@@ -380,8 +378,6 @@ public:
 
 	idPlayer *				GetLocalPlayer() const;
 
-	void					SpreadLocations();
-	idLocationEntity *		LocationForPoint( const idVec3 &point );	// May return NULL
 	idEntity *				SelectInitialSpawnPoint( idPlayer *player );
 
 	void					SetPortalState( qhandle_t portal, int blockingBits );
@@ -407,8 +403,6 @@ private:
 
 	int						spawnCount;
 	int						mapSpawnCount;			// it's handy to know which entities are part of the map
-
-	idLocationEntity **		locationEntities;		// for location names, etc
 
 	idCamera *				camera;
 	const idMaterial *		globalMaterial;			// for overriding everything
@@ -450,14 +444,15 @@ private:
 
 	byte					lagometer[ LAGO_IMG_HEIGHT ][ LAGO_IMG_WIDTH ][ 4 ];
 
+protected:
 	void					Clear( void );
 							// returns true if the entity shouldn't be spawned at all in this game type or difficulty level
 	bool					InhibitEntitySpawn( idDict &spawnArgs );
 							// spawn entities from the map file
 	void					SpawnMapEntities( void );
 							// commons used by init, shutdown, and restart
-	void					MapPopulate( void );
-	void					MapClear( bool clearClients );
+	virtual void			MapPopulate( void );
+	virtual void			MapClear( bool clearClients );
 
 	pvsHandle_t				GetClientPVS( idPlayer *player, pvsType_t type );
 	void					SetupPlayerPVS( void );
@@ -502,6 +497,10 @@ private:
 	void					UpdateLagometer( int aheadOfServer, int dupeUsercmds );
 
 	void					GetMapLoadingGUI( char gui[ MAX_STRING_CHARS ] );
+
+	virtual void			ModSave( idSaveGame *saveGame ) {}
+	virtual void			ModRestore( idRestoreGame *restoreGame ) {}
+
 };
 
 /*

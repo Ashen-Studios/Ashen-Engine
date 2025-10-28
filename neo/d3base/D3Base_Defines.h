@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#ifndef __GAME_DEFINES_H__
-#define __GAME_DEFINES_H__
+#ifndef __D3BASE_DEFINES_H__
+#define __D3BASE_DEFINES_H__
 
 /*
 ===============================================================================
@@ -48,9 +48,6 @@ If you have questions concerning this license or the applicable additional terms
 #define LAGO_HEIGHT				44
 #define LAGO_MATERIAL			"textures/sfx/lagometer"
 #define LAGO_IMAGE				"textures/sfx/lagometer.tga"
-
-#define TIME_GROUP1				0
-#define TIME_GROUP2				1
 
 // if set to 1 the server sends the client PVS with snapshots and the client compares against what it sees
 #ifndef ASYNC_WRITE_PVS
@@ -151,4 +148,4 @@ typedef enum {
 
 #define CINEMATIC_SKIP_DELAY		SEC2MS( 2.0f )
 
-#endif /* !__GAME_DEFINES_H__ */
+#endif /* !__D3BASE_DEFINES_H__ */

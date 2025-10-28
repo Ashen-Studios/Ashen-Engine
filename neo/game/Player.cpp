@@ -3458,25 +3458,6 @@ bool idPlayer::Collide( const trace_t &collision, const idVec3 &velocity ) {
 	return false;
 }
 
-
-/*
-================
-idPlayer::UpdateLocation
-
-Searches nearby locations
-================
-*/
-void idPlayer::UpdateLocation( void ) {
-	if ( hud ) {
-		idLocationEntity *locationEntity = GameLocal()->LocationForPoint( GetEyePosition() );
-		if ( locationEntity ) {
-			hud->SetStateString( "location", locationEntity->GetLocation() );
-		} else {
-			hud->SetStateString( "location", common->GetLanguageDict()->GetString( "#str_02911" ) );
-		}
-	}
-}
-
 /*
 ================
 idPlayer::ClearFocus
@@ -5467,8 +5448,6 @@ void idPlayer::Think( void ) {
 
 		// update GUIs, Items, and character interactions
 		UpdateFocus();
-
-		UpdateLocation();
 
 		// update player script
 		UpdateScript();

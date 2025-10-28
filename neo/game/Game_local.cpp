@@ -157,16 +157,6 @@ void TestGameAPI( void ) {
 
 /*
 ===========
-idGame::CreateInstance
-============
-*/
-idGame * CreateInstance( void ) {
-	gameLocal = new idGameLocal();
-	return gameLocal;
-}
-
-/*
-===========
 idGameLocal::idGameLocal
 ============
 */
@@ -180,11 +170,9 @@ idGameLocal::Clear
 ============
 */
 void idGameLocal::Clear( void ) {
-	int i;
-
 	serverInfo.Clear();
 	numClients = 0;
-	for ( i = 0; i < MAX_CLIENTS; i++ ) {
+	for ( int i = 0; i < MAX_CLIENTS; i++ ) {
 		userInfo[i].Clear();
 		persistentPlayerInfo[i].Clear();
 	}
@@ -208,7 +196,6 @@ void idGameLocal::Clear( void ) {
 	clip.Shutdown();
 	pvs.Shutdown();
 	sessionCommand.Clear();
-	locationEntities = NULL;
 	smokeParticles = NULL;
 	editEntities = NULL;
 	entityHash.Clear( 1024, MAX_GENTITIES );
@@ -290,10 +277,6 @@ void idGameLocal::Init( void ) {
 
 #endif
 
-	Printf( "--------- Initializing Game ----------\n" );
-	Printf( "gamename: %s\n", GAME_VERSION );
-	Printf( "gamedate: %s\n", __DATE__ );
-
 	// register game specific decl types
 	declManager->RegisterDeclType( "model",				DECL_MODELDEF,		idDeclAllocator<idDeclModelDef> );
 	declManager->RegisterDeclType( "export",			DECL_MODELEXPORT,	idDeclAllocator<idDecl> );
@@ -303,7 +286,6 @@ void idGameLocal::Init( void ) {
 	declManager->RegisterDeclFolder( "fx",				".fx",				DECL_FX );
 	declManager->RegisterDeclFolder( "particles",		".prt",				DECL_PARTICLE );
 	declManager->RegisterDeclFolder( "af",				".af",				DECL_AF );
-	declManager->RegisterDeclFolder( "newpdas",			".pda",				DECL_PDA );
 
 	cmdSystem->AddCommand( "listModelDefs", idListDecls_f<DECL_MODELDEF>, CMD_FL_SYSTEM|CMD_FL_GAME, "lists model defs" );
 	cmdSystem->AddCommand( "printModelDefs", idPrintDecls_f<DECL_MODELDEF>, CMD_FL_SYSTEM|CMD_FL_GAME, "prints a model def", idCmdSystem::ArgCompletion_Decl<DECL_MODELDEF> );
@@ -370,9 +352,6 @@ void idGameLocal::Shutdown( void ) {
 	idModelExport::Shutdown();
 
 	idEvent::Shutdown();
-
-	delete[] locationEntities;
-	locationEntities = NULL;
 
 	delete smokeParticles;
 	smokeParticles = NULL;
@@ -551,15 +530,6 @@ void idGameLocal::SaveGame( idFile *f ) {
 	savegame.WriteBool( mapCycleLoaded );
 	savegame.WriteInt( spawnCount );
 
-	if ( !locationEntities ) {
-		savegame.WriteInt( 0 );
-	} else {
-		savegame.WriteInt( gameRenderWorld->NumAreas() );
-		for( i = 0; i < gameRenderWorld->NumAreas(); i++ ) {
-			savegame.WriteObject( locationEntities[ i ] );
-		}
-	}
-
 	savegame.WriteObject( camera );
 
 	savegame.WriteMaterial( globalMaterial );
@@ -587,6 +557,10 @@ void idGameLocal::SaveGame( idFile *f ) {
 	// newInfo
 	// makingBuild
 	// shakeSounds
+
+	// Give a chance to mods to save some information
+	// (this does not play nice with C++ Inherence so we do this nasty hack
+	ModSave( &savegame );
 
 	// write out pending events
 	idEvent::Save( &savegame );
@@ -1153,9 +1127,6 @@ void idGameLocal::MapPopulate( void ) {
 	// parse the key/value pairs and spawn entities
 	SpawnMapEntities();
 
-	// mark location entities in all connected areas
-	SpreadLocations();
-
 	// prepare the list of randomized initial spawn spots
 	RandomizeInitialSpawns();
 
@@ -1372,18 +1343,6 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 	savegame.ReadBool( mapCycleLoaded );
 	savegame.ReadInt( spawnCount );
 
-	savegame.ReadInt( num );
-	if ( num ) {
-		if ( num != gameRenderWorld->NumAreas() ) {
-			savegame.Error( "idGameLocal::InitFromSaveGame: number of areas in map differs from save game." );
-		}
-
-		locationEntities = new idLocationEntity *[ num ];
-		for( i = 0; i < num; i++ ) {
-			savegame.ReadObject( reinterpret_cast<idClass *&>( locationEntities[ i ] ) );
-		}
-	}
-
 	savegame.ReadObject( reinterpret_cast<idClass *&>( camera ) );
 
 	savegame.ReadMaterial( globalMaterial );
@@ -1412,6 +1371,10 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 	// makingBuild
 	// shakeSounds
 
+	// Give a chance to mods to restore some information
+	// (this does not play nice with C++ Inherence so we do this nasty hack
+	ModRestore( &savegame );
+
 	// Read out pending events
 	idEvent::Restore( &savegame );
 
@@ -1437,9 +1400,7 @@ idGameLocal::MapClear
 ===========
 */
 void idGameLocal::MapClear( bool clearClients ) {
-	int i;
-
-	for( i = ( clearClients ? 0 : MAX_CLIENTS ); i < MAX_GENTITIES; i++ ) {
+	for( int i = ( clearClients ? 0 : MAX_CLIENTS ); i < MAX_GENTITIES; i++ ) {
 		delete entities[ i ];
 		// ~idEntity is in charge of setting the pointer to NULL
 		// it will also clear pending events for this entity
@@ -1451,7 +1412,7 @@ void idGameLocal::MapClear( bool clearClients ) {
 
 	if ( !clearClients ) {
 		// add back the hashes of the clients
-		for ( i = 0; i < MAX_CLIENTS; i++ ) {
+		for ( int i = 0; i < MAX_CLIENTS; i++ ) {
 			if ( !entities[ i ] ) {
 				continue;
 			}
@@ -1466,9 +1427,6 @@ void idGameLocal::MapClear( bool clearClients ) {
 		delete editEntities;
 		editEntities = NULL;
 	}
-
-	delete[] locationEntities;
-	locationEntities = NULL;
 }
 
 /*
@@ -3993,80 +3951,6 @@ bool idGameLocal::SkipCinematic( void ) {
 	}
 
 	return true;
-}
-
-
-/*
-======================
-idGameLocal::SpreadLocations
-
-Now that everything has been spawned, associate areas with location entities
-======================
-*/
-void idGameLocal::SpreadLocations() {
-	idEntity *ent;
-
-	// allocate the area table
-	int	numAreas = gameRenderWorld->NumAreas();
-	locationEntities = new idLocationEntity *[ numAreas ];
-	memset( locationEntities, 0, numAreas * sizeof( *locationEntities ) );
-
-	// for each location entity, make pointers from every area it touches
-	for( ent = spawnedEntities.Next(); ent != NULL; ent = ent->spawnNode.Next() ) {
-		if ( !ent->IsType( idLocationEntity::Type ) ) {
-			continue;
-		}
-		idVec3	point = ent->spawnArgs.GetVector( "origin" );
-		int areaNum = gameRenderWorld->PointInArea( point );
-		if ( areaNum < 0 ) {
-			Printf( "SpreadLocations: location '%s' is not in a valid area\n", ent->spawnArgs.GetString( "name" ) );
-			continue;
-		}
-		if ( areaNum >= numAreas ) {
-			Error( "idGameLocal::SpreadLocations: areaNum >= gameRenderWorld->NumAreas()" );
-		}
-		if ( locationEntities[areaNum] ) {
-			Warning( "location entity '%s' overlaps '%s'", ent->spawnArgs.GetString( "name" ),
-				locationEntities[areaNum]->spawnArgs.GetString( "name" ) );
-			continue;
-		}
-		locationEntities[areaNum] = static_cast<idLocationEntity *>(ent);
-
-		// spread to all other connected areas
-		for ( int i = 0 ; i < numAreas ; i++ ) {
-			if ( i == areaNum ) {
-				continue;
-			}
-			if ( gameRenderWorld->AreasAreConnected( areaNum, i, PS_BLOCK_LOCATION ) ) {
-				locationEntities[i] = static_cast<idLocationEntity *>(ent);
-			}
-		}
-	}
-}
-
-/*
-===================
-idGameLocal::LocationForPoint
-
-The player checks the location each frame to update the HUD text display
-May return NULL
-===================
-*/
-idLocationEntity *idGameLocal::LocationForPoint( const idVec3 &point ) {
-	if ( !locationEntities ) {
-		// before SpreadLocations() has been called
-		return NULL;
-	}
-
-	int areaNum = gameRenderWorld->PointInArea( point );
-	if ( areaNum < 0 ) {
-		return NULL;
-	}
-	if ( areaNum >= gameRenderWorld->NumAreas() ) {
-		Error( "idGameLocal::LocationForPoint: areaNum >= gameRenderWorld->NumAreas()" );
-	}
-
-	return locationEntities[ areaNum ];
 }
 
 /*

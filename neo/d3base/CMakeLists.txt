@@ -2,7 +2,9 @@ project(Game CXX)
 add_library(${PROJECT_NAME} SHARED)
 
 file( GLOB_RECURSE src_game
-	"${ENGINE_SOURCE}/game/*.def"
+	"${ENGINE_SOURCE}/d3base/*.def"
+	"${ENGINE_SOURCE}/d3base/*.cpp"
+	"${ENGINE_SOURCE}/d3base/*.h"
 	"${ENGINE_SOURCE}/game/*.cpp"
 	"${ENGINE_SOURCE}/game/*.h")
 list( REMOVE_ITEM src_game	"${ENGINE_SOURCE}/game/gamesys/Callbacks.cpp" )

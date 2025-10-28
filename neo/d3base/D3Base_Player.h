@@ -26,10 +26,30 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "precompiled.h"
-#include "../Game_local.h"
+#ifndef __D3BASE_PLAYER_H__
+#define __D3BASE_PLAYER_H__
 
+/*
+===============================================================================
 
-#if defined(ID_TYPEINFO)
-#include "TypeInfo_GenHelper.h"
-#endif
+	Player entity.
+
+===============================================================================
+*/
+
+class D3BasePlayer : public idPlayer {
+public:
+	CLASS_PROTOTYPE( D3BasePlayer );
+
+							D3BasePlayer();
+	virtual					~D3BasePlayer();
+
+	void					Spawn( void );
+	void					Think( void );
+
+private:
+	void					UpdateLocation( void );
+};
+
+#endif /* !__D3BASE_PLAYER_H__ */
+

@@ -668,18 +668,6 @@ void idEditEntities::DisplayEntities( void ) {
 idGameEditLocal *	gameEditLocal = NULL;
 idGameEdit *		gameEdit = NULL;
 
-
-/*
-===========
-idGameEditLocalCreateGameEditorInstance
-============
-*/
-idGameEdit * CreateGameEditorInstance( void ) {
-	gameEditLocal = new idGameEditLocal();
-	return gameEditLocal;
-}
-
-
 /*
 =============
 idGameEditLocalGetSelectedEntities

@@ -69,7 +69,7 @@ include_directories("${ENGINE_SOURCE}/libs/glew/include")
 add_subdirectory(neo/libs)
 add_subdirectory(neo/idlib)
 add_subdirectory(neo/TypeInfo)
-add_subdirectory(neo/game)
+add_subdirectory(neo/d3base)
 
 file( GLOB src_engine
 	"${ENGINE_SOURCE}/cm/*.cpp"

@@ -584,7 +584,6 @@ private:
 
 	void					ClearFocus( void );
 	void					UpdateFocus( void );
-	void					UpdateLocation( void );
 	idUserInterface *		ActiveGui( void );
 	void					UpdatePDAInfo( bool updatePDASel );
 	int						AddGuiPDAData( const declType_t dataType, const char *listName, const idDeclPDA *src, idUserInterface *gui );
