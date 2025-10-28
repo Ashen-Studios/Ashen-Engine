@@ -93,7 +93,7 @@ idCursor3D::Think
 */
 void idCursor3D::Think( void ) {
 	if ( thinkFlags & TH_THINK ) {
-		drag.Evaluate( GameLocal()->time );
+		drag.Evaluate( GameLocal()->GetTime() );
 	}
 	Present();
 }
@@ -269,7 +269,7 @@ void idDragEntity::Update( idPlayer *player ) {
 		idAnimator *dragAnimator = drag->GetAnimator();
 
 		if ( joint != INVALID_JOINT && renderEntity && dragAnimator ) {
-			dragAnimator->GetJointTransform( joint, GameLocal()->time, cursor->draggedPosition, axis );
+			dragAnimator->GetJointTransform( joint, GameLocal()->GetTime(), cursor->draggedPosition, axis );
 			cursor->draggedPosition = renderEntity->origin + cursor->draggedPosition * renderEntity->axis;
 			gameRenderWorld->DrawText( va( "%s\n%s\n%s, %s", drag->GetName(), drag->GetType()->classname, dragAnimator->GetJointName( joint ), bodyName.c_str() ), cursor->GetPhysics()->GetOrigin(), 0.1f, colorWhite, viewAxis, 1 );
 		} else {
@@ -428,10 +428,10 @@ bool idEditEntities::SelectEntity( const idVec3 &origin, const idVec3 &dir, cons
 		return false;
 	}
 
-	if ( GameLocal()->time < nextSelectTime ) {
+	if ( GameLocal()->GetTime() < nextSelectTime ) {
 		return true;
 	}
-	nextSelectTime = GameLocal()->time + 300;
+	nextSelectTime = GameLocal()->GetTime() + 300;
 
 	end = origin + dir * 4096.0f;
 
@@ -2109,7 +2109,7 @@ void idGameEditLocal::ParseSpawnArgsToRenderLight( const idDict *args, renderLig
 	args->GetFloat( "shaderParm3", "1", renderLight->shaderParms[ SHADERPARM_TIMESCALE ] );
 	if ( !args->GetFloat( "shaderParm4", "0", renderLight->shaderParms[ SHADERPARM_TIMEOFFSET ] ) ) {
 		// offset the start time of the shader to sync it to the game time
-		renderLight->shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->time );
+		renderLight->shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->GetTime() );
 	}
 
 	args->GetFloat( "shaderParm5", "0", renderLight->shaderParms[5] );

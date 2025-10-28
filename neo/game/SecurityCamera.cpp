@@ -374,7 +374,7 @@ void idSecurityCamera::Think( void ) {
 				float	sightTime;
 
 				SetAlertMode(ALERT);
-				stopSweeping = GameLocal()->time;
+				stopSweeping = GameLocal()->GetTime();
 				if (sweeping) {
 					CancelEvents( &EV_SecurityCam_Pause );
 				} else {
@@ -401,7 +401,7 @@ void idSecurityCamera::Think( void ) {
 			if ( sweeping ) {
 				idAngles a = GetPhysics()->GetAxis().ToAngles();
 
-				pct = ( GameLocal()->time - sweepStart ) / ( sweepEnd - sweepStart );
+				pct = ( GameLocal()->GetTime() - sweepStart ) / ( sweepEnd - sweepStart );
 				travel = pct * sweepAngle;
 				if ( negativeSweep ) {
 					a.yaw = angle + travel;
@@ -443,7 +443,7 @@ void idSecurityCamera::StartSweep( void ) {
 	int speed;
 
 	sweeping = true;
-	sweepStart = GameLocal()->time;
+	sweepStart = GameLocal()->GetTime();
 	speed = SEC2MS( SweepSpeed() );
 	sweepEnd = sweepStart + speed;
    	PostEventMS( &EV_SecurityCam_Pause, speed );
@@ -457,7 +457,7 @@ idSecurityCamera::Event_ContinueSweep
 */
 void idSecurityCamera::Event_ContinueSweep( void ) {
 	float pct = (stopSweeping - sweepStart) / (sweepEnd - sweepStart);
-	float f = GameLocal()->time - (sweepEnd - sweepStart) * pct;
+	float f = GameLocal()->GetTime() - (sweepEnd - sweepStart) * pct;
 	int speed;
 
 	sweepStart = f;

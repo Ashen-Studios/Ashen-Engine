@@ -187,7 +187,7 @@ void UpdateGuiParms( idUserInterface *gui, const idDict *args ) {
 		kv = args->MatchPrefix( "gui_parm", kv );
 	}
 	gui->SetStateBool( "noninteractive",  args->GetBool( "gui_noninteractive" ) ) ;
-	gui->StateChanged( GameLocal()->time );
+	gui->StateChanged( GameLocal()->GetTime() );
 }
 
 /*
@@ -308,7 +308,7 @@ void idEntity::Spawn( void ) {
 	renderEntity.entityNum = entityNumber;
 
 	// go dormant within 5 frames so that when the map starts most monsters are dormant
-	dormantStart = GameLocal()->time - DELAY_DORMANT_TIME + GameLocal()->msec * 5;
+	dormantStart = GameLocal()->GetTime() - DELAY_DORMANT_TIME + GameLocal()->GetMSec() * 5;
 
 	origin = renderEntity.origin;
 	axis = renderEntity.axis;
@@ -683,9 +683,9 @@ bool idEntity::DoDormantTests( void ) {
 	// if the monster area is not topologically connected to a player
 	if ( !GameLocal()->InPlayerConnectedArea( this ) ) {
 		if ( dormantStart == 0 ) {
-			dormantStart = GameLocal()->time;
+			dormantStart = GameLocal()->GetTime();
 		}
-		if ( GameLocal()->time - dormantStart < DELAY_DORMANT_TIME ) {
+		if ( GameLocal()->GetTime() - dormantStart < DELAY_DORMANT_TIME ) {
 			// just got closed off, don't go dormant yet
 			return false;
 		}
@@ -1282,7 +1282,7 @@ bool idEntity::UpdateRenderEntity( renderEntity_s *renderEntity, const renderVie
 
 	idAnimator *animator = GetAnimator();
 	if ( animator ) {
-		return animator->CreateFrame( GameLocal()->time, false );
+		return animator->CreateFrame( GameLocal()->GetTime(), false );
 	}
 
 	return false;
@@ -1342,7 +1342,7 @@ renderView_t *idEntity::GetRenderView( void ) {
 
 	renderView->globalMaterial = GameLocal()->GetGlobalMaterial();
 
-	renderView->time = GameLocal()->time;
+	renderView->time = GameLocal()->GetTime();
 
 	return renderView;
 }
@@ -2074,7 +2074,7 @@ bool idEntity::GetMasterPosition( idVec3 &masterOrigin, idMat3 &masterAxis ) con
 				masterAxis = mat3_identity;
 				return false;
 			} else {
-				masterAnimator->GetJointTransform( bindJoint, GameLocal()->time, masterOrigin, masterAxis );
+				masterAnimator->GetJointTransform( bindJoint, GameLocal()->GetTime(), masterOrigin, masterAxis );
 				masterAxis *= bindMaster->renderEntity.axis;
 				masterOrigin = bindMaster->renderEntity.origin + masterOrigin * bindMaster->renderEntity.axis;
 			}
@@ -2334,7 +2334,7 @@ void idEntity::SetPhysics( idPhysics *phys ) {
 	} else {
 		physics = &defaultPhysicsObj;
 	}
-	physics->UpdateTime( GameLocal()->time );
+	physics->UpdateTime( GameLocal()->GetTime() );
 	physics->SetMaster( bindMaster, fl.bindOrientated );
 }
 
@@ -2384,7 +2384,7 @@ bool idEntity::RunPhysics( void ) {
 	}
 
 	startTime = GameLocal()->previousTime;
-	endTime = GameLocal()->time;
+	endTime = GameLocal()->GetTime();
 
 	GameLocal()->push.InitSavingPushedEntityPositions();
 	blockedPart = NULL;
@@ -3161,7 +3161,7 @@ void idEntity::TriggerGuis( void ) {
 	int i;
 	for ( i = 0; i < MAX_RENDERENTITY_GUI; i++ ) {
 		if ( renderEntity.gui[ i ] ) {
-			renderEntity.gui[ i ]->Trigger( GameLocal()->time );
+			renderEntity.gui[ i ]->Trigger( GameLocal()->GetTime() );
 		}
 	}
 }
@@ -3399,7 +3399,7 @@ void idEntity::ActivateTargets( idEntity *activator ) const {
 		}
 		for ( j = 0; j < MAX_RENDERENTITY_GUI; j++ ) {
 			if ( ent->renderEntity.gui[ j ] ) {
-				ent->renderEntity.gui[ j ]->Trigger( GameLocal()->time );
+				ent->renderEntity.gui[ j ]->Trigger( GameLocal()->GetTime() );
 			}
 		}
 	}
@@ -3739,7 +3739,7 @@ void idEntity::Event_SpawnBind( void ) {
 					parent->UpdateModelTransform();
 
 					//FIXME: need a BindToJoint that accepts a joint position
-					parentAnimator->CreateFrame( GameLocal()->time, true );
+					parentAnimator->CreateFrame( GameLocal()->GetTime(), true );
 					idJointMat *frame = parent->renderEntity.joints;
 					GameEditLocal()->ANIM_CreateAnimFrame( parentAnimator->ModelHandle(), anim->MD5Anim( 0 ), parent->renderEntity.numJoints, frame, 0, parentAnimator->ModelDef()->GetVisualOffset(), parentAnimator->RemoveOrigin() );
 					BindToJoint( parent, joint, bindOrientated );
@@ -4089,7 +4089,7 @@ void idEntity::Event_SetGuiParm( const char *key, const char *val ) {
 				spawnArgs.Set( key, val );
 			}
 			renderEntity.gui[ i ]->SetStateString( key, val );
-			renderEntity.gui[ i ]->StateChanged( GameLocal()->time );
+			renderEntity.gui[ i ]->StateChanged( GameLocal()->GetTime() );
 		}
 	}
 }
@@ -4103,7 +4103,7 @@ void idEntity::Event_SetGuiFloat( const char *key, float f ) {
 	for ( int i = 0; i < MAX_RENDERENTITY_GUI; i++ ) {
 		if ( renderEntity.gui[ i ] ) {
 			renderEntity.gui[ i ]->SetStateString( key, va( "%f", f ) );
-			renderEntity.gui[ i ]->StateChanged( GameLocal()->time );
+			renderEntity.gui[ i ]->StateChanged( GameLocal()->GetTime() );
 		}
 	}
 }
@@ -4580,7 +4580,7 @@ void idEntity::ServerSendEvent( int eventId, const idBitMsg *msg, bool saveEvent
 	outMsg.WriteByte( GAME_RELIABLE_MESSAGE_EVENT );
 	outMsg.WriteBits( GameLocal()->GetSpawnId( this ), 32 );
 	outMsg.WriteByte( eventId );
-	outMsg.WriteLong( GameLocal()->time );
+	outMsg.WriteLong( GameLocal()->GetTime() );
 	if ( msg ) {
 		outMsg.WriteBits( msg->GetSize(), idMath::BitsForInteger( MAX_EVENT_PARAM_SIZE ) );
 		outMsg.WriteData( msg->GetData(), msg->GetSize() );
@@ -4622,7 +4622,7 @@ void idEntity::ClientSendEvent( int eventId, const idBitMsg *msg ) const {
 	outMsg.WriteByte( GAME_RELIABLE_MESSAGE_EVENT );
 	outMsg.WriteBits( GameLocal()->GetSpawnId( this ), 32 );
 	outMsg.WriteByte( eventId );
-	outMsg.WriteLong( GameLocal()->time );
+	outMsg.WriteLong( GameLocal()->GetTime() );
 	if ( msg ) {
 		outMsg.WriteBits( msg->GetSize(), idMath::BitsForInteger( MAX_EVENT_PARAM_SIZE ) );
 		outMsg.WriteData( msg->GetData(), msg->GetSize() );

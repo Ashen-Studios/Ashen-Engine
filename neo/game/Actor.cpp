@@ -167,7 +167,7 @@ void idAnimState::SetState( const char *statename, int blendFrames ) {
 	idleAnim = false;
 
 	if ( ai_debugScript.GetInteger() == self->entityNumber ) {
-		GameLocal()->Printf( "%d: %s: Animstate: %s\n", GameLocal()->time, self->name.c_str(), state.c_str() );
+		GameLocal()->Printf( "%d: %s: Animstate: %s\n", GameLocal()->GetTime(), self->name.c_str(), state.c_str() );
 	}
 }
 
@@ -178,7 +178,7 @@ idAnimState::StopAnim
 */
 void idAnimState::StopAnim( int frames ) {
 	animBlendFrames = 0;
-	animator->Clear( channel, GameLocal()->time, FRAME2MS( frames ) );
+	animator->Clear( channel, GameLocal()->GetTime(), FRAME2MS(frames));
 }
 
 /*
@@ -188,7 +188,7 @@ idAnimState::PlayAnim
 */
 void idAnimState::PlayAnim( int anim ) {
 	if ( anim ) {
-		animator->PlayAnim( channel, anim, GameLocal()->time, FRAME2MS( animBlendFrames ) );
+		animator->PlayAnim( channel, anim, GameLocal()->GetTime(), FRAME2MS( animBlendFrames ) );
 	}
 	animBlendFrames = 0;
 }
@@ -200,7 +200,7 @@ idAnimState::CycleAnim
 */
 void idAnimState::CycleAnim( int anim ) {
 	if ( anim ) {
-		animator->CycleAnim( channel, anim, GameLocal()->time, FRAME2MS( animBlendFrames ) );
+		animator->CycleAnim( channel, anim, GameLocal()->GetTime(), FRAME2MS( animBlendFrames ) );
 	}
 	animBlendFrames = 0;
 }
@@ -235,7 +235,7 @@ bool idAnimState::AnimDone( int blendFrames ) const {
 	if ( animDoneTime < 0 ) {
 		// playing a cycle
 		return false;
-	} else if ( animDoneTime - FRAME2MS( blendFrames ) <= GameLocal()->time ) {
+	} else if ( animDoneTime - FRAME2MS( blendFrames ) <= GameLocal()->GetTime() ) {
 		return true;
 	} else {
 		return false;
@@ -525,7 +525,7 @@ void idActor::Spawn( void ) {
 
 	// the animation used to be set to the IK_ANIM at this point, but that was fixed, resulting in
 	// attachments not binding correctly, so we're stuck setting the IK_ANIM before attaching things.
-	animator.ClearAllAnims( GameLocal()->time, 0 );
+	animator.ClearAllAnims( GameLocal()->GetTime(), 0 );
 	animator.SetFrame( ANIMCHANNEL_ALL, animator.GetAnim( IK_ANIM ), 0, 0, 0 );
 
 	// spawn any attachments we might have
@@ -554,7 +554,7 @@ void idActor::Spawn( void ) {
 	SetupHead();
 
 	// clear the bind anim
-	animator.ClearAllAnims( GameLocal()->time, 0 );
+	animator.ClearAllAnims( GameLocal()->GetTime(), 0 );
 
 	idEntity *headEnt = head.GetEntity();
 	idAnimator *headAnimator;
@@ -607,9 +607,9 @@ void idActor::Spawn( void ) {
 	int headAnim = headAnimator->GetAnim( "def_head" );
 	if ( headAnim ) {
 		if ( headEnt ) {
-            headAnimator->CycleAnim( ANIMCHANNEL_ALL, headAnim, GameLocal()->time, 0 );
+            headAnimator->CycleAnim( ANIMCHANNEL_ALL, headAnim, GameLocal()->GetTime(), 0 );
 		} else {
-			headAnimator->CycleAnim( ANIMCHANNEL_HEAD, headAnim, GameLocal()->time, 0 );
+			headAnimator->CycleAnim( ANIMCHANNEL_HEAD, headAnim, GameLocal()->GetTime(), 0 );
 		}
 	}
 
@@ -697,7 +697,7 @@ void idActor::SetupHead( void ) {
 		idMat3		axis;
 		idAttachInfo &attach = attachments.Alloc();
 		attach.channel = animator.GetChannelForJoint( joint );
-		animator.GetJointTransform( joint, GameLocal()->time, origin, axis );
+		animator.GetJointTransform( joint, GameLocal()->GetTime(), origin, axis );
 		origin = renderEntity.origin + ( origin + modelOffset ) * renderEntity.axis;
 		attach.ent = headEnt;
 		headEnt->SetOrigin( origin );
@@ -729,12 +729,12 @@ void idActor::CopyJointsFromBodyToHead( void ) {
 	for( i = 0; i < copyJoints.Num(); i++ ) {
 		if ( copyJoints[ i ].mod == JOINTMOD_WORLD_OVERRIDE ) {
 			mat = headEnt->GetPhysics()->GetAxis().Transpose();
-			GetJointWorldTransform( copyJoints[ i ].from, GameLocal()->time, pos, axis );
+			GetJointWorldTransform( copyJoints[ i ].from, GameLocal()->GetTime(), pos, axis );
 			pos -= headEnt->GetPhysics()->GetOrigin();
 			headAnimator->SetJointPos( copyJoints[ i ].to, copyJoints[ i ].mod, pos * mat );
 			headAnimator->SetJointAxis( copyJoints[ i ].to, copyJoints[ i ].mod, axis * mat );
 		} else {
-			animator.GetJointLocalTransform( copyJoints[ i ].from, GameLocal()->time, pos, axis );
+			animator.GetJointLocalTransform( copyJoints[ i ].from, GameLocal()->GetTime(), pos, axis );
 			headAnimator->SetJointPos( copyJoints[ i ].to, copyJoints[ i ].mod, pos );
 			headAnimator->SetJointAxis( copyJoints[ i ].to, copyJoints[ i ].mod, axis );
 		}
@@ -1078,7 +1078,7 @@ idActor::SetupBody
 void idActor::SetupBody( void ) {
 	const char *jointname;
 
-	animator.ClearAllAnims( GameLocal()->time, 0 );
+	animator.ClearAllAnims( GameLocal()->GetTime(), 0 );
 	animator.ClearAllJoints();
 
 	idEntity *headEnt = head.GetEntity();
@@ -1096,9 +1096,9 @@ void idActor::SetupBody( void ) {
 			if ( anim && ( leftEyeJoint != INVALID_JOINT ) ) {
 				idVec3 pos;
 				idMat3 axis;
-				headEnt->GetAnimator()->PlayAnim( ANIMCHANNEL_ALL, anim, GameLocal()->time, 0 );
-				headEnt->GetAnimator()->GetJointTransform( leftEyeJoint, GameLocal()->time, pos, axis );
-				headEnt->GetAnimator()->ClearAllAnims( GameLocal()->time, 0 );
+				headEnt->GetAnimator()->PlayAnim( ANIMCHANNEL_ALL, anim, GameLocal()->GetTime(), 0 );
+				headEnt->GetAnimator()->GetJointTransform( leftEyeJoint, GameLocal()->GetTime(), pos, axis );
+				headEnt->GetAnimator()->ClearAllAnims( GameLocal()->GetTime(), 0 );
 				headEnt->GetAnimator()->ForceUpdate();
 				pos += headEnt->GetPhysics()->GetOrigin() - GetPhysics()->GetOrigin();
 				eyeOffset = pos + modelOffset;
@@ -1122,9 +1122,9 @@ void idActor::SetupBody( void ) {
 			if ( anim && ( leftEyeJoint != INVALID_JOINT ) ) {
 				idVec3 pos;
 				idMat3 axis;
-				animator.PlayAnim( ANIMCHANNEL_ALL, anim, GameLocal()->time, 0 );
-				animator.GetJointTransform( leftEyeJoint, GameLocal()->time, pos, axis );
-				animator.ClearAllAnims( GameLocal()->time, 0 );
+				animator.PlayAnim( ANIMCHANNEL_ALL, anim, GameLocal()->GetTime(), 0 );
+				animator.GetJointTransform( leftEyeJoint, GameLocal()->GetTime(), pos, axis );
+				animator.ClearAllAnims( GameLocal()->GetTime(), 0 );
 				animator.ForceUpdate();
 				eyeOffset = pos + modelOffset;
 			} else {
@@ -1148,19 +1148,19 @@ idActor::CheckBlink
 */
 void idActor::CheckBlink( void ) {
 	// check if it's time to blink
-	if ( !blink_anim || ( health <= 0 ) || !allowEyeFocus || ( blink_time > GameLocal()->time ) ) {
+	if ( !blink_anim || ( health <= 0 ) || !allowEyeFocus || ( blink_time > GameLocal()->GetTime() ) ) {
 		return;
 	}
 
 	idEntity *headEnt = head.GetEntity();
 	if ( headEnt ) {
-		headEnt->GetAnimator()->PlayAnim( ANIMCHANNEL_EYELIDS, blink_anim, GameLocal()->time, 1 );
+		headEnt->GetAnimator()->PlayAnim( ANIMCHANNEL_EYELIDS, blink_anim, GameLocal()->GetTime(), 1 );
 	} else {
-		animator.PlayAnim( ANIMCHANNEL_EYELIDS, blink_anim, GameLocal()->time, 1 );
+		animator.PlayAnim( ANIMCHANNEL_EYELIDS, blink_anim, GameLocal()->GetTime(), 1 );
 	}
 
 	// set the next blink time
-	blink_time = GameLocal()->time + blink_min + GameLocal()->random.RandomFloat() * ( blink_max - blink_min );
+	blink_time = GameLocal()->GetTime() + blink_min + GameLocal()->random.RandomFloat() * ( blink_max - blink_min );
 }
 
 /*
@@ -1185,7 +1185,7 @@ idActor::GetPhysicsToSoundTransform
 */
 bool idActor::GetPhysicsToSoundTransform( idVec3 &origin, idMat3 &axis ) {
 	if ( soundJoint != INVALID_JOINT ) {
-		animator.GetJointTransform( soundJoint, GameLocal()->time, origin, axis );
+		animator.GetJointTransform( soundJoint, GameLocal()->GetTime(), origin, axis );
 		origin += modelOffset;
 		axis = viewAxis;
 	} else {
@@ -1299,7 +1299,7 @@ void idActor::SetState( const function_t *newState ) {
 	}
 
 	if ( ai_debugScript.GetInteger() == entityNumber ) {
-		GameLocal()->Printf( "%d: %s: State: %s\n", GameLocal()->time, name.c_str(), newState->Name() );
+		GameLocal()->Printf( "%d: %s: State: %s\n", GameLocal()->GetTime(), name.c_str(), newState->Name() );
 	}
 
 	state = newState;
@@ -1621,22 +1621,22 @@ bool idActor::StartRagdoll( void ) {
 	// start using the AF
 	af.StartFromCurrentPose( spawnArgs.GetInt( "velocityTime", "0" ) );
 
-	slomoStart = MS2SEC( GameLocal()->time ) + spawnArgs.GetFloat( "ragdoll_slomoStart", "-1.6" );
-	slomoEnd = MS2SEC( GameLocal()->time ) + spawnArgs.GetFloat( "ragdoll_slomoEnd", "0.8" );
+	slomoStart = MS2SEC( GameLocal()->GetTime() ) + spawnArgs.GetFloat( "ragdoll_slomoStart", "-1.6" );
+	slomoEnd = MS2SEC( GameLocal()->GetTime() ) + spawnArgs.GetFloat( "ragdoll_slomoEnd", "0.8" );
 
 	// do the first part of the death in slow motion
 	af.GetPhysics()->SetTimeScaleRamp( slomoStart, slomoEnd );
 
 	jointFrictionDent = spawnArgs.GetFloat( "ragdoll_jointFrictionDent", "0.1" );
-	jointFrictionDentStart = MS2SEC( GameLocal()->time ) + spawnArgs.GetFloat( "ragdoll_jointFrictionStart", "0.2" );
-	jointFrictionDentEnd = MS2SEC( GameLocal()->time ) + spawnArgs.GetFloat( "ragdoll_jointFrictionEnd", "1.2" );
+	jointFrictionDentStart = MS2SEC( GameLocal()->GetTime() ) + spawnArgs.GetFloat( "ragdoll_jointFrictionStart", "0.2" );
+	jointFrictionDentEnd = MS2SEC( GameLocal()->GetTime() ) + spawnArgs.GetFloat( "ragdoll_jointFrictionEnd", "1.2" );
 
 	// set joint friction dent
 	af.GetPhysics()->SetJointFrictionDent( jointFrictionDent, jointFrictionDentStart, jointFrictionDentEnd );
 
 	contactFrictionDent = spawnArgs.GetFloat( "ragdoll_contactFrictionDent", "0.1" );
-	contactFrictionDentStart = MS2SEC( GameLocal()->time ) + spawnArgs.GetFloat( "ragdoll_contactFrictionStart", "1.0" );
-	contactFrictionDentEnd = MS2SEC( GameLocal()->time ) + spawnArgs.GetFloat( "ragdoll_contactFrictionEnd", "2.0" );
+	contactFrictionDentStart = MS2SEC( GameLocal()->GetTime() ) + spawnArgs.GetFloat( "ragdoll_contactFrictionStart", "1.0" );
+	contactFrictionDentEnd = MS2SEC( GameLocal()->GetTime() ) + spawnArgs.GetFloat( "ragdoll_contactFrictionEnd", "2.0" );
 
 	// set contact friction dent
 	af.GetPhysics()->SetContactFrictionDent( contactFrictionDent, contactFrictionDentStart, contactFrictionDentEnd );
@@ -1726,7 +1726,7 @@ void idActor::Attach( idEntity *ent ) {
 	originOffset = ent->spawnArgs.GetVector( "origin" );
 
 	attach.channel = animator.GetChannelForJoint( joint );
-	GetJointWorldTransform( joint, GameLocal()->time, origin, axis );
+	GetJointWorldTransform( joint, GameLocal()->GetTime(), origin, axis );
 	attach.ent = ent;
 
 	ent->SetOrigin( origin + originOffset * renderEntity.axis );
@@ -2073,7 +2073,7 @@ void idActor::SyncAnimChannels( int channel, int syncToChannel, int blendFrames 
 				if ( anim ) {
 					cycle = animator.CurrentAnim( syncToChannel )->GetCycleCount();
 					starttime = animator.CurrentAnim( syncToChannel )->GetStartTime();
-					headAnimator->PlayAnim( ANIMCHANNEL_ALL, anim, GameLocal()->time, blendTime );
+					headAnimator->PlayAnim( ANIMCHANNEL_ALL, anim, GameLocal()->GetTime(), blendTime );
 					headAnimator->CurrentAnim( ANIMCHANNEL_ALL )->SetCycleCount( cycle );
 					headAnimator->CurrentAnim( ANIMCHANNEL_ALL )->SetStartTime( starttime );
 				} else {
@@ -2094,14 +2094,14 @@ void idActor::SyncAnimChannels( int channel, int syncToChannel, int blendFrames 
 				if ( anim ) {
 					cycle = headAnimator->CurrentAnim( ANIMCHANNEL_ALL )->GetCycleCount();
 					starttime = headAnimator->CurrentAnim( ANIMCHANNEL_ALL )->GetStartTime();
-					animator.PlayAnim( channel, anim, GameLocal()->time, blendTime );
+					animator.PlayAnim( channel, anim, GameLocal()->GetTime(), blendTime );
 					animator.CurrentAnim( channel )->SetCycleCount( cycle );
 					animator.CurrentAnim( channel )->SetStartTime( starttime );
 				}
 			}
 		}
 	} else {
-		animator.SyncAnimChannels( channel, syncToChannel, GameLocal()->time, blendTime );
+		animator.SyncAnimChannels( channel, syncToChannel, GameLocal()->GetTime(), blendTime );
 	}
 }
 
@@ -2227,12 +2227,12 @@ bool idActor::Pain( idEntity *inflictor, idEntity *attacker, int damage, const i
 		BecomeActive( TH_PHYSICS );
 	}
 
-	if ( GameLocal()->time < pain_debounce_time ) {
+	if ( GameLocal()->GetTime() < pain_debounce_time ) {
 		return false;
 	}
 
 	// don't play pain sounds more than necessary
-	pain_debounce_time = GameLocal()->time + pain_delay;
+	pain_debounce_time = GameLocal()->GetTime() + pain_delay;
 
 	if ( health > 75  ) {
 		StartSound( "snd_pain_small", SND_CHANNEL_VOICE, 0, false, NULL );
@@ -2244,7 +2244,7 @@ bool idActor::Pain( idEntity *inflictor, idEntity *attacker, int damage, const i
 		StartSound( "snd_pain_huge", SND_CHANNEL_VOICE, 0, false, NULL );
 	}
 
-	if ( !allowPain || ( GameLocal()->time < painTime ) ) {
+	if ( !allowPain || ( GameLocal()->GetTime() < painTime ) ) {
 		// don't play a pain anim
 		return false;
 	}
@@ -2423,7 +2423,7 @@ idActor::Event_EnableEyeFocus
 */
 void idActor::Event_EnableEyeFocus( void ) {
 	allowEyeFocus = true;
-	blink_time = GameLocal()->time + blink_min + GameLocal()->random.RandomFloat() * ( blink_max - blink_min );
+	blink_time = GameLocal()->GetTime() + blink_min + GameLocal()->random.RandomFloat() * ( blink_max - blink_min );
 }
 
 /*
@@ -2436,9 +2436,9 @@ void idActor::Event_DisableEyeFocus( void ) {
 
 	idEntity *headEnt = head.GetEntity();
 	if ( headEnt ) {
-		headEnt->GetAnimator()->Clear( ANIMCHANNEL_EYELIDS, GameLocal()->time, FRAME2MS( 2 ) );
+		headEnt->GetAnimator()->Clear( ANIMCHANNEL_EYELIDS, GameLocal()->GetTime(), FRAME2MS( 2 ) );
 	} else {
-		animator.Clear( ANIMCHANNEL_EYELIDS, GameLocal()->time, FRAME2MS( 2 ) );
+		animator.Clear( ANIMCHANNEL_EYELIDS, GameLocal()->GetTime(), FRAME2MS( 2 ) );
 	}
 }
 
@@ -2493,7 +2493,7 @@ idActor::Event_PreventPain
 =====================
 */
 void idActor::Event_PreventPain( float duration ) {
-	painTime = GameLocal()->time + SEC2MS( duration );
+	painTime = GameLocal()->GetTime() + SEC2MS( duration );
 }
 
 /*

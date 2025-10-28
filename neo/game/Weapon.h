@@ -275,7 +275,7 @@ private:
 
 	// new style muzzle smokes
 	const idDeclParticle *	weaponSmoke;			// null if it doesn't smoke
-	int						weaponSmokeStartTime;	// set to GameLocal()->time every weapon fire
+	int						weaponSmokeStartTime;	// set to GameLocal()->GetTime() every weapon fire
 	bool					continuousSmoke;		// if smoke is continuous ( chainsaw )
 	const idDeclParticle *  strikeSmoke;			// striking something in melee
 	int						strikeSmokeStartTime;	// timing

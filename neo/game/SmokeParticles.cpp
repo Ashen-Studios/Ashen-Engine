@@ -129,7 +129,7 @@ void idSmokeParticles::FreeSmokes( void ) {
 		for ( last = NULL, smoke = active->smokes; smoke; smoke = next ) {
 			next = smoke->next;
 
-			float frac = (float)( GameLocal()->time - smoke->privateStartTime ) / ( stage->particleLife * 1000 );
+			float frac = (float)( GameLocal()->GetTime() - smoke->privateStartTime ) / ( stage->particleLife * 1000 );
 			if ( frac >= 1.0f ) {
 				// remove the particle from the stage list
 				if ( last != NULL ) {
@@ -178,8 +178,8 @@ bool idSmokeParticles::EmitSmoke( const idDeclParticle *smoke, const int systemS
 		return false;
 	}
 
-	assert( GameLocal()->time == 0 || systemStartTime <= GameLocal()->time );
-	if ( systemStartTime > GameLocal()->time ) {
+	assert( GameLocal()->GetTime() == 0 || systemStartTime <= GameLocal()->GetTime() );
+	if ( systemStartTime > GameLocal()->GetTime() ) {
 		return false;
 	}
 
@@ -204,12 +204,12 @@ bool idSmokeParticles::EmitSmoke( const idDeclParticle *smoke, const int systemS
 		// see how many particles we should emit this tic
 		// FIXME: 			smoke.privateStartTime += stage->timeOffset;
 		int		finalParticleTime = stage->cycleMsec * stage->spawnBunching;
-		int		deltaMsec = GameLocal()->time - systemStartTime;
+		int		deltaMsec = GameLocal()->GetTime() - systemStartTime;
 
 		int		nowCount, prevCount;
 		if ( finalParticleTime == 0 ) {
 			// if spawnBunching is 0, they will all come out at once
-			if ( GameLocal()->time == systemStartTime ) {
+			if ( GameLocal()->GetTime() == systemStartTime ) {
 				prevCount = -1;
 				nowCount = stage->totalParticles-1;
 			} else {
@@ -339,7 +339,7 @@ bool idSmokeParticles::UpdateRenderEntity( renderEntity_s *renderEntity, const r
 		for ( last = NULL, smoke = active->smokes; smoke; smoke = next ) {
 			next = smoke->next;
 
-			g.frac = (float)( GameLocal()->time - smoke->privateStartTime ) / ( stage->particleLife * 1000 );
+			g.frac = (float)( GameLocal()->GetTime() - smoke->privateStartTime ) / ( stage->particleLife * 1000 );
 			if ( g.frac >= 1.0f ) {
 				// remove the particle from the stage list
 				if ( last != NULL ) {

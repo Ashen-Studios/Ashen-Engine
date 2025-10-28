@@ -110,7 +110,7 @@ void idAnimatedEntity::Restore( idRestoreGame *savefile ) {
 		// set the callback to update the joints
 		renderEntity.callback = idEntity::ModelCallback;
 		animator.GetJoints( &renderEntity.numJoints, &renderEntity.joints );
-		animator.GetBounds( GameLocal()->time, renderEntity.bounds );
+		animator.GetBounds( GameLocal()->GetTime(), renderEntity.bounds );
 		if ( modelDefHandle != -1 ) {
 			gameRenderWorld->UpdateEntityDef( modelDefHandle, &renderEntity );
 		}
@@ -159,19 +159,19 @@ void idAnimatedEntity::UpdateAnimation( void ) {
 
 	// call any frame commands that have happened in the past frame
 	if ( !fl.hidden ) {
-		animator.ServiceAnims( GameLocal()->previousTime, GameLocal()->time );
+		animator.ServiceAnims( GameLocal()->previousTime, GameLocal()->GetTime() );
 	}
 
 	// if the model is animating then we have to update it
-	if ( !animator.FrameHasChanged( GameLocal()->time ) ) {
+	if ( !animator.FrameHasChanged( GameLocal()->GetTime() ) ) {
 		// still fine the way it was
 		return;
 	}
 
 	// get the latest frame bounds
-	animator.GetBounds( GameLocal()->time, renderEntity.bounds );
+	animator.GetBounds( GameLocal()->GetTime(), renderEntity.bounds );
 	if ( renderEntity.bounds.IsCleared() && !fl.hidden ) {
-		GameLocal()->DPrintf( "%d: inside out bounds\n", GameLocal()->time );
+		GameLocal()->DPrintf( "%d: inside out bounds\n", GameLocal()->GetTime() );
 	}
 
 	// update the renderEntity
@@ -211,7 +211,7 @@ void idAnimatedEntity::SetModel( const char *modelname ) {
 	// set the callback to update the joints
 	renderEntity.callback = idEntity::ModelCallback;
 	animator.GetJoints( &renderEntity.numJoints, &renderEntity.joints );
-	animator.GetBounds( GameLocal()->time, renderEntity.bounds );
+	animator.GetBounds( GameLocal()->GetTime(), renderEntity.bounds );
 
 	UpdateVisuals();
 }
@@ -398,7 +398,7 @@ void idAnimatedEntity::AddLocalDamageEffect( jointHandle_t jointNum, const idVec
 		de->localOrigin = localOrigin;
 		de->localNormal = localNormal;
 		de->type = static_cast<const idDeclParticle *>( declManager->FindType( DECL_PARTICLE, bleed ) );
-		de->time = GameLocal()->time;
+		de->time = GameLocal()->GetTime();
 	}
 }
 
@@ -431,7 +431,7 @@ void idAnimatedEntity::UpdateDamageEffects( void ) {
 		idVec3 origin, start;
 		idMat3 axis;
 
-		animator.GetJointTransform( de->jointNum, GameLocal()->time, origin, axis );
+		animator.GetJointTransform( de->jointNum, GameLocal()->GetTime(), origin, axis );
 		axis *= renderEntity.axis;
 		origin = renderEntity.origin + origin * renderEntity.axis;
 		start = origin + de->localOrigin * axis;
@@ -546,7 +546,7 @@ void idAnimatedEntity::Event_GetJointPos( jointHandle_t jointnum ) {
 	idVec3 offset;
 	idMat3 axis;
 
-	if ( !GetJointWorldTransform( jointnum, GameLocal()->time, offset, axis ) ) {
+	if ( !GetJointWorldTransform( jointnum, GameLocal()->GetTime(), offset, axis ) ) {
 		GameLocal()->Warning( "Joint # %d out of range on entity '%s'",  jointnum, name.c_str() );
 	}
 
@@ -564,7 +564,7 @@ void idAnimatedEntity::Event_GetJointAngle( jointHandle_t jointnum ) {
 	idVec3 offset;
 	idMat3 axis;
 
-	if ( !GetJointWorldTransform( jointnum, GameLocal()->time, offset, axis ) ) {
+	if ( !GetJointWorldTransform( jointnum, GameLocal()->GetTime(), offset, axis ) ) {
 		GameLocal()->Warning( "Joint # %d out of range on entity '%s'",  jointnum, name.c_str() );
 	}
 

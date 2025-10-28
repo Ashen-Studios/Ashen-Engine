@@ -151,7 +151,7 @@ void idTestModel::Spawn( void ) {
 			}
 
 			head = GameLocal()->SpawnEntityType( idAnimatedEntity::Type, &args );
-			animator.GetJointTransform( joint, GameLocal()->time, origin, axis );
+			animator.GetJointTransform( joint, GameLocal()->GetTime(), origin, axis );
 			origin = GetPhysics()->GetOrigin() + ( origin + modelOffset ) * GetPhysics()->GetAxis();
 			head.GetEntity()->SetModel( headModel );
 			head.GetEntity()->SetOrigin( origin );
@@ -189,7 +189,7 @@ void idTestModel::Spawn( void ) {
 	}
 
 	// start any shader effects based off of the spawn time
-	renderEntity.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->time );
+	renderEntity.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->GetTime() );
 
 	SetPhysics( &physicsObj );
 
@@ -262,14 +262,14 @@ void idTestModel::Think( void ) {
 				// cycle anim with origin reset
 				if ( animator.NumFrames( anim ) <= 1 ) {
 					// single frame animations end immediately, so just cycle it since it's the same result
-					animator.CycleAnim( ANIMCHANNEL_ALL, anim, GameLocal()->time, FRAME2MS( g_testModelBlend.GetInteger() ) );
+					animator.CycleAnim( ANIMCHANNEL_ALL, anim, GameLocal()->GetTime(), FRAME2MS( g_testModelBlend.GetInteger() ) );
 					if ( headAnim ) {
-						headAnimator->CycleAnim( ANIMCHANNEL_ALL, headAnim, GameLocal()->time, FRAME2MS( g_testModelBlend.GetInteger() ) );
+						headAnimator->CycleAnim( ANIMCHANNEL_ALL, headAnim, GameLocal()->GetTime(), FRAME2MS( g_testModelBlend.GetInteger() ) );
 					}
 				} else {
-					animator.PlayAnim( ANIMCHANNEL_ALL, anim, GameLocal()->time, FRAME2MS( g_testModelBlend.GetInteger() ) );
+					animator.PlayAnim( ANIMCHANNEL_ALL, anim, GameLocal()->GetTime(), FRAME2MS( g_testModelBlend.GetInteger() ) );
 					if ( headAnim ) {
-						headAnimator->PlayAnim( ANIMCHANNEL_ALL, headAnim, GameLocal()->time, FRAME2MS( g_testModelBlend.GetInteger() ) );
+						headAnimator->PlayAnim( ANIMCHANNEL_ALL, headAnim, GameLocal()->GetTime(), FRAME2MS( g_testModelBlend.GetInteger() ) );
 						if ( headAnimator->AnimLength( headAnim ) > animator.AnimLength( anim ) ) {
 							// loop the body anim when the head anim is longer
 							animator.CurrentAnim( ANIMCHANNEL_ALL )->SetCycleCount( -1 );
@@ -281,46 +281,46 @@ void idTestModel::Think( void ) {
 
 			case 1:
 				// cycle anim with fixed origin
-				animator.CycleAnim( ANIMCHANNEL_ALL, anim, GameLocal()->time, FRAME2MS( g_testModelBlend.GetInteger() ) );
+				animator.CycleAnim( ANIMCHANNEL_ALL, anim, GameLocal()->GetTime(), FRAME2MS( g_testModelBlend.GetInteger() ) );
 				animator.RemoveOriginOffset( true );
 				if ( headAnim ) {
-					headAnimator->CycleAnim( ANIMCHANNEL_ALL, headAnim, GameLocal()->time, FRAME2MS( g_testModelBlend.GetInteger() ) );
+					headAnimator->CycleAnim( ANIMCHANNEL_ALL, headAnim, GameLocal()->GetTime(), FRAME2MS( g_testModelBlend.GetInteger() ) );
 				}
 				break;
 
 			case 2:
 				// cycle anim with continuous origin
-				animator.CycleAnim( ANIMCHANNEL_ALL, anim, GameLocal()->time, FRAME2MS( g_testModelBlend.GetInteger() ) );
+				animator.CycleAnim( ANIMCHANNEL_ALL, anim, GameLocal()->GetTime(), FRAME2MS( g_testModelBlend.GetInteger() ) );
 				animator.RemoveOriginOffset( false );
 				if ( headAnim ) {
-					headAnimator->CycleAnim( ANIMCHANNEL_ALL, headAnim, GameLocal()->time, FRAME2MS( g_testModelBlend.GetInteger() ) );
+					headAnimator->CycleAnim( ANIMCHANNEL_ALL, headAnim, GameLocal()->GetTime(), FRAME2MS( g_testModelBlend.GetInteger() ) );
 				}
 				break;
 
 			case 3:
 				// frame by frame with continuous origin
-				animator.SetFrame( ANIMCHANNEL_ALL, anim, frame, GameLocal()->time, FRAME2MS( g_testModelBlend.GetInteger() ) );
+				animator.SetFrame( ANIMCHANNEL_ALL, anim, frame, GameLocal()->GetTime(), FRAME2MS( g_testModelBlend.GetInteger() ) );
 				animator.RemoveOriginOffset( false );
 				if ( headAnim ) {
-					headAnimator->SetFrame( ANIMCHANNEL_ALL, headAnim, frame, GameLocal()->time, FRAME2MS( g_testModelBlend.GetInteger() ) );
+					headAnimator->SetFrame( ANIMCHANNEL_ALL, headAnim, frame, GameLocal()->GetTime(), FRAME2MS( g_testModelBlend.GetInteger() ) );
 				}
 				break;
 
 			case 4:
 				// play anim once
-				animator.PlayAnim( ANIMCHANNEL_ALL, anim, GameLocal()->time, FRAME2MS( g_testModelBlend.GetInteger() ) );
+				animator.PlayAnim( ANIMCHANNEL_ALL, anim, GameLocal()->GetTime(), FRAME2MS( g_testModelBlend.GetInteger() ) );
 				animator.RemoveOriginOffset( false );
 				if ( headAnim ) {
-					headAnimator->PlayAnim( ANIMCHANNEL_ALL, headAnim, GameLocal()->time, FRAME2MS( g_testModelBlend.GetInteger() ) );
+					headAnimator->PlayAnim( ANIMCHANNEL_ALL, headAnim, GameLocal()->GetTime(), FRAME2MS( g_testModelBlend.GetInteger() ) );
 				}
 				break;
 
 			case 5:
 				// frame by frame with fixed origin
-				animator.SetFrame( ANIMCHANNEL_ALL, anim, frame, GameLocal()->time, FRAME2MS( g_testModelBlend.GetInteger() ) );
+				animator.SetFrame( ANIMCHANNEL_ALL, anim, frame, GameLocal()->GetTime(), FRAME2MS( g_testModelBlend.GetInteger() ) );
 				animator.RemoveOriginOffset( true );
 				if ( headAnim ) {
-					headAnimator->SetFrame( ANIMCHANNEL_ALL, headAnim, frame, GameLocal()->time, FRAME2MS( g_testModelBlend.GetInteger() ) );
+					headAnimator->SetFrame( ANIMCHANNEL_ALL, headAnim, frame, GameLocal()->GetTime(), FRAME2MS( g_testModelBlend.GetInteger() ) );
 				}
 				break;
 			}
@@ -328,12 +328,12 @@ void idTestModel::Think( void ) {
 			mode = g_testModelAnimate.GetInteger();
 		}
 
-		if ( ( mode == 0 ) && ( GameLocal()->time >= starttime + animtime ) ) {
-			starttime = GameLocal()->time;
+		if ( ( mode == 0 ) && ( GameLocal()->GetTime() >= starttime + animtime ) ) {
+			starttime = GameLocal()->GetTime();
 			StopSound( SND_CHANNEL_ANY, false );
-			animator.PlayAnim( ANIMCHANNEL_ALL, anim, GameLocal()->time, FRAME2MS( g_testModelBlend.GetInteger() ) );
+			animator.PlayAnim( ANIMCHANNEL_ALL, anim, GameLocal()->GetTime(), FRAME2MS( g_testModelBlend.GetInteger() ) );
 			if ( headAnim ) {
-				headAnimator->PlayAnim( ANIMCHANNEL_ALL, headAnim, GameLocal()->time, FRAME2MS( g_testModelBlend.GetInteger() ) );
+				headAnimator->PlayAnim( ANIMCHANNEL_ALL, headAnim, GameLocal()->GetTime(), FRAME2MS( g_testModelBlend.GetInteger() ) );
 				if ( headAnimator->AnimLength( headAnim ) > animator.AnimLength( anim ) ) {
 					// loop the body anim when the head anim is longer
 					animator.CurrentAnim( ANIMCHANNEL_ALL )->SetCycleCount( -1 );
@@ -346,12 +346,12 @@ void idTestModel::Think( void ) {
 			for( i = 0; i < copyJoints.Num(); i++ ) {
 				if ( copyJoints[ i ].mod == JOINTMOD_WORLD_OVERRIDE ) {
 					idMat3 mat = head.GetEntity()->GetPhysics()->GetAxis().Transpose();
-					GetJointWorldTransform( copyJoints[ i ].from, GameLocal()->time, pos, axis );
+					GetJointWorldTransform( copyJoints[ i ].from, GameLocal()->GetTime(), pos, axis );
 					pos -= head.GetEntity()->GetPhysics()->GetOrigin();
 					headAnimator->SetJointPos( copyJoints[ i ].to, copyJoints[ i ].mod, pos * mat );
 					headAnimator->SetJointAxis( copyJoints[ i ].to, copyJoints[ i ].mod, axis * mat );
 				} else {
-					animator.GetJointLocalTransform( copyJoints[ i ].from, GameLocal()->time, pos, axis );
+					animator.GetJointLocalTransform( copyJoints[ i ].from, GameLocal()->GetTime(), pos, axis );
 					headAnimator->SetJointPos( copyJoints[ i ].to, copyJoints[ i ].mod, pos );
 					headAnimator->SetJointAxis( copyJoints[ i ].to, copyJoints[ i ].mod, axis );
 				}
@@ -362,7 +362,7 @@ void idTestModel::Think( void ) {
 		RunPhysics();
 
 		physicsObj.GetAngles( ang );
-		physicsObj.SetAngularExtrapolation( extrapolation_t(EXTRAPOLATION_LINEAR|EXTRAPOLATION_NOSTOP), GameLocal()->time, 0, ang, idAngles( 0, g_testModelRotate.GetFloat() * 360.0f / 60.0f, 0 ), ang_zero );
+		physicsObj.SetAngularExtrapolation( extrapolation_t(EXTRAPOLATION_LINEAR|EXTRAPOLATION_NOSTOP), GameLocal()->GetTime(), 0, ang, idAngles( 0, g_testModelRotate.GetFloat() * 360.0f / 60.0f, 0 ), ang_zero );
 
 		idClipModel *clip = physicsObj.GetClipModel();
 		if ( clip && animator.ModelDef() ) {
@@ -371,7 +371,7 @@ void idTestModel::Think( void ) {
 			jointHandle_t joint;
 
 			joint = animator.GetJointHandle( "origin" );
-			animator.GetJointTransform( joint, GameLocal()->time, neworigin, axis );
+			animator.GetJointTransform( joint, GameLocal()->GetTime(), neworigin, axis );
 			neworigin = ( ( neworigin - animator.ModelDef()->GetVisualOffset() ) * physicsObj.GetAxis() ) + GetPhysics()->GetOrigin();
 			clip->Link( GameLocal()->clip, this, 0, neworigin, clip->GetAxis() );
 		}
@@ -381,11 +381,11 @@ void idTestModel::Think( void ) {
 	Present();
 
 	if ( ( GameLocal()->testmodel == this ) && g_showTestModelFrame.GetInteger() && anim ) {
-		GameLocal()->Printf( "^5 Anim: ^7%s  ^5Frame: ^7%d/%d  Time: %.3f\n", animator.AnimFullName( anim ), animator.CurrentAnim( ANIMCHANNEL_ALL )->GetFrameNumber( GameLocal()->time ),
-			animator.CurrentAnim( ANIMCHANNEL_ALL )->NumFrames(), MS2SEC( GameLocal()->time - animator.CurrentAnim( ANIMCHANNEL_ALL )->GetStartTime() ) );
+		GameLocal()->Printf( "^5 Anim: ^7%s  ^5Frame: ^7%d/%d  Time: %.3f\n", animator.AnimFullName( anim ), animator.CurrentAnim( ANIMCHANNEL_ALL )->GetFrameNumber( GameLocal()->GetTime() ),
+			animator.CurrentAnim( ANIMCHANNEL_ALL )->NumFrames(), MS2SEC( GameLocal()->GetTime() - animator.CurrentAnim( ANIMCHANNEL_ALL )->GetStartTime() ) );
 		if ( headAnim ) {
-			GameLocal()->Printf( "^5 Head: ^7%s  ^5Frame: ^7%d/%d  Time: %.3f\n\n", headAnimator->AnimFullName( headAnim ), headAnimator->CurrentAnim( ANIMCHANNEL_ALL )->GetFrameNumber( GameLocal()->time ),
-				headAnimator->CurrentAnim( ANIMCHANNEL_ALL )->NumFrames(), MS2SEC( GameLocal()->time - headAnimator->CurrentAnim( ANIMCHANNEL_ALL )->GetStartTime() ) );
+			GameLocal()->Printf( "^5 Head: ^7%s  ^5Frame: ^7%d/%d  Time: %.3f\n\n", headAnimator->AnimFullName( headAnim ), headAnimator->CurrentAnim( ANIMCHANNEL_ALL )->GetFrameNumber( GameLocal()->GetTime() ),
+				headAnimator->CurrentAnim( ANIMCHANNEL_ALL )->NumFrames(), MS2SEC( GameLocal()->GetTime() - headAnimator->CurrentAnim( ANIMCHANNEL_ALL )->GetStartTime() ) );
 		} else {
 			GameLocal()->Printf( "\n\n" );
 		}
@@ -408,12 +408,12 @@ void idTestModel::NextAnim( const idCmdArgs &args ) {
 		anim = 1;
 	}
 
-	starttime = GameLocal()->time;
+	starttime = GameLocal()->GetTime();
 	animtime = animator.AnimLength( anim );
 	animname = animator.AnimFullName( anim );
 	headAnim = 0;
 	if ( headAnimator ) {
-		headAnimator->ClearAllAnims( GameLocal()->time, 0 );
+		headAnimator->ClearAllAnims( GameLocal()->GetTime(), 0 );
         headAnim = headAnimator->GetAnim( animname );
 		if ( !headAnim ) {
 			headAnim = headAnimator->GetAnim( "idle" );
@@ -450,12 +450,12 @@ void idTestModel::PrevAnim( const idCmdArgs &args ) {
 		anim = animator.NumAnims() - 1;
 	}
 
-	starttime = GameLocal()->time;
+	starttime = GameLocal()->GetTime();
 	animtime = animator.AnimLength( anim );
 	animname = animator.AnimFullName( anim );
 	headAnim = 0;
 	if ( headAnimator ) {
-		headAnimator->ClearAllAnims( GameLocal()->time, 0 );
+		headAnimator->ClearAllAnims( GameLocal()->GetTime(), 0 );
         headAnim = headAnimator->GetAnim( animname );
 		if ( !headAnim ) {
 			headAnim = headAnimator->GetAnim( "idle" );
@@ -560,11 +560,11 @@ void idTestModel::TestAnim( const idCmdArgs &args ) {
 	}
 
 	anim = animNum;
-	starttime = GameLocal()->time;
+	starttime = GameLocal()->GetTime();
 	animtime = animator.AnimLength( anim );
 	headAnim = 0;
 	if ( headAnimator ) {
-		headAnimator->ClearAllAnims( GameLocal()->time, 0 );
+		headAnimator->ClearAllAnims( GameLocal()->GetTime(), 0 );
         headAnim = headAnimator->GetAnim( animname );
 		if ( !headAnim ) {
 			headAnim = headAnimator->GetAnim( "idle" );
@@ -612,8 +612,8 @@ void idTestModel::BlendAnim( const idCmdArgs &args ) {
 	}
 
 	animname = args.Argv( 2 );
-	animator.CycleAnim( ANIMCHANNEL_ALL, anim1, GameLocal()->time, 0 );
-	animator.CycleAnim( ANIMCHANNEL_ALL, anim2, GameLocal()->time, FRAME2MS( atoi( args.Argv( 3 ) ) ) );
+	animator.CycleAnim( ANIMCHANNEL_ALL, anim1, GameLocal()->GetTime(), 0 );
+	animator.CycleAnim( ANIMCHANNEL_ALL, anim2, GameLocal()->GetTime(), FRAME2MS( atoi( args.Argv( 3 ) ) ) );
 
 	anim = anim2;
 	headAnim = 0;
@@ -715,7 +715,7 @@ void idTestModel::TestShaderParm_f( const idCmdArgs &args ) {
 
 	float	value;
 	if ( !idStr::Icmp( args.Argv( 2 ), "time" ) ) {
-		value = GameLocal()->time * -0.001;
+		value = GameLocal()->GetTime() * -0.001;
 	} else {
 		value = atof( args.Argv( 2 ) );
 	}
@@ -787,7 +787,7 @@ void idTestModel::TestModel_f( const idCmdArgs &args ) {
 	dict.Set( "origin", offset.ToString() );
 	dict.Set( "angle", va( "%f", player->viewAngles.yaw + 180.0f ) );
 	GameLocal()->testmodel = ( idTestModel * )GameLocal()->SpawnEntityType( idTestModel::Type, &dict );
-	GameLocal()->testmodel->renderEntity.shaderParms[SHADERPARM_TIMEOFFSET] = -MS2SEC( GameLocal()->time );
+	GameLocal()->testmodel->renderEntity.shaderParms[SHADERPARM_TIMEOFFSET] = -MS2SEC( GameLocal()->GetTime() );
 }
 
 /*
@@ -820,7 +820,7 @@ void idTestModel::TestParticleStopTime_f( const idCmdArgs &args ) {
 		return;
 	}
 
-	GameLocal()->testmodel->renderEntity.shaderParms[SHADERPARM_PARTICLE_STOPTIME] = MS2SEC( GameLocal()->time );
+	GameLocal()->testmodel->renderEntity.shaderParms[SHADERPARM_PARTICLE_STOPTIME] = MS2SEC( GameLocal()->GetTime() );
 	GameLocal()->testmodel->UpdateVisuals();
 }
 

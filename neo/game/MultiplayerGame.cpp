@@ -195,7 +195,7 @@ void idMultiplayerGame::SpawnPlayer( int clientNum ) {
 	memset( &playerState[ clientNum ], 0, sizeof( playerState[ clientNum ] ) );
 	if ( !GameLocal()->isClient ) {
 		idPlayer *p = static_cast< idPlayer * >( GameLocal()->entities[ clientNum ] );
-		p->spawnedTime = GameLocal()->time;
+		p->spawnedTime = GameLocal()->GetTime();
 		if ( GameLocal()->gameType == GAME_TDM ) {
 			SwitchToTeam( clientNum, -1, p->team );
 		}
@@ -514,7 +514,7 @@ void idMultiplayerGame::UpdateScoreboard( idUserInterface *scoreBoard, idPlayer 
 	scoreBoard->SetStateString( "livesinfo", livesinfo );
 	scoreBoard->SetStateString( "timeinfo", timeinfo );
 
-	scoreBoard->Redraw( GameLocal()->time );
+	scoreBoard->Redraw( GameLocal()->GetTime() );
 }
 
 /*
@@ -537,9 +537,9 @@ const char *idMultiplayerGame::GameTime() {
 	} else {
 		int timeLimit = GameLocal()->serverInfo.GetInt( "si_timeLimit" );
 		if ( timeLimit ) {
-			ms = ( timeLimit * 60000 ) - ( GameLocal()->time - matchStartedTime );
+			ms = ( timeLimit * 60000 ) - ( GameLocal()->GetTime() - matchStartedTime );
 		} else {
-			ms = GameLocal()->time - matchStartedTime;
+			ms = GameLocal()->GetTime() - matchStartedTime;
 		}
 		if ( ms < 0 ) {
 			ms = 0;
@@ -704,7 +704,7 @@ idMultiplayerGame::TimeLimitHit
 bool idMultiplayerGame::TimeLimitHit() {
 	int timeLimit = GameLocal()->serverInfo.GetInt( "si_timeLimit" );
 	if ( timeLimit ) {
-		if ( GameLocal()->time >= matchStartedTime + timeLimit * 60000 ) {
+		if ( GameLocal()->GetTime() >= matchStartedTime + timeLimit * 60000 ) {
 			return true;
 		}
 	}
@@ -986,7 +986,7 @@ void idMultiplayerGame::NewState( gameState_t news, idPlayer *player ) {
 			networkSystem->ServerSendReliableMessage( -1, outMsg );
 
 			PlayGlobalSound( -1, SND_FIGHT );
-			matchStartedTime = GameLocal()->time;
+			matchStartedTime = GameLocal()->GetTime();
 			fragLimitTimeout = 0;
 			for( i = 0; i < GameLocal()->numClients; i++ ) {
 				idEntity *ent = GameLocal()->entities[ i ];
@@ -1044,7 +1044,7 @@ void idMultiplayerGame::NewState( gameState_t news, idPlayer *player ) {
 			idBitMsg	outMsg;
 			byte		msgBuf[ 128 ];
 
-			warmupEndTime = GameLocal()->time + 1000*cvarSystem->GetCVarInteger( "g_countDown" );
+			warmupEndTime = GameLocal()->GetTime() + 1000*cvarSystem->GetCVarInteger( "g_countDown" );
 
 			outMsg.Init( msgBuf, sizeof( msgBuf ) );
 			outMsg.WriteByte( GAME_RELIABLE_MESSAGE_WARMUPTIME );
@@ -1256,7 +1256,7 @@ void idMultiplayerGame::CheckVote( void ) {
 	}
 
 	if ( voteExecTime ) {
-		if ( GameLocal()->time > voteExecTime ) {
+		if ( GameLocal()->GetTime() > voteExecTime ) {
 			voteExecTime = 0;
 			ClientUpdateVote( VOTE_RESET, 0, 0 );
 			ExecuteVote();
@@ -1284,10 +1284,10 @@ void idMultiplayerGame::CheckVote( void ) {
 	}
 	if ( yesVotes / numVoters > 0.5f ) {
 		ClientUpdateVote( VOTE_PASSED, yesVotes, noVotes );
-		voteExecTime = GameLocal()->time + 2000;
+		voteExecTime = GameLocal()->GetTime() + 2000;
 		return;
 	}
-	if ( GameLocal()->time > voteTimeOut || noVotes / numVoters >= 0.5f ) {
+	if ( GameLocal()->GetTime() > voteTimeOut || noVotes / numVoters >= 0.5f ) {
 		ClientUpdateVote( VOTE_FAILED, yesVotes, noVotes );
 		vote = VOTE_NONE;
 		return;
@@ -1327,17 +1327,17 @@ void idMultiplayerGame::Run() {
 
 	CheckRespawns();
 
-	if ( nextState != INACTIVE && GameLocal()->time > nextStateSwitch ) {
+	if ( nextState != INACTIVE && GameLocal()->GetTime() > nextStateSwitch ) {
 		NewState( nextState );
 		nextState = INACTIVE;
 	}
 
 	// don't update the ping every frame to save bandwidth
-	if ( GameLocal()->time > pingUpdateTime ) {
+	if ( GameLocal()->GetTime() > pingUpdateTime ) {
 		for ( i = 0; i < GameLocal()->numClients; i++ ) {
 			playerState[i].ping = networkSystem->ServerGetClientPing( i );
 		}
-		pingUpdateTime = GameLocal()->time + 1000;
+		pingUpdateTime = GameLocal()->GetTime() + 1000;
 	}
 
 	warmupText = "";
@@ -1347,7 +1347,7 @@ void idMultiplayerGame::Run() {
 			if ( nextState == INACTIVE ) {
 				gameReviewPause = cvarSystem->GetCVarInteger( "g_gameReviewPause" );
 				nextState = NEXTGAME;
-				nextStateSwitch = GameLocal()->time + 1000 * gameReviewPause;
+				nextStateSwitch = GameLocal()->GetTime() + 1000 * gameReviewPause;
 			}
 			break;
 		}
@@ -1378,14 +1378,14 @@ void idMultiplayerGame::Run() {
 			if ( AllPlayersReady() ) {
 				NewState( COUNTDOWN );
 				nextState = GAMEON;
-				nextStateSwitch = GameLocal()->time + 1000 * cvarSystem->GetCVarInteger( "g_countDown" );
+				nextStateSwitch = GameLocal()->GetTime() + 1000 * cvarSystem->GetCVarInteger( "g_countDown" );
 			}
 			warmupText = "Warming up.. waiting for players to get ready";
 			one = two = three = false;
 			break;
 		}
 		case COUNTDOWN: {
-			timeLeft = ( nextStateSwitch - GameLocal()->time ) / 1000 + 1;
+			timeLeft = ( nextStateSwitch - GameLocal()->GetTime() ) / 1000 + 1;
 			if ( timeLeft == 3 && !three ) {
 				PlayGlobalSound( -1, SND_THREE );
 				three = true;
@@ -1405,9 +1405,9 @@ void idMultiplayerGame::Run() {
 				// delay between detecting frag limit and ending game. let the death anims play
 				if ( !fragLimitTimeout ) {
 					common->DPrintf( "enter FragLimit timeout, player %d is leader\n", player->entityNumber );
-					fragLimitTimeout = GameLocal()->time + FRAGLIMIT_DELAY;
+					fragLimitTimeout = GameLocal()->GetTime() + FRAGLIMIT_DELAY;
 				}
-				if ( GameLocal()->time > fragLimitTimeout ) {
+				if ( GameLocal()->GetTime() > fragLimitTimeout ) {
 					NewState( GAMEREVIEW, player );
 					PrintMessageEvent( -1, MSG_FRAGLIMIT, player->entityNumber );
 				}
@@ -1436,9 +1436,9 @@ void idMultiplayerGame::Run() {
 			if ( player ) {
 				if ( !fragLimitTimeout ) {
 					common->DPrintf( "enter sudden death FragLeader timeout, player %d is leader\n", player->entityNumber );
-					fragLimitTimeout = GameLocal()->time + FRAGLIMIT_DELAY;
+					fragLimitTimeout = GameLocal()->GetTime() + FRAGLIMIT_DELAY;
 				}
-				if ( GameLocal()->time > fragLimitTimeout ) {
+				if ( GameLocal()->GetTime() > fragLimitTimeout ) {
 					NewState( GAMEREVIEW, player );
 					PrintMessageEvent( -1, MSG_FRAGLIMIT, player->entityNumber );
 				}
@@ -1484,7 +1484,7 @@ void idMultiplayerGame::UpdateMainGui( void ) {
 		const idKeyValue *keyval = GameLocal()->serverInfo.GetKeyVal( i );
 		mainGui->SetStateString( keyval->GetKey(), keyval->GetValue() );
 	}
-	mainGui->StateChanged( GameLocal()->time );
+	mainGui->StateChanged( GameLocal()->GetTime() );
 #if defined( __linux__ )
 	// replacing the oh-so-useful s_reverse with sound backend prompt
 	mainGui->SetStateString( "driver_prompt", "1" );
@@ -1557,11 +1557,11 @@ idUserInterface* idMultiplayerGame::StartMenu( void ) {
 		mainGui->SetStateString( "kickChoices", kickList );
 
 		mainGui->SetStateString( "chattext", "" );
-		mainGui->Activate( true, GameLocal()->time );
+		mainGui->Activate( true, GameLocal()->GetTime() );
 		return mainGui;
 	} else if ( currentMenu == 2 ) {
 		// the setup is done in MessageMode
-		msgmodeGui->Activate( true, GameLocal()->time );
+		msgmodeGui->Activate( true, GameLocal()->GetTime() );
 		cvarSystem->SetCVarBool( "ui_chat", true );
 		return msgmodeGui;
 	}
@@ -1576,9 +1576,9 @@ idMultiplayerGame::DisableMenu
 void idMultiplayerGame::DisableMenu( void ) {
 	GameLocal()->sessionCommand = "";	// in case we used "game_startMenu" to trigger the menu
 	if ( currentMenu == 1 ) {
-		mainGui->Activate( false, GameLocal()->time );
+		mainGui->Activate( false, GameLocal()->GetTime() );
 	} else if ( currentMenu == 2 ) {
-		msgmodeGui->Activate( false, GameLocal()->time );
+		msgmodeGui->Activate( false, GameLocal()->GetTime() );
 	}
 	currentMenu = 0;
 	nextMenu = 0;
@@ -1874,9 +1874,9 @@ bool idMultiplayerGame::Draw( int clientNum ) {
 		DrawChat();
 		if ( currentMenu == 1 ) {
 			UpdateMainGui();
-			mainGui->Redraw( GameLocal()->time );
+			mainGui->Redraw( GameLocal()->GetTime() );
 		} else {
-			msgmodeGui->Redraw( GameLocal()->time );
+			msgmodeGui->Redraw( GameLocal()->GetTime() );
 		}
 	} else {
 #if 0
@@ -1933,7 +1933,7 @@ bool idMultiplayerGame::Draw( int clientNum ) {
 			} else {
 				spectateGui->SetStateString( "vote", "" );
 			}
-			spectateGui->Redraw( GameLocal()->time );
+			spectateGui->Redraw( GameLocal()->GetTime() );
 		}
 		DrawChat();
 		DrawScoreBoard( player );
@@ -2001,13 +2001,13 @@ idMultiplayerGame::DrawScoreBoard
 void idMultiplayerGame::DrawScoreBoard( idPlayer *player ) {
 	if ( player->scoreBoardOpen || gameState == GAMEREVIEW ) {
 		if ( !playerState[ player->entityNumber ].scoreBoardUp ) {
-			scoreBoard->Activate( true, GameLocal()->time );
+			scoreBoard->Activate( true, GameLocal()->GetTime() );
 			playerState[ player->entityNumber ].scoreBoardUp = true;
 		}
 		UpdateScoreboard( scoreBoard, player );
 	} else {
 		if ( playerState[ player->entityNumber ].scoreBoardUp ) {
-			scoreBoard->Activate( false, GameLocal()->time );
+			scoreBoard->Activate( false, GameLocal()->GetTime() );
 			playerState[ player->entityNumber ].scoreBoardUp = false;
 		}
 	}
@@ -2047,7 +2047,7 @@ void idMultiplayerGame::AddChatLine( const char *fmt, ... ) {
 		chatHistorySize++;
 	}
 	chatDataUpdated = true;
-	lastChatLineTime = GameLocal()->time;
+	lastChatLineTime = GameLocal()->GetTime();
 }
 
 /*
@@ -2058,7 +2058,7 @@ idMultiplayerGame::DrawChat
 void idMultiplayerGame::DrawChat() {
 	int i, j;
 	if ( guiChat ) {
-		if ( GameLocal()->time - lastChatLineTime > CHAT_FADE_TIME ) {
+		if ( GameLocal()->GetTime() - lastChatLineTime > CHAT_FADE_TIME ) {
 			if ( chatHistorySize > 0 ) {
 				for ( i = chatHistoryIndex - chatHistorySize; i < chatHistoryIndex; i++ ) {
 					chatHistory[ i % NUM_CHAT_NOTIFY ].fade--;
@@ -2068,7 +2068,7 @@ void idMultiplayerGame::DrawChat() {
 				}
 				chatDataUpdated = true;
 			}
-			lastChatLineTime = GameLocal()->time;
+			lastChatLineTime = GameLocal()->GetTime();
 		}
 		if ( chatDataUpdated ) {
 			j = 0;
@@ -2083,10 +2083,10 @@ void idMultiplayerGame::DrawChat() {
 				guiChat->SetStateString( va( "chat%i", j ), "" );
 				j++;
 			}
-			guiChat->Activate( true, GameLocal()->time );
+			guiChat->Activate( true, GameLocal()->GetTime() );
 			chatDataUpdated = false;
 		}
-		guiChat->Redraw( GameLocal()->time );
+		guiChat->Redraw( GameLocal()->GetTime() );
 	}
 }
 
@@ -2135,7 +2135,7 @@ void idMultiplayerGame::ReadFromSnapshot( const idBitMsgDelta &msg ) {
 		gameState = newState;
 		// these could be gathered in a BGNewState() kind of thing, as we have to do them in NewState as well
 		if ( gameState == GAMEON ) {
-			matchStartedTime = GameLocal()->time;
+			matchStartedTime = GameLocal()->GetTime();
 			cvarSystem->SetCVarString( "ui_ready", "Not Ready" );
 			switchThrottle[ 1 ] = 0;	// passby the throttle
 			startFragLimit = GameLocal()->serverInfo.GetInt( "si_fragLimit" );
@@ -2537,7 +2537,7 @@ void idMultiplayerGame::ServerStartVote( int clientNum, vote_flags_t voteIndex, 
 	noVotes = 0;
 	vote = voteIndex;
 	voteValue = value;
-	voteTimeOut = GameLocal()->time + 20000;
+	voteTimeOut = GameLocal()->GetTime() + 20000;
 	// mark players allowed to vote - only current ingame players, players joining during vote will be ignored
 	for ( i = 0; i < GameLocal()->numClients; i++ ) {
 		if ( GameLocal()->entities[ i ] && GameLocal()->entities[ i ]->IsType( idPlayer::Type ) ) {
@@ -3172,10 +3172,10 @@ void idMultiplayerGame::ThrottleUserInfo( void ) {
 		if ( idStr::Icmp( GameLocal()->userInfo[ GameLocal()->localClientNum ].GetString( ThrottleVars[ i ] ),
 			cvarSystem->GetCVarString( ThrottleVars[ i ] ) ) ) {
 			if ( GameLocal()->realClientTime < switchThrottle[ i ] ) {
-				AddChatLine( common->GetLanguageDict()->GetString( "#str_04299" ), common->GetLanguageDict()->GetString( ThrottleVarsInEnglish[ i ] ), ( switchThrottle[ i ] - GameLocal()->time ) / 1000 + 1 );
+				AddChatLine( common->GetLanguageDict()->GetString( "#str_04299" ), common->GetLanguageDict()->GetString( ThrottleVarsInEnglish[ i ] ), ( switchThrottle[ i ] - GameLocal()->GetTime() ) / 1000 + 1 );
 				cvarSystem->SetCVarString( ThrottleVars[ i ], GameLocal()->userInfo[ GameLocal()->localClientNum ].GetString( ThrottleVars[ i ] ) );
 			} else {
-				switchThrottle[ i ] = GameLocal()->time + ThrottleDelay[ i ] * 1000;
+				switchThrottle[ i ] = GameLocal()->GetTime() + ThrottleDelay[ i ] * 1000;
 			}
 		}
 		i++;

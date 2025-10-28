@@ -1760,7 +1760,7 @@ idPhysics_Player::GetTime
 ================
 */
 int idPhysics_Player::GetTime( void ) const {
-	return GameLocal()->time;
+	return GameLocal()->GetTime();
 }
 
 /*

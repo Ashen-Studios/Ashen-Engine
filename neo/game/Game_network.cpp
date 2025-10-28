@@ -1219,7 +1219,7 @@ void idGameLocal::ClientReadSnapshot( int clientNum, int sequence, const int gam
 		weap = static_cast< idPlayer * >( GameLocal()->entities[ player->spectator ] )->weapon.GetEntity();
 		if ( weap && ( weap->GetRenderEntity()->bounds[0] == weap->GetRenderEntity()->bounds[1] ) ) {
 			// update the weapon's viewmodel bounds so that the model doesn't flicker in the spectator's view
-			weap->GetAnimator()->GetBounds( GameLocal()->time, weap->GetRenderEntity()->bounds );
+			weap->GetAnimator()->GetBounds( GameLocal()->GetTime(), weap->GetRenderEntity()->bounds );
 			weap->UpdateVisuals();
 		}
 	} else {
@@ -1713,7 +1713,7 @@ void idEventQueue::Enqueue( entityNetEvent_t *event, outOfOrderBehaviour_t behav
 		// any out-of-order events
 		while ( end && end->time > event->time ) {
 			entityNetEvent_t *outOfOrder = RemoveLast();
-			common->DPrintf( "WARNING: new event with id %d ( time %d ) caused removal of event with id %d ( time %d ), game time = %d.\n", event->event, event->time, outOfOrder->event, outOfOrder->time, GameLocal()->time );
+			common->DPrintf( "WARNING: new event with id %d ( time %d ) caused removal of event with id %d ( time %d ), game time = %d.\n", event->event, event->time, outOfOrder->event, outOfOrder->time, GameLocal()->GetTime() );
 			Free( outOfOrder );
 		}
 	} else if ( behaviour == OUTOFORDER_SORT && end ) {

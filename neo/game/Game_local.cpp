@@ -3947,7 +3947,7 @@ bool idGameLocal::SkipCinematic( void ) {
 	soundSystem->SetMute( true );
 	if ( !skipCinematic ) {
 		skipCinematic = true;
-		cinematicMaxSkipTime = GameLocal()->time + SEC2MS( g_cinematicMaxSkipTime.GetFloat() );
+		cinematicMaxSkipTime = GameLocal()->GetTime() + SEC2MS( g_cinematicMaxSkipTime.GetFloat() );
 	}
 
 	return true;
@@ -4188,7 +4188,7 @@ idGameLocal::GetTimeGroupTime
 ============
 */
 int idGameLocal::GetTimeGroupTime( int timeGroup ) {
-	return GameLocal()->time;
+	return GameLocal()->GetTime();
 }
 
 /*

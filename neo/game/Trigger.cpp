@@ -395,11 +395,11 @@ void idTrigger_Multi::TriggerAction( idEntity *activator ) {
 	CallScript();
 
 	if ( wait >= 0 ) {
-		nextTriggerTime = GameLocal()->time + SEC2MS( wait + random * GameLocal()->random.CRandomFloat() );
+		nextTriggerTime = GameLocal()->GetTime() + SEC2MS( wait + random * GameLocal()->random.CRandomFloat() );
 	} else {
 		// we can't just remove (this) here, because this is a touch function
 		// called while looping through area links...
-		nextTriggerTime = GameLocal()->time + 1;
+		nextTriggerTime = GameLocal()->GetTime() + 1;
 		PostEventMS( &EV_Remove, 0 );
 	}
 }
@@ -424,7 +424,7 @@ so wait for the delay time before firing
 ================
 */
 void idTrigger_Multi::Event_Trigger( idEntity *activator ) {
-	if ( nextTriggerTime > GameLocal()->time ) {
+	if ( nextTriggerTime > GameLocal()->GetTime() ) {
 		// can't retrigger until the wait is over
 		return;
 	}
@@ -444,7 +444,7 @@ void idTrigger_Multi::Event_Trigger( idEntity *activator ) {
 	}
 
 	// don't allow it to trigger twice in a single frame
-	nextTriggerTime = GameLocal()->time + 1;
+	nextTriggerTime = GameLocal()->GetTime() + 1;
 
 	if ( delay > 0 ) {
 		// don't allow it to trigger again until our delay has passed
@@ -477,7 +477,7 @@ void idTrigger_Multi::Event_Touch( idEntity *other, trace_t *trace ) {
 		return;
 	}
 
-	if ( nextTriggerTime > GameLocal()->time ) {
+	if ( nextTriggerTime > GameLocal()->GetTime() ) {
 		// can't retrigger until the wait is over
 		return;
 	}
@@ -495,7 +495,7 @@ void idTrigger_Multi::Event_Touch( idEntity *other, trace_t *trace ) {
 		triggerFirst = true;
 	}
 
-	nextTriggerTime = GameLocal()->time + 1;
+	nextTriggerTime = GameLocal()->GetTime() + 1;
 	if ( delay > 0 ) {
 		// don't allow it to trigger again until our delay has passed
 		nextTriggerTime += SEC2MS( delay + random_delay * GameLocal()->random.CRandomFloat() );
@@ -608,11 +608,11 @@ void idTrigger_EntityName::TriggerAction( idEntity *activator ) {
 	CallScript();
 
 	if ( wait >= 0 ) {
-		nextTriggerTime = GameLocal()->time + SEC2MS( wait + random * GameLocal()->random.CRandomFloat() );
+		nextTriggerTime = GameLocal()->GetTime() + SEC2MS( wait + random * GameLocal()->random.CRandomFloat() );
 	} else {
 		// we can't just remove (this) here, because this is a touch function
 		// called while looping through area links...
-		nextTriggerTime = GameLocal()->time + 1;
+		nextTriggerTime = GameLocal()->GetTime() + 1;
 		PostEventMS( &EV_Remove, 0 );
 	}
 }
@@ -637,7 +637,7 @@ so wait for the delay time before firing
 ================
 */
 void idTrigger_EntityName::Event_Trigger( idEntity *activator ) {
-	if ( nextTriggerTime > GameLocal()->time ) {
+	if ( nextTriggerTime > GameLocal()->GetTime() ) {
 		// can't retrigger until the wait is over
 		return;
 	}
@@ -652,7 +652,7 @@ void idTrigger_EntityName::Event_Trigger( idEntity *activator ) {
 	}
 
 	// don't allow it to trigger twice in a single frame
-	nextTriggerTime = GameLocal()->time + 1;
+	nextTriggerTime = GameLocal()->GetTime() + 1;
 
 	if ( delay > 0 ) {
 		// don't allow it to trigger again until our delay has passed
@@ -673,7 +673,7 @@ void idTrigger_EntityName::Event_Touch( idEntity *other, trace_t *trace ) {
 		return;
 	}
 
-	if ( nextTriggerTime > GameLocal()->time ) {
+	if ( nextTriggerTime > GameLocal()->GetTime() ) {
 		// can't retrigger until the wait is over
 		return;
 	}
@@ -682,7 +682,7 @@ void idTrigger_EntityName::Event_Touch( idEntity *other, trace_t *trace ) {
 		return;
 	}
 
-	nextTriggerTime = GameLocal()->time + 1;
+	nextTriggerTime = GameLocal()->GetTime() + 1;
 	if ( delay > 0 ) {
 		// don't allow it to trigger again until our delay has passed
 		nextTriggerTime += SEC2MS( delay + random_delay * GameLocal()->random.CRandomFloat() );
@@ -984,7 +984,7 @@ idTrigger_Hurt::Spawn
 void idTrigger_Hurt::Spawn( void ) {
 	spawnArgs.GetBool( "on", "1", on );
 	spawnArgs.GetFloat( "delay", "1.0", delay );
-	nextTime = GameLocal()->time;
+	nextTime = GameLocal()->GetTime();
 	Enable();
 }
 
@@ -996,14 +996,14 @@ idTrigger_Hurt::Event_Touch
 void idTrigger_Hurt::Event_Touch( idEntity *other, trace_t *trace ) {
 	const char *damage;
 
-	if ( on && other && GameLocal()->time >= nextTime ) {
+	if ( on && other && GameLocal()->GetTime() >= nextTime ) {
 		damage = spawnArgs.GetString( "def_damage", "damage_painTrigger" );
 		other->Damage( NULL, NULL, vec3_origin, damage, 1.0f, INVALID_JOINT );
 
 		ActivateTargets( other );
 		CallScript();
 
-		nextTime = GameLocal()->time + SEC2MS( delay );
+		nextTime = GameLocal()->GetTime() + SEC2MS( delay );
 	}
 }
 

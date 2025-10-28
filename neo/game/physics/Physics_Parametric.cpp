@@ -89,7 +89,7 @@ idPhysics_Parametric::Rest
 ================
 */
 void idPhysics_Parametric::Rest( void ) {
-	current.atRest = GameLocal()->time;
+	current.atRest = GameLocal()->GetTime();
 	self->BecomeInactive( TH_PHYSICS );
 }
 
@@ -100,7 +100,7 @@ idPhysics_Parametric::idPhysics_Parametric
 */
 idPhysics_Parametric::idPhysics_Parametric( void ) {
 
-	current.time = GameLocal()->time;
+	current.time = GameLocal()->GetTime();
 	current.atRest = -1;
 	current.useSplineAngles = false;
 	current.origin.Zero();
@@ -332,7 +332,7 @@ idPhysics_Parametric::SetLinearExtrapolation
 ================
 */
 void idPhysics_Parametric::SetLinearExtrapolation( extrapolation_t type, int time, int duration, const idVec3 &base, const idVec3 &speed, const idVec3 &baseSpeed ) {
-	current.time = GameLocal()->time;
+	current.time = GameLocal()->GetTime();
 	current.linearExtrapolation.Init( time, duration, base, baseSpeed, speed, type );
 	current.localOrigin = base;
 	Activate();
@@ -344,7 +344,7 @@ idPhysics_Parametric::SetAngularExtrapolation
 ================
 */
 void idPhysics_Parametric::SetAngularExtrapolation( extrapolation_t type, int time, int duration, const idAngles &base, const idAngles &speed, const idAngles &baseSpeed ) {
-	current.time = GameLocal()->time;
+	current.time = GameLocal()->GetTime();
 	current.angularExtrapolation.Init( time, duration, base, baseSpeed, speed, type );
 	current.localAngles = base;
 	Activate();
@@ -374,7 +374,7 @@ idPhysics_Parametric::SetLinearInterpolation
 ================
 */
 void idPhysics_Parametric::SetLinearInterpolation( int time, int accelTime, int decelTime, int duration, const idVec3 &startPos, const idVec3 &endPos ) {
-	current.time = GameLocal()->time;
+	current.time = GameLocal()->GetTime();
 	current.linearInterpolation.Init( time, accelTime, decelTime, duration, startPos, endPos );
 	current.localOrigin = startPos;
 	Activate();
@@ -386,7 +386,7 @@ idPhysics_Parametric::SetAngularInterpolation
 ================
 */
 void idPhysics_Parametric::SetAngularInterpolation( int time, int accelTime, int decelTime, int duration, const idAngles &startAng, const idAngles &endAng ) {
-	current.time = GameLocal()->time;
+	current.time = GameLocal()->GetTime();
 	current.angularInterpolation.Init( time, accelTime, decelTime, duration, startAng, endAng );
 	current.localAngles = startAng;
 	Activate();
@@ -838,7 +838,7 @@ idPhysics_Parametric::SetLinearVelocity
 ================
 */
 void idPhysics_Parametric::SetLinearVelocity( const idVec3 &newLinearVelocity, int id ) {
-	SetLinearExtrapolation( extrapolation_t(EXTRAPOLATION_LINEAR|EXTRAPOLATION_NOSTOP), GameLocal()->time, 0, current.origin, newLinearVelocity, vec3_origin );
+	SetLinearExtrapolation( extrapolation_t(EXTRAPOLATION_LINEAR|EXTRAPOLATION_NOSTOP), GameLocal()->GetTime(), 0, current.origin, newLinearVelocity, vec3_origin );
 	current.linearInterpolation.Init( 0, 0, 0, 0, vec3_zero, vec3_zero );
 	Activate();
 }
@@ -857,7 +857,7 @@ void idPhysics_Parametric::SetAngularVelocity( const idVec3 &newAngularVelocity,
 	angle = vec.Normalize();
 	rotation.Set( vec3_origin, vec, (float) RAD2DEG( angle ) );
 
-	SetAngularExtrapolation( extrapolation_t(EXTRAPOLATION_LINEAR|EXTRAPOLATION_NOSTOP), GameLocal()->time, 0, current.angles, rotation.ToAngles(), ang_zero );
+	SetAngularExtrapolation( extrapolation_t(EXTRAPOLATION_LINEAR|EXTRAPOLATION_NOSTOP), GameLocal()->GetTime(), 0, current.angles, rotation.ToAngles(), ang_zero );
 	current.angularInterpolation.Init( 0, 0, 0, 0, ang_zero, ang_zero );
 	Activate();
 }
@@ -870,7 +870,7 @@ idPhysics_Parametric::GetLinearVelocity
 const idVec3 &idPhysics_Parametric::GetLinearVelocity( int id ) const {
 	static idVec3 curLinearVelocity;
 
-	curLinearVelocity = current.linearExtrapolation.GetCurrentSpeed( GameLocal()->time );
+	curLinearVelocity = current.linearExtrapolation.GetCurrentSpeed( GameLocal()->GetTime() );
 	return curLinearVelocity;
 }
 
@@ -883,7 +883,7 @@ const idVec3 &idPhysics_Parametric::GetAngularVelocity( int id ) const {
 	static idVec3 curAngularVelocity;
 	idAngles angles;
 
-	angles = current.angularExtrapolation.GetCurrentSpeed( GameLocal()->time );
+	angles = current.angularExtrapolation.GetCurrentSpeed( GameLocal()->GetTime() );
 	curAngularVelocity = angles.ToAngularVelocity();
 	return curAngularVelocity;
 }

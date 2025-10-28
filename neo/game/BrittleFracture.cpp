@@ -344,11 +344,11 @@ bool idBrittleFracture::UpdateRenderEntity( renderEntity_s *renderEntity, const 
 	}
 
 	// don't regenerate it if it is current
-	if ( lastRenderEntityUpdate == GameLocal()->time || !changed ) {
+	if ( lastRenderEntityUpdate == GameLocal()->GetTime() || !changed ) {
 		return false;
 	}
 
-	lastRenderEntityUpdate = GameLocal()->time;
+	lastRenderEntityUpdate = GameLocal()->GetTime();
 	changed = false;
 
 	numTris = 0;
@@ -379,7 +379,7 @@ bool idBrittleFracture::UpdateRenderEntity( renderEntity_s *renderEntity, const 
 
 		fade = 1.0f;
 		if ( shards[i]->droppedTime >= 0 ) {
-			msec = GameLocal()->time - shards[i]->droppedTime - SHARD_FADE_START;
+			msec = GameLocal()->GetTime() - shards[i]->droppedTime - SHARD_FADE_START;
 			if ( msec > 0 ) {
 				fade = 1.0f - (float) msec / ( SHARD_ALIVE_TIME - SHARD_FADE_START );
 			}
@@ -568,7 +568,7 @@ void idBrittleFracture::Think( void ) {
 	for ( i = 0; i < shards.Num(); i++ ) {
 		droppedTime = shards[i]->droppedTime;
 		if ( droppedTime != -1 ) {
-			if ( GameLocal()->time - droppedTime > SHARD_ALIVE_TIME ) {
+			if ( GameLocal()->GetTime() - droppedTime > SHARD_ALIVE_TIME ) {
 				RemoveShard( i );
 				i--;
 			}
@@ -585,7 +585,7 @@ void idBrittleFracture::Think( void ) {
 	if ( thinkFlags & TH_PHYSICS ) {
 
 		startTime = GameLocal()->previousTime;
-		endTime = GameLocal()->time;
+		endTime = GameLocal()->GetTime();
 
 		// run physics on shards
 		for ( i = 0; i < shards.Num(); i++ ) {
@@ -640,7 +640,7 @@ void idBrittleFracture::ApplyImpulse( idEntity *ent, int id, const idVec3 &point
 	if ( shards[id]->droppedTime != -1 ) {
 		shards[id]->physicsObj.ApplyImpulse( 0, point, impulse );
 	} else if ( health <= 0 && !disableFracture ) {
-		Shatter( point, impulse, GameLocal()->time );
+		Shatter( point, impulse, GameLocal()->GetTime() );
 	}
 }
 
@@ -658,7 +658,7 @@ void idBrittleFracture::AddForce( idEntity *ent, int id, const idVec3 &point, co
 	if ( shards[id]->droppedTime != -1 ) {
 		shards[id]->physicsObj.AddForce( 0, point, force );
 	} else if ( health <= 0 && !disableFracture ) {
-		Shatter( point, force, GameLocal()->time );
+		Shatter( point, force, GameLocal()->GetTime() );
 	}
 }
 
@@ -690,7 +690,7 @@ void idBrittleFracture::ProjectDecal( const idVec3 &point, const idVec3 &dir, co
 		ServerSendEvent( EVENT_PROJECT_DECAL, &msg, true, -1 );
 	}
 
-	if ( time >= GameLocal()->time ) {
+	if ( time >= GameLocal()->GetTime() ) {
 		// try to get the sound from the damage def
 		const idDeclEntityDef *damageDef = NULL;
 		const idSoundShader *sndShader = NULL;
@@ -853,7 +853,7 @@ void idBrittleFracture::Shatter( const idVec3 &point, const idVec3 &impulse, con
 		ServerSendEvent( EVENT_SHATTER, &msg, true, -1 );
 	}
 
-	if ( time > ( GameLocal()->time - SHARD_ALIVE_TIME ) ) {
+	if ( time > ( GameLocal()->GetTime() - SHARD_ALIVE_TIME ) ) {
 		StartSound( "snd_shatter", SND_CHANNEL_ANY, 0, false, NULL );
 	}
 
@@ -997,7 +997,7 @@ idBrittleFracture::AddDamageEffect
 */
 void idBrittleFracture::AddDamageEffect( const trace_t &collision, const idVec3 &velocity, const char *damageDefName ) {
 	if ( !disableFracture ) {
-		ProjectDecal( collision.c.point, collision.c.normal, GameLocal()->time, damageDefName );
+		ProjectDecal( collision.c.point, collision.c.normal, GameLocal()->GetTime(), damageDefName );
 	}
 }
 
@@ -1232,7 +1232,7 @@ void idBrittleFracture::Event_Touch( idEntity *other, trace_t *trace ) {
 	point = shards[trace->c.id]->clipModel->GetOrigin();
 	impulse = other->GetPhysics()->GetLinearVelocity() * other->GetPhysics()->GetMass();
 
-	Shatter( point, impulse, GameLocal()->time );
+	Shatter( point, impulse, GameLocal()->GetTime() );
 }
 
 /*

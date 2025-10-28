@@ -128,13 +128,13 @@ void idCameraView::Event_Activate( idEntity *activator ) {
 	if (spawnArgs.GetBool("trigger")) {
 		if (GameLocal()->GetCamera() != this) {
 			if ( g_debugCinematic.GetBool() ) {
-				GameLocal()->Printf( "%d: '%s' start\n", GameLocal()->framenum, GetName() );
+				GameLocal()->Printf( "%d: '%s' start\n", GameLocal()->GetFrameNum(), GetName() );
 			}
 
 			GameLocal()->SetCamera(this);
 		} else {
 			if ( g_debugCinematic.GetBool() ) {
-				GameLocal()->Printf( "%d: '%s' stop\n", GameLocal()->framenum, GetName() );
+				GameLocal()->Printf( "%d: '%s' stop\n", GameLocal()->GetFrameNum(), GetName() );
 			}
 			GameLocal()->SetCamera(NULL);
 		}
@@ -148,7 +148,7 @@ idCameraView::Stop
 */
 void idCameraView::Stop( void ) {
 	if ( g_debugCinematic.GetBool() ) {
-		GameLocal()->Printf( "%d: '%s' stop\n", GameLocal()->framenum, GetName() );
+		GameLocal()->Printf( "%d: '%s' stop\n", GameLocal()->GetFrameNum(), GetName() );
 	}
 	GameLocal()->SetCamera(NULL);
 	ActivateTargets( GameLocal()->GetLocalPlayer() );
@@ -458,15 +458,15 @@ void idCameraAnim::Start( void ) {
 	}
 
 	if ( g_debugCinematic.GetBool() ) {
-		GameLocal()->Printf( "%d: '%s' start\n", GameLocal()->framenum, GetName() );
+		GameLocal()->Printf( "%d: '%s' start\n", GameLocal()->GetFrameNum(), GetName() );
 	}
 
-	starttime = GameLocal()->time;
+	starttime = GameLocal()->GetTime();
 	GameLocal()->SetCamera( this );
 	BecomeActive( TH_THINK );
 
 	// if the player has already created the renderview for this frame, have him update it again so that the camera starts this frame
-	if ( GameLocal()->GetLocalPlayer()->GetRenderView()->time == GameLocal()->time ) {
+	if ( GameLocal()->GetLocalPlayer()->GetRenderView()->time == GameLocal()->GetTime() ) {
 		GameLocal()->GetLocalPlayer()->CalculateRenderView();
 	}
 }
@@ -479,7 +479,7 @@ idCameraAnim::Stop
 void idCameraAnim::Stop( void ) {
 	if ( GameLocal()->GetCamera() == this ) {
 		if ( g_debugCinematic.GetBool() ) {
-			GameLocal()->Printf( "%d: '%s' stop\n", GameLocal()->framenum, GetName() );
+			GameLocal()->Printf( "%d: '%s' stop\n", GameLocal()->GetFrameNum(), GetName() );
 		}
 
 		BecomeInactive( TH_THINK );
@@ -513,10 +513,10 @@ void idCameraAnim::Think( void ) {
 		}
 
 		if ( frameRate == USERCMD_HZ ) {
-			frameTime	= GameLocal()->time - starttime;
-			frame		= frameTime / GameLocal()->msec;
+			frameTime	= GameLocal()->GetTime() - starttime;
+			frame		= frameTime / GameLocal()->GetMSec();
 		} else {
-			frameTime	= ( GameLocal()->time - starttime ) * frameRate;
+			frameTime	= ( GameLocal()->GetTime() - starttime ) * frameRate;
 			frame		= frameTime / 1000;
 		}
 
@@ -563,11 +563,11 @@ void idCameraAnim::GetViewParms( renderView_t *view ) {
 	}
 
 	if ( frameRate == USERCMD_HZ ) {
-		frameTime	= GameLocal()->time - starttime;
-		frame		= frameTime / GameLocal()->msec;
+		frameTime	= GameLocal()->GetTime() - starttime;
+		frame		= frameTime / GameLocal()->GetMSec();
 		lerp		= 0.0f;
 	} else {
-		frameTime	= ( GameLocal()->time - starttime ) * frameRate;
+		frameTime	= ( GameLocal()->GetTime() - starttime ) * frameRate;
 		frame		= frameTime / 1000;
 		lerp		= ( frameTime % 1000 ) * 0.001f;
 	}
@@ -584,7 +584,7 @@ void idCameraAnim::GetViewParms( renderView_t *view ) {
 	}
 
 	if ( g_debugCinematic.GetBool() ) {
-		int prevFrameTime	= ( GameLocal()->time - starttime - GameLocal()->msec ) * frameRate;
+		int prevFrameTime	= ( GameLocal()->GetTime() - starttime - GameLocal()->GetMSec() ) * frameRate;
 		int prevFrame		= prevFrameTime / 1000;
 		int prevCut;
 
@@ -598,7 +598,7 @@ void idCameraAnim::GetViewParms( renderView_t *view ) {
 		}
 
 		if ( prevCut != cut ) {
-			GameLocal()->Printf( "%d: '%s' cut %d\n", GameLocal()->framenum, GetName(), cut );
+			GameLocal()->Printf( "%d: '%s' cut %d\n", GameLocal()->GetFrameNum(), GetName(), cut );
 		}
 	}
 
@@ -656,14 +656,14 @@ void idCameraAnim::GetViewParms( renderView_t *view ) {
 #if 0
 	static int lastFrame = 0;
 	static idVec3 lastFrameVec( 0.0f, 0.0f, 0.0f );
-	if ( GameLocal()->time != lastFrame ) {
-		gameRenderWorld->DebugBounds( colorCyan, idBounds( view->vieworg ).Expand( 16.0f ), vec3_origin, GameLocal()->msec );
+	if ( GameLocal()->GetTime() != lastFrame ) {
+		gameRenderWorld->DebugBounds( colorCyan, idBounds( view->vieworg ).Expand( 16.0f ), vec3_origin, GameLocal()->GetMSec() );
 		gameRenderWorld->DebugLine( colorRed, view->vieworg, view->vieworg + idVec3( 0.0f, 0.0f, 2.0f ), 10000, false );
 		gameRenderWorld->DebugLine( colorCyan, lastFrameVec, view->vieworg, 10000, false );
 		gameRenderWorld->DebugLine( colorYellow, view->vieworg + view->viewaxis[ 0 ] * 64.0f, view->vieworg + view->viewaxis[ 0 ] * 66.0f, 10000, false );
 		gameRenderWorld->DebugLine( colorOrange, view->vieworg + view->viewaxis[ 0 ] * 64.0f, view->vieworg + view->viewaxis[ 0 ] * 64.0f + idVec3( 0.0f, 0.0f, 2.0f ), 10000, false );
 		lastFrameVec = view->vieworg;
-		lastFrame = GameLocal()->time;
+		lastFrame = GameLocal()->GetTime();
 	}
 #endif
 

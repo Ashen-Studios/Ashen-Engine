@@ -284,7 +284,7 @@ idTarget_SetGlobalShaderTime::Event_Activate
 */
 void idTarget_SetGlobalShaderTime::Event_Activate( idEntity *activator ) {
 	int parm = spawnArgs.GetInt( "globalParm" );
-	float time = -MS2SEC( GameLocal()->time );
+	float time = -MS2SEC( GameLocal()->GetTime() );
 	if ( parm >= 0 && parm < MAX_GLOBAL_SHADER_PARMS ) {
 		GameLocal()->globalShaderParms[parm] = time;
 	}
@@ -366,7 +366,7 @@ void idTarget_SetShaderTime::Event_Activate( idEntity *activator ) {
 	idEntity *	ent;
 	float		time;
 
-	time = -MS2SEC( GameLocal()->time );
+	time = -MS2SEC( GameLocal()->GetTime() );
 	for( i = 0; i < targets.Num(); i++ ) {
 		ent = targets[ i ].GetEntity();
 		if ( ent ) {
@@ -449,8 +449,8 @@ void idTarget_FadeEntity::Event_Activate( idEntity *activator ) {
 		}
 	}
 
-	fadeStart = GameLocal()->time;
-	fadeEnd = GameLocal()->time + SEC2MS( spawnArgs.GetFloat( "fadetime" ) );
+	fadeStart = GameLocal()->GetTime();
+	fadeEnd = GameLocal()->GetTime() + SEC2MS( spawnArgs.GetFloat( "fadetime" ) );
 }
 
 /*
@@ -467,11 +467,11 @@ void idTarget_FadeEntity::Think( void ) {
 
 	if ( thinkFlags & TH_THINK ) {
 		GetColor( fadeTo );
-		if ( GameLocal()->time >= fadeEnd ) {
+		if ( GameLocal()->GetTime() >= fadeEnd ) {
 			color = fadeTo;
 			BecomeInactive( TH_THINK );
 		} else {
-			frac = ( float )( GameLocal()->time - fadeStart ) / ( float )( fadeEnd - fadeStart );
+			frac = ( float )( GameLocal()->GetTime() - fadeStart ) / ( float )( fadeEnd - fadeStart );
 			color.Lerp( fadeFrom, fadeTo, frac );
 		}
 
@@ -1021,7 +1021,7 @@ void idTarget_SetInfluence::Event_Activate( idEntity *activator ) {
 
 	int fov = spawnArgs.GetInt( "fov" );
 	if ( fov ) {
-		fovSetting.Init( GameLocal()->time, SEC2MS( spawnArgs.GetFloat( "fovTime" ) ), player->DefaultFov(), fov );
+		fovSetting.Init( GameLocal()->GetTime(), SEC2MS( spawnArgs.GetFloat( "fovTime" ) ), player->DefaultFov(), fov );
 		BecomeActive( TH_THINK );
 	}
 
@@ -1122,8 +1122,8 @@ idTarget_SetInfluence::Think
 void idTarget_SetInfluence::Think( void ) {
 	if ( thinkFlags & TH_THINK ) {
 		idPlayer *player = GameLocal()->GetLocalPlayer();
-		player->SetInfluenceFov( fovSetting.GetCurrentValue( GameLocal()->time ) );
-		if ( fovSetting.IsDone( GameLocal()->time ) ) {
+		player->SetInfluenceFov( fovSetting.GetCurrentValue( GameLocal()->GetTime() ) );
+		if ( fovSetting.IsDone( GameLocal()->GetTime() ) ) {
 			if ( !spawnArgs.GetBool( "leaveFOV" ) ) {
 				player->SetInfluenceFov( 0 );
 			}
@@ -1261,7 +1261,7 @@ void idTarget_SetKeyVal::Event_Activate( idEntity *activator ) {
 						if ( ent->GetRenderEntity()->gui[ j ] ) {
 							if ( idStr::Icmpn( key, "gui_", 4 ) == 0 ) {
 								ent->GetRenderEntity()->gui[ j ]->SetStateString( key, val );
-								ent->GetRenderEntity()->gui[ j ]->StateChanged( GameLocal()->time );
+								ent->GetRenderEntity()->gui[ j ]->StateChanged( GameLocal()->GetTime() );
 							}
 						}
 					}
@@ -1318,7 +1318,7 @@ void idTarget_SetFov::Restore( idRestoreGame *savefile ) {
 	savefile->ReadFloat( setting );
 	fovSetting.SetEndValue( setting );
 
-	fovSetting.GetCurrentValue( GameLocal()->time );
+	fovSetting.GetCurrentValue( GameLocal()->GetTime() );
 }
 
 /*
@@ -1331,7 +1331,7 @@ void idTarget_SetFov::Event_Activate( idEntity *activator ) {
 	cinematic = true;
 
 	idPlayer *player = GameLocal()->GetLocalPlayer();
-	fovSetting.Init( GameLocal()->time, SEC2MS( spawnArgs.GetFloat( "time" ) ), player ? player->DefaultFov() : g_fov.GetFloat(), spawnArgs.GetFloat( "fov" ) );
+	fovSetting.Init( GameLocal()->GetTime(), SEC2MS( spawnArgs.GetFloat( "time" ) ), player ? player->DefaultFov() : g_fov.GetFloat(), spawnArgs.GetFloat( "fov" ) );
 	BecomeActive( TH_THINK );
 }
 
@@ -1343,8 +1343,8 @@ idTarget_SetFov::Think
 void idTarget_SetFov::Think( void ) {
 	if ( thinkFlags & TH_THINK ) {
 		idPlayer *player = GameLocal()->GetLocalPlayer();
-		player->SetInfluenceFov( fovSetting.GetCurrentValue( GameLocal()->time ) );
-		if ( fovSetting.IsDone( GameLocal()->time ) ) {
+		player->SetInfluenceFov( fovSetting.GetCurrentValue( GameLocal()->GetTime() ) );
+		if ( fovSetting.IsDone( GameLocal()->GetTime() ) ) {
 			player->SetInfluenceFov( 0.0f );
 			BecomeInactive( TH_THINK );
 		}

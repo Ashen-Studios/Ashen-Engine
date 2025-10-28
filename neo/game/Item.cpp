@@ -220,13 +220,13 @@ void idItem::Think( void ) {
 			idVec3		org;
 
 			ang.pitch = ang.roll = 0.0f;
-			ang.yaw = ( GameLocal()->time & 4095 ) * 360.0f / -4096.0f;
+			ang.yaw = ( GameLocal()->GetTime() & 4095 ) * 360.0f / -4096.0f;
 			SetAngles( ang );
 
 			float scale = 0.005f + entityNumber * 0.00001f;
 
 			org = orgOrigin;
-			org.z += 4.0f + cos( ( GameLocal()->time + 2000 ) * scale ) * 4.0f;
+			org.z += 4.0f + cos( ( GameLocal()->GetTime() + 2000 ) * scale ) * 4.0f;
 			SetOrigin( org );
 		}
 	}
@@ -967,7 +967,7 @@ void idMoveableItem::Spawn( void ) {
 	const char *smokeName = spawnArgs.GetString( "smoke_trail" );
 	if ( *smokeName != '\0' ) {
 		smoke = static_cast<const idDeclParticle *>( declManager->FindType( DECL_PARTICLE, smokeName ) );
-		smokeTime = GameLocal()->time;
+		smokeTime = GameLocal()->GetTime();
 		BecomeActive( TH_UPDATEPARTICLES );
 	}
 }
@@ -1089,7 +1089,7 @@ void idMoveableItem::DropItems( idAnimatedEntity  *ent, const char *type, idList
 			key2 += "Offset";
 			jointName = ent->spawnArgs.GetString( key );
 			joint = ent->GetAnimator()->GetJointHandle( jointName );
-			if ( !ent->GetJointWorldTransform( joint, GameLocal()->time, origin, axis ) ) {
+			if ( !ent->GetJointWorldTransform( joint, GameLocal()->GetTime(), origin, axis ) ) {
 				GameLocal()->Warning( "%s refers to invalid joint '%s' on entity '%s'\n", key.c_str(), jointName, ent->name.c_str() );
 				origin = ent->GetPhysics()->GetOrigin();
 				axis = ent->GetPhysics()->GetAxis();
@@ -1154,7 +1154,7 @@ void idMoveableItem::Gib( const idVec3 &dir, const char *damageDefName ) {
 	const char *smokeName = spawnArgs.GetString( "smoke_gib" );
 	if ( *smokeName != '\0' ) {
 		const idDeclParticle *smoke = static_cast<const idDeclParticle *>( declManager->FindType( DECL_PARTICLE, smokeName ) );
-		GameLocal()->smokeParticles->EmitSmoke( smoke, GameLocal()->time, GameLocal()->random.CRandomFloat(), renderEntity.origin, renderEntity.axis );
+		GameLocal()->smokeParticles->EmitSmoke( smoke, GameLocal()->GetTime(), GameLocal()->random.CRandomFloat(), renderEntity.origin, renderEntity.axis );
 	}
 	// remove the entity
 	PostEventMS( &EV_Remove, 0 );

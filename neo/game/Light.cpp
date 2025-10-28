@@ -462,7 +462,7 @@ idLight::On
 void idLight::On( void ) {
 	currentLevel = levels;
 	// offset the start time of the shader to sync it to the game time
-	renderLight.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->time );
+	renderLight.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->GetTime() );
 	if ( ( soundWasPlaying || refSound.waitfortrigger ) && refSound.shader ) {
 		StartSoundShader( refSound.shader, SND_CHANNEL_ANY, 0, false, NULL );
 		soundWasPlaying = false;
@@ -495,8 +495,8 @@ idLight::Fade
 void idLight::Fade( const idVec4 &to, float fadeTime ) {
 	GetColor( fadeFrom );
 	fadeTo = to;
-	fadeStart = GameLocal()->time;
-	fadeEnd = GameLocal()->time + SEC2MS( fadeTime );
+	fadeStart = GameLocal()->GetTime();
+	fadeEnd = GameLocal()->GetTime() + SEC2MS( fadeTime );
 	BecomeActive( TH_THINK );
 }
 
@@ -569,8 +569,8 @@ void idLight::BecomeBroken( idEntity *activator ) {
 		ActivateTargets( activator );
 
 	// offset the start time of the shader to sync it to the game time
-	renderEntity.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->time );
-	renderLight.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->time );
+	renderEntity.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->GetTime() );
+	renderLight.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->GetTime() );
 
 	// set the state parm
 	renderEntity.shaderParms[ SHADERPARM_MODE ] = 1;
@@ -671,8 +671,8 @@ void idLight::Think( void ) {
 
 	if ( thinkFlags & TH_THINK ) {
 		if ( fadeEnd > 0 ) {
-			if ( GameLocal()->time < fadeEnd ) {
-				color.Lerp( fadeFrom, fadeTo, ( float )( GameLocal()->time - fadeStart ) / ( float )( fadeEnd - fadeStart ) );
+			if ( GameLocal()->GetTime() < fadeEnd ) {
+				color.Lerp( fadeFrom, fadeTo, ( float )( GameLocal()->GetTime() - fadeStart ) / ( float )( fadeEnd - fadeStart ) );
 			} else {
 				color = fadeTo;
 				fadeEnd = 0;

@@ -70,7 +70,7 @@ void idPlayerIcon::Draw( idPlayer *player, jointHandle_t joint ) {
 		return;
 	}
 
-	player->GetJointWorldTransform( joint, GameLocal()->time, origin, axis );
+	player->GetJointWorldTransform( joint, GameLocal()->GetTime(), origin, axis );
 	origin.z += 16.0f;
 
 	Draw( player, origin );

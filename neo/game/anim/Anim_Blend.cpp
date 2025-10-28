@@ -4203,7 +4203,7 @@ bool idAnimator::CreateFrame( int currentTime, bool force ) {
 
 	if ( entity && ( ( g_debugAnim.GetInteger() == entity->entityNumber ) || ( g_debugAnim.GetInteger() == -2 ) ) ) {
 		debugInfo = true;
-		GameLocal()->Printf( "---------------\n%d: entity '%s':\n", GameLocal()->time, entity->GetName() );
+		GameLocal()->Printf( "---------------\n%d: entity '%s':\n", GameLocal()->GetTime(), entity->GetName() );
  		GameLocal()->Printf( "model '%s':\n", modelDef->GetModelName() );
 	} else {
 		debugInfo = false;
@@ -4263,7 +4263,7 @@ bool idAnimator::CreateFrame( int currentTime, bool force ) {
 			}
 
 			if ( debugInfo && !AFPoseJoints.Num() && !blendWeight ) {
-				GameLocal()->Printf( "%d: %s using default pose in model '%s'\n", GameLocal()->time, channelNames[ i ], modelDef->GetModelName() );
+				GameLocal()->Printf( "%d: %s using default pose in model '%s'\n", GameLocal()->GetTime(), channelNames[ i ], modelDef->GetModelName() );
 			}
 		}
 	}

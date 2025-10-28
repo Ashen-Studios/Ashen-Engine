@@ -489,12 +489,12 @@ void idDamagable::BecomeBroken( idEntity *activator ) {
 	int		cycle;
 	float	wait;
 
-	if ( GameLocal()->time < nextTriggerTime ) {
+	if ( GameLocal()->GetTime() < nextTriggerTime ) {
 		return;
 	}
 
 	spawnArgs.GetFloat( "wait", "0.1", wait );
-	nextTriggerTime = GameLocal()->time + SEC2MS( wait );
+	nextTriggerTime = GameLocal()->GetTime() + SEC2MS( wait );
 	if ( count > 0 ) {
 		count--;
 		if ( !count ) {
@@ -512,7 +512,7 @@ void idDamagable::BecomeBroken( idEntity *activator ) {
 	}
 
 	// offset the start time of the shader to sync it to the gameLocal time
-	renderEntity.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->time );
+	renderEntity.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->GetTime() );
 
 	spawnArgs.GetInt( "numstates", "1", numStates );
 	spawnArgs.GetInt( "cycle", "0", cycle );
@@ -530,13 +530,13 @@ void idDamagable::BecomeBroken( idEntity *activator ) {
 		renderEntity.shaderParms[ SHADERPARM_MODE ] = GameLocal()->random.RandomInt( numStates ) + 1;
 	}
 
-	renderEntity.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->time );
+	renderEntity.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->GetTime() );
 
 	ActivateTargets( activator );
 
 	if ( spawnArgs.GetBool( "hideWhenBroken" ) ) {
 		Hide();
-		PostEventMS( &EV_RestoreDamagable, nextTriggerTime - GameLocal()->time );
+		PostEventMS( &EV_RestoreDamagable, nextTriggerTime - GameLocal()->GetTime() );
 		BecomeActive( TH_THINK );
 	}
 }
@@ -547,7 +547,7 @@ idDamagable::Killed
 ================
 */
 void idDamagable::Killed( idEntity *inflictor, idEntity *attacker, int damage, const idVec3 &dir, int location ) {
-	if ( GameLocal()->time < nextTriggerTime ) {
+	if ( GameLocal()->GetTime() < nextTriggerTime ) {
 		health += damage;
 		return;
 	}
@@ -615,7 +615,7 @@ void idExplodable::Event_Explode( idEntity *activator ) {
 	renderEntity.shaderParms[SHADERPARM_GREEN]		= 1.0f;
 	renderEntity.shaderParms[SHADERPARM_BLUE]		= 1.0f;
 	renderEntity.shaderParms[SHADERPARM_ALPHA]		= 1.0f;
-	renderEntity.shaderParms[SHADERPARM_TIMEOFFSET] = -MS2SEC( GameLocal()->time );
+	renderEntity.shaderParms[SHADERPARM_TIMEOFFSET] = -MS2SEC( GameLocal()->GetTime() );
 	renderEntity.shaderParms[SHADERPARM_DIVERSITY]	= 0.0f;
 	Show();
 
@@ -651,7 +651,7 @@ void idSpring::Think( void ) {
 
 	if ( thinkFlags & TH_THINK ) {
 		// evaluate force
-		spring.Evaluate( GameLocal()->time );
+		spring.Evaluate( GameLocal()->GetTime() );
 
 		start = p1;
 		if ( ent1->GetPhysics() ) {
@@ -767,7 +767,7 @@ idForceField::Think
 void idForceField::Think( void ) {
 	if ( thinkFlags & TH_THINK ) {
 		// evaluate force
-		forceField.Evaluate( GameLocal()->time );
+		forceField.Evaluate( GameLocal()->GetTime() );
 	}
 	Present();
 }
@@ -1010,10 +1010,10 @@ void idAnimated::Spawn( void ) {
 		if ( !anim2 ) {
 			GameLocal()->Error( "idAnimated '%s' at (%s): cannot find anim '%s'", name.c_str(), GetPhysics()->GetOrigin().ToString(0), animname.c_str() );
 		}
-		animator.CycleAnim( ANIMCHANNEL_ALL, anim2, GameLocal()->time, 0 );
+		animator.CycleAnim( ANIMCHANNEL_ALL, anim2, GameLocal()->GetTime(), 0 );
 	} else if ( anim ) {
 		// init joints to the first frame of the animation
-		animator.SetFrame( ANIMCHANNEL_ALL, anim, 1, GameLocal()->time, 0 );
+		animator.SetFrame( ANIMCHANNEL_ALL, anim, 1, GameLocal()->GetTime(), 0 );
 
 		if ( !num_anims ) {
 			blendFrames = 0;
@@ -1048,7 +1048,7 @@ idAnimated::GetPhysicsToSoundTransform
 ===============
 */
 bool idAnimated::GetPhysicsToSoundTransform( idVec3 &origin, idMat3 &axis ) {
-	animator.GetJointTransform( soundJoint, GameLocal()->time, origin, axis );
+	animator.GetJointTransform( soundJoint, GameLocal()->GetTime(), origin, axis );
 	axis = renderEntity.axis;
 	return true;
 }
@@ -1104,7 +1104,7 @@ void idAnimated::PlayNextAnim( void ) {
 	spawnArgs.GetString( va( "anim%d", current_anim_index ), NULL, &animname );
 	if ( !animname ) {
 		anim = 0;
-		animator.Clear( ANIMCHANNEL_ALL, GameLocal()->time, FRAME2MS( blendFrames ) );
+		animator.Clear( ANIMCHANNEL_ALL, GameLocal()->GetTime(), FRAME2MS( blendFrames ) );
 		return;
 	}
 
@@ -1115,7 +1115,7 @@ void idAnimated::PlayNextAnim( void ) {
 	}
 
 	if ( g_debugCinematic.GetBool() ) {
-		GameLocal()->Printf( "%d: '%s' start anim '%s'\n", GameLocal()->framenum, GetName(), animname );
+		GameLocal()->Printf( "%d: '%s' start anim '%s'\n", GameLocal()->GetFrameNum(), GetName(), animname );
 	}
 
 	spawnArgs.GetInt( "cycle", "1", cycle );
@@ -1123,7 +1123,7 @@ void idAnimated::PlayNextAnim( void ) {
 		cycle = -1;
 	}
 
-	animator.CycleAnim( ANIMCHANNEL_ALL, anim, GameLocal()->time, FRAME2MS( blendFrames ) );
+	animator.CycleAnim( ANIMCHANNEL_ALL, anim, GameLocal()->GetTime(), FRAME2MS( blendFrames ) );
 	animator.CurrentAnim( ANIMCHANNEL_ALL )->SetCycleCount( cycle );
 
 	len = animator.CurrentAnim( ANIMCHANNEL_ALL )->PlayLength();
@@ -1132,7 +1132,7 @@ void idAnimated::PlayNextAnim( void ) {
 	}
 
 	// offset the start time of the shader to sync it to the game time
-	renderEntity.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->time );
+	renderEntity.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->GetTime() );
 
 	animator.ForceUpdate();
 	UpdateAnimation();
@@ -1157,7 +1157,7 @@ idAnimated::Event_AnimDone
 void idAnimated::Event_AnimDone( int animindex ) {
 	if ( g_debugCinematic.GetBool() ) {
 		const idAnim *animPtr = animator.GetAnim( anim );
-		GameLocal()->Printf( "%d: '%s' end anim '%s'\n", GameLocal()->framenum, GetName(), animPtr ? animPtr->Name() : "" );
+		GameLocal()->Printf( "%d: '%s' end anim '%s'\n", GameLocal()->GetFrameNum(), GetName(), animPtr ? animPtr->Name() : "" );
 	}
 
 	if ( ( animindex >= num_anims ) && spawnArgs.GetBool( "remove" ) ) {
@@ -1213,10 +1213,10 @@ void idAnimated::Event_Start( void ) {
 	if ( anim ) {
 		if ( g_debugCinematic.GetBool() ) {
 			const idAnim *animPtr = animator.GetAnim( anim );
-			GameLocal()->Printf( "%d: '%s' start anim '%s'\n", GameLocal()->framenum, GetName(), animPtr ? animPtr->Name() : "" );
+			GameLocal()->Printf( "%d: '%s' start anim '%s'\n", GameLocal()->GetFrameNum(), GetName(), animPtr ? animPtr->Name() : "" );
 		}
 		spawnArgs.GetInt( "cycle", "1", cycle );
-		animator.CycleAnim( ANIMCHANNEL_ALL, anim, GameLocal()->time, FRAME2MS( blendFrames ) );
+		animator.CycleAnim( ANIMCHANNEL_ALL, anim, GameLocal()->GetTime(), FRAME2MS( blendFrames ) );
 		animator.CurrentAnim( ANIMCHANNEL_ALL )->SetCycleCount( cycle );
 
 		len = animator.CurrentAnim( ANIMCHANNEL_ALL )->PlayLength();
@@ -1226,7 +1226,7 @@ void idAnimated::Event_Start( void ) {
 	}
 
 	// offset the start time of the shader to sync it to the game time
-	renderEntity.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->time );
+	renderEntity.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( GameLocal()->GetTime() );
 
 	animator.ForceUpdate();
 	UpdateAnimation();
@@ -1267,10 +1267,10 @@ void idAnimated::Event_LaunchMissilesUpdate( int launchjoint, int targetjoint, i
 
 	StartSound( "snd_missile", SND_CHANNEL_WEAPON, 0, false, NULL );
 
-	animator.GetJointTransform( ( jointHandle_t )launchjoint, GameLocal()->time, launchPos, axis );
+	animator.GetJointTransform( ( jointHandle_t )launchjoint, GameLocal()->GetTime(), launchPos, axis );
 	launchPos = renderEntity.origin + launchPos * renderEntity.axis;
 
-	animator.GetJointTransform( ( jointHandle_t )targetjoint, GameLocal()->time, targetPos, axis );
+	animator.GetJointTransform( ( jointHandle_t )targetjoint, GameLocal()->GetTime(), targetPos, axis );
 	targetPos = renderEntity.origin + targetPos * renderEntity.axis;
 
 	dir = targetPos - launchPos;
@@ -1407,7 +1407,7 @@ void idStaticEntity::Spawn( void ) {
 		GetPhysics()->SetContents( 0 );
 	}
 
-	spawnTime = GameLocal()->time;
+	spawnTime = GameLocal()->GetTime();
 	active = false;
 
 	idStr model = spawnArgs.GetString( "model" );
@@ -1448,20 +1448,20 @@ void idStaticEntity::Think( void ) {
 			idPlayer *player = GameLocal()->GetLocalPlayer();
 			if ( player ) {
 				if ( !player->objectiveSystemOpen ) {
-					renderEntity.gui[0]->StateChanged( GameLocal()->time, true );
+					renderEntity.gui[0]->StateChanged( GameLocal()->GetTime(), true );
 					if ( renderEntity.gui[1] ) {
-						renderEntity.gui[1]->StateChanged( GameLocal()->time, true );
+						renderEntity.gui[1]->StateChanged( GameLocal()->GetTime(), true );
 					}
 					if ( renderEntity.gui[2] ) {
-						renderEntity.gui[2]->StateChanged( GameLocal()->time, true );
+						renderEntity.gui[2]->StateChanged( GameLocal()->GetTime(), true );
 					}
 				}
 			}
 		}
 		if ( fadeEnd > 0 ) {
 			idVec4 color;
-			if ( GameLocal()->time < fadeEnd ) {
-				color.Lerp( fadeFrom, fadeTo, ( float )( GameLocal()->time - fadeStart ) / ( float )( fadeEnd - fadeStart ) );
+			if ( GameLocal()->GetTime() < fadeEnd ) {
+				color.Lerp( fadeFrom, fadeTo, ( float )( GameLocal()->GetTime() - fadeStart ) / ( float )( fadeEnd - fadeStart ) );
 			} else {
 				color = fadeTo;
 				fadeEnd = 0;
@@ -1480,8 +1480,8 @@ idStaticEntity::Fade
 void idStaticEntity::Fade( const idVec4 &to, float fadeTime ) {
 	GetColor( fadeFrom );
 	fadeTo = to;
-	fadeStart = GameLocal()->time;
-	fadeEnd = GameLocal()->time + SEC2MS( fadeTime );
+	fadeStart = GameLocal()->GetTime();
+	fadeEnd = GameLocal()->GetTime() + SEC2MS( fadeTime );
 	BecomeActive( TH_THINK );
 }
 
@@ -1515,7 +1515,7 @@ idStaticEntity::Event_Activate
 void idStaticEntity::Event_Activate( idEntity *activator ) {
 	idStr activateGui;
 
-	spawnTime = GameLocal()->time;
+	spawnTime = GameLocal()->GetTime();
 	active = !active;
 
 	const idKeyValue *kv = spawnArgs.FindKey( "hide" );
@@ -1638,10 +1638,10 @@ idFuncEmitter::Event_Activate
 void idFuncEmitter::Event_Activate( idEntity *activator ) {
 	if ( hidden || spawnArgs.GetBool( "cycleTrigger" ) ) {
 		renderEntity.shaderParms[SHADERPARM_PARTICLE_STOPTIME] = 0;
-		renderEntity.shaderParms[SHADERPARM_TIMEOFFSET] = -MS2SEC( GameLocal()->time );
+		renderEntity.shaderParms[SHADERPARM_TIMEOFFSET] = -MS2SEC( GameLocal()->GetTime() );
 		hidden = false;
 	} else {
-		renderEntity.shaderParms[SHADERPARM_PARTICLE_STOPTIME] = MS2SEC( GameLocal()->time );
+		renderEntity.shaderParms[SHADERPARM_PARTICLE_STOPTIME] = MS2SEC( GameLocal()->GetTime() );
 		hidden = true;
 	}
 	UpdateVisuals();
@@ -1796,7 +1796,7 @@ void idFuncSmoke::Spawn( void ) {
 		smokeTime = 0;
 		restart = false;
 	} else if ( smoke ) {
-		smokeTime = GameLocal()->time;
+		smokeTime = GameLocal()->GetTime();
 		BecomeActive( TH_UPDATEPARTICLES );
 		restart = true;
 	}
@@ -1815,7 +1815,7 @@ void idFuncSmoke::Event_Activate( idEntity *activator ) {
 	} else {
 		BecomeActive( TH_UPDATEPARTICLES );
 		restart = true;
-		smokeTime = GameLocal()->time;
+		smokeTime = GameLocal()->GetTime();
 	}
 }
 
@@ -1834,7 +1834,7 @@ void idFuncSmoke::Think( void ) {
 	if ( ( thinkFlags & TH_UPDATEPARTICLES) && !IsHidden() ) {
 		if ( !GameLocal()->smokeParticles->EmitSmoke( smoke, smokeTime, GameLocal()->random.CRandomFloat(), GetPhysics()->GetOrigin(), GetPhysics()->GetAxis() ) ) {
 			if ( restart ) {
-				smokeTime = GameLocal()->time;
+				smokeTime = GameLocal()->GetTime();
 			} else {
 				smokeTime = 0;
 				BecomeInactive( TH_UPDATEPARTICLES );
@@ -2498,7 +2498,7 @@ void idEarthQuake::Restore( idRestoreGame *savefile ) {
 	savefile->ReadBool( disabled );
 	savefile->ReadFloat( shakeTime );
 
-	if ( shakeStopTime > GameLocal()->time ) {
+	if ( shakeStopTime > GameLocal()->GetTime() ) {
 		BecomeActive( TH_THINK );
 	}
 }
@@ -2531,7 +2531,7 @@ idEarthQuake::Event_Activate
 */
 void idEarthQuake::Event_Activate( idEntity *activator ) {
 
-	if ( nextTriggerTime > GameLocal()->time ) {
+	if ( nextTriggerTime > GameLocal()->GetTime() ) {
 		return;
 	}
 
@@ -2566,7 +2566,7 @@ void idEarthQuake::Event_Activate( idEntity *activator ) {
 	}
 
 	if ( shakeTime > 0.0f ) {
-		shakeStopTime = GameLocal()->time + SEC2MS( shakeTime );
+		shakeStopTime = GameLocal()->GetTime() + SEC2MS( shakeTime );
 		BecomeActive( TH_THINK );
 	}
 
@@ -2574,7 +2574,7 @@ void idEarthQuake::Event_Activate( idEntity *activator ) {
 		if ( !triggered ) {
 			PostEventSec( &EV_Activate, wait + random * GameLocal()->random.CRandomFloat(), this );
 		} else {
-			nextTriggerTime = GameLocal()->time + SEC2MS( wait + random * GameLocal()->random.CRandomFloat() );
+			nextTriggerTime = GameLocal()->GetTime() + SEC2MS( wait + random * GameLocal()->random.CRandomFloat() );
 		}
 	} else if ( shakeTime == 0.0f ) {
 		PostEventMS( &EV_Remove, 0 );
@@ -2589,14 +2589,14 @@ idEarthQuake::Think
 */
 void idEarthQuake::Think( void ) {
 	if ( thinkFlags & TH_THINK ) {
-		if ( GameLocal()->time > shakeStopTime ) {
+		if ( GameLocal()->GetTime() > shakeStopTime ) {
 			BecomeInactive( TH_THINK );
 			if ( wait <= 0.0f ) {
 				PostEventMS( &EV_Remove, 0 );
 			}
 			return;
 		}
-		float shakeVolume = gameSoundWorld->CurrentShakeAmplitudeForPosition( GameLocal()->time, GameLocal()->GetLocalPlayer()->firstPersonViewOrigin );
+		float shakeVolume = gameSoundWorld->CurrentShakeAmplitudeForPosition( GameLocal()->GetTime(), GameLocal()->GetLocalPlayer()->firstPersonViewOrigin );
 		GameLocal()->RadiusPush( GetPhysics()->GetOrigin(), 256, 1500 * shakeVolume, this, this, 1.0f, true );
 	}
 	BecomeInactive( TH_UPDATEVISUALS );
@@ -3030,7 +3030,7 @@ void idPhantomObjects::Event_Activate( idEntity *activator ) {
 		target = static_cast<idActor *>( activator );
 	}
 
-	end_time = GameLocal()->time + SEC2MS( spawnArgs.GetFloat( "end_time", "0" ) );
+	end_time = GameLocal()->GetTime() + SEC2MS( spawnArgs.GetFloat( "end_time", "0" ) );
 
 	targetTime.SetNum( targets.Num() );
 	lastTargetPos.SetNum( targets.Num() );
@@ -3050,7 +3050,7 @@ void idPhantomObjects::Event_Activate( idEntity *activator ) {
 	// scale up the times to fit within throw_time
 	scale = throw_time / time;
 	for( i = 0; i < targetTime.Num(); i++ ) {
-		targetTime[ i ] = GameLocal()->time + SEC2MS( shake_time )+ targetTime[ i ] * scale;
+		targetTime[ i ] = GameLocal()->GetTime() + SEC2MS( shake_time )+ targetTime[ i ] * scale;
 	}
 
 	BecomeActive( TH_THINK );
@@ -3083,7 +3083,7 @@ void idPhantomObjects::Think( void ) {
 	}
 
 	targetEnt = target.GetEntity();
-	if ( !targetEnt || ( targetEnt->health <= 0 ) || ( end_time && ( GameLocal()->time > end_time ) ) || GameLocal()->inCinematic ) {
+	if ( !targetEnt || ( targetEnt->health <= 0 ) || ( end_time && ( GameLocal()->GetTime() > end_time ) ) || GameLocal()->inCinematic ) {
 		BecomeInactive( TH_THINK );
 	}
 
@@ -3108,7 +3108,7 @@ void idPhantomObjects::Think( void ) {
 
 		num++;
 
-		time = MS2SEC( targetTime[ i ] - GameLocal()->time );
+		time = MS2SEC( targetTime[ i ] - GameLocal()->GetTime() );
 		if ( time > shake_time ) {
 			continue;
 		}
@@ -3129,7 +3129,7 @@ void idPhantomObjects::Think( void ) {
 			if ( !end_time ) {
 				targetTime[ i ] = 0;
 			} else {
-				targetTime[ i ] = GameLocal()->time + GameLocal()->random.RandomInt( max_wait - min_wait ) + min_wait;
+				targetTime[ i ] = GameLocal()->GetTime() + GameLocal()->random.RandomInt( max_wait - min_wait ) + min_wait;
 			}
 			if ( ent->IsType( idMoveable::Type ) ) {
 				idMoveable *ment = static_cast<idMoveable*>( ent );

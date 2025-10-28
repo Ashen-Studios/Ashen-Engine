@@ -149,7 +149,7 @@ void idSound::Event_Trigger( idEntity *activator ) {
 		}
 	} else {
 		if ( GameLocal()->isMultiplayer ) {
-			if ( refSound.referenceSound && ( GameLocal()->time < playingUntilTime ) ) {
+			if ( refSound.referenceSound && ( GameLocal()->GetTime() < playingUntilTime ) ) {
 				DoSound( false );
 			} else {
 				DoSound( true );
@@ -261,7 +261,7 @@ idSound::DoSound
 void idSound::DoSound( bool play ) {
 	if ( play ) {
 		StartSoundShader( refSound.shader, SND_CHANNEL_ANY, refSound.parms.soundShaderFlags, true, &playingUntilTime );
-		playingUntilTime += GameLocal()->time;
+		playingUntilTime += GameLocal()->GetTime();
 	} else {
 		StopSound( SND_CHANNEL_ANY, true );
 		playingUntilTime = 0;

@@ -438,7 +438,7 @@ idAFAttachment::PlayIdleAnim
 */
 void idAFAttachment::PlayIdleAnim( int blendTime ) {
 	if ( idleAnim && ( idleAnim != animator.CurrentAnim( ANIMCHANNEL_ALL )->AnimNum() ) ) {
-		animator.CycleAnim( ANIMCHANNEL_ALL, idleAnim, GameLocal()->time, blendTime );
+		animator.CycleAnim( ANIMCHANNEL_ALL, idleAnim, GameLocal()->GetTime(), blendTime );
 	}
 }
 
@@ -611,7 +611,7 @@ bool idAFEntity_Base::LoadAF( void ) {
 	LoadState( spawnArgs );
 
 	af.UpdateAnimation();
-	animator.CreateFrame( GameLocal()->time, true );
+	animator.CreateFrame( GameLocal()->GetTime(), true );
 	UpdateVisuals();
 
 	return true;
@@ -751,14 +751,14 @@ bool idAFEntity_Base::Collide( const trace_t &collision, const idVec3 &velocity 
 
 	if ( af.IsActive() ) {
 		v = -( velocity * collision.c.normal );
-		if ( v > BOUNCE_SOUND_MIN_VELOCITY && GameLocal()->time > nextSoundTime ) {
+		if ( v > BOUNCE_SOUND_MIN_VELOCITY && GameLocal()->GetTime() > nextSoundTime ) {
 			f = v > BOUNCE_SOUND_MAX_VELOCITY ? 1.0f : idMath::Sqrt( v - BOUNCE_SOUND_MIN_VELOCITY ) * ( 1.0f / idMath::Sqrt( BOUNCE_SOUND_MAX_VELOCITY - BOUNCE_SOUND_MIN_VELOCITY ) );
 			if ( StartSound( "snd_bounce", SND_CHANNEL_ANY, 0, false, NULL ) ) {
 				// don't set the volume unless there is a bounce sound as it overrides the entire channel
 				// which causes footsteps on ai's to not honor their shader parms
 				SetSoundVolume( f );
 			}
-			nextSoundTime = GameLocal()->time + 500;
+			nextSoundTime = GameLocal()->GetTime() + 500;
 		}
 	}
 
@@ -908,7 +908,7 @@ void idAFEntity_Base::DropAFs( idEntity *ent, const char *type, idList<idEntity 
 			af = static_cast<idAFEntity_Base *>(newEnt);
 			af->GetPhysics()->SetOrigin( ent->GetPhysics()->GetOrigin() );
 			af->GetPhysics()->SetAxis( ent->GetPhysics()->GetAxis() );
-			af->af.SetupPose( ent, GameLocal()->time );
+			af->af.SetupPose( ent, GameLocal()->GetTime() );
 			if ( list ) {
 				list->Append( af );
 			}
@@ -1134,7 +1134,7 @@ void idAFEntity_Gibbable::SpawnGibs( const idVec3 &dir, const char *damageDefNam
 			list[i]->GetPhysics()->SetLinearVelocity( velocity * 75.0f );
 		}
 		list[i]->GetRenderEntity()->noShadow = true;
-		list[i]->GetRenderEntity()->shaderParms[ SHADERPARM_TIME_OF_DEATH ] = GameLocal()->time * 0.001f;
+		list[i]->GetRenderEntity()->shaderParms[ SHADERPARM_TIME_OF_DEATH ] = GameLocal()->GetTime() * 0.001f;
 		list[i]->PostEventSec( &EV_Remove, 4.0f );
 	}
 }
@@ -1168,11 +1168,11 @@ void idAFEntity_Gibbable::Gib( const idVec3 &dir, const char *damageDefName ) {
 	UnlinkCombat();
 
 	if ( g_bloodEffects.GetBool() ) {
-		if ( GameLocal()->time > GameLocal()->GetGibTime() ) {
-			GameLocal()->SetGibTime( GameLocal()->time + GIB_DELAY );
+		if ( GameLocal()->GetTime() > GameLocal()->GetGibTime() ) {
+			GameLocal()->SetGibTime( GameLocal()->GetTime() + GIB_DELAY );
 			SpawnGibs( dir, damageDefName );
 			renderEntity.noShadow = true;
-			renderEntity.shaderParms[ SHADERPARM_TIME_OF_DEATH ] = GameLocal()->time * 0.001f;
+			renderEntity.shaderParms[ SHADERPARM_TIME_OF_DEATH ] = GameLocal()->GetTime() * 0.001f;
 			StartSound( "snd_gibbed", SND_CHANNEL_ANY, 0, false, NULL );
 			gibbed = true;
 		}
@@ -1367,7 +1367,7 @@ void idAFEntity_WithAttachedHead::Spawn( void ) {
 		int anim = head.GetEntity()->GetAnimator()->GetAnim( "dead" );
 
 		if ( anim ) {
-			head.GetEntity()->GetAnimator()->SetFrame( ANIMCHANNEL_ALL, anim, 0, GameLocal()->time, 0 );
+			head.GetEntity()->GetAnimator()->SetFrame( ANIMCHANNEL_ALL, anim, 0, GameLocal()->GetTime(), 0 );
 		}
 	}
 }
@@ -1417,7 +1417,7 @@ void idAFEntity_WithAttachedHead::SetupHead( void ) {
 		headEnt->SetCombatModel();
 		head = headEnt;
 
-		animator.GetJointTransform( joint, GameLocal()->time, origin, axis );
+		animator.GetJointTransform( joint, GameLocal()->GetTime(), origin, axis );
 		origin = renderEntity.origin + origin * renderEntity.axis;
 		headEnt->SetOrigin( origin );
 		headEnt->SetAxis( renderEntity.axis );
@@ -1653,7 +1653,7 @@ void idAFEntity_Vehicle::Use( idPlayer *other ) {
 	}
 	else {
 		player = other;
-		animator.GetJointTransform( eyesJoint, GameLocal()->time, origin, axis );
+		animator.GetJointTransform( eyesJoint, GameLocal()->GetTime(), origin, axis );
 		origin = renderEntity.origin + origin * renderEntity.axis;
 		player->GetPhysics()->SetOrigin( origin );
 		player->BindToBody( this, 0, true );
@@ -1835,7 +1835,7 @@ void idAFEntity_VehicleSimple::Think( void ) {
 
 			origin = suspension[i]->GetWheelOrigin();
 			velocity = body->GetPointVelocity( origin ) * body->GetWorldAxis()[0];
-			wheelAngles[i] += velocity * MS2SEC( GameLocal()->msec ) / wheelRadius;
+			wheelAngles[i] += velocity * MS2SEC( GameLocal()->GetMSec() ) / wheelRadius;
 
 			// additional rotation about the wheel axis
 			wheelRotation.SetAngle( RAD2DEG( wheelAngles[i] ) );
@@ -1858,13 +1858,13 @@ void idAFEntity_VehicleSimple::Think( void ) {
 		}
 /*
 		// spawn dust particle effects
-		if ( force != 0.0f && !( GameLocal()->framenum & 7 ) ) {
+		if ( force != 0.0f && !( GameLocal()->GetFrameNum() & 7 ) ) {
 			int numContacts;
 			idAFConstraint_Contact *contacts[2];
 			for ( i = 0; i < 4; i++ ) {
 				numContacts = af.GetPhysics()->GetBodyContactConstraints( wheels[i]->GetClipModel()->GetId(), contacts, 2 );
 				for ( int j = 0; j < numContacts; j++ ) {
-					GameLocal()->smokeParticles->EmitSmoke( dustSmoke, GameLocal()->time, GameLocal()->random.RandomFloat(), contacts[j]->GetContact().point, contacts[j]->GetContact().normal.ToMat3() );
+					GameLocal()->smokeParticles->EmitSmoke( dustSmoke, GameLocal()->GetTime(), GameLocal()->random.RandomFloat(), contacts[j]->GetContact().point, contacts[j]->GetContact().normal.ToMat3() );
 				}
 			}
 		}
@@ -2014,7 +2014,7 @@ void idAFEntity_VehicleFourWheels::Think( void ) {
 		}
 
 		// update the steering wheel
-		animator.GetJointTransform( steeringWheelJoint, GameLocal()->time, origin, axis );
+		animator.GetJointTransform( steeringWheelJoint, GameLocal()->GetTime(), origin, axis );
 		rotation.SetVec( axis[2] );
 		rotation.SetAngle( -steerAngle );
 		animator.SetJointAxis( steeringWheelJoint, JOINTMOD_WORLD, rotation.ToMat3() );
@@ -2027,7 +2027,7 @@ void idAFEntity_VehicleFourWheels::Think( void ) {
 			if ( force == 0.0f ) {
 				velocity = wheels[i]->GetLinearVelocity() * wheels[i]->GetWorldAxis()[0];
 			}
-			wheelAngles[i] += velocity * MS2SEC( GameLocal()->msec ) / wheelRadius;
+			wheelAngles[i] += velocity * MS2SEC( GameLocal()->GetMSec() ) / wheelRadius;
 			// give the wheel joint an additional rotation about the wheel axis
 			rotation.SetAngle( RAD2DEG( wheelAngles[i] ) );
 			axis = af.GetPhysics()->GetAxis( 0 );
@@ -2036,13 +2036,13 @@ void idAFEntity_VehicleFourWheels::Think( void ) {
 		}
 
 		// spawn dust particle effects
-		if ( force != 0.0f && !( GameLocal()->framenum & 7 ) ) {
+		if ( force != 0.0f && !( GameLocal()->GetFrameNum() & 7 ) ) {
 			int numContacts;
 			idAFConstraint_Contact *contacts[2];
 			for ( i = 0; i < 4; i++ ) {
 				numContacts = af.GetPhysics()->GetBodyContactConstraints( wheels[i]->GetClipModel()->GetId(), contacts, 2 );
 				for ( int j = 0; j < numContacts; j++ ) {
-					GameLocal()->smokeParticles->EmitSmoke( dustSmoke, GameLocal()->time, GameLocal()->random.RandomFloat(), contacts[j]->GetContact().point, contacts[j]->GetContact().normal.ToMat3() );
+					GameLocal()->smokeParticles->EmitSmoke( dustSmoke, GameLocal()->GetTime(), GameLocal()->random.RandomFloat(), contacts[j]->GetContact().point, contacts[j]->GetContact().normal.ToMat3() );
 				}
 			}
 		}
@@ -2204,7 +2204,7 @@ void idAFEntity_VehicleSixWheels::Think( void ) {
 		}
 
 		// update the steering wheel
-		animator.GetJointTransform( steeringWheelJoint, GameLocal()->time, origin, axis );
+		animator.GetJointTransform( steeringWheelJoint, GameLocal()->GetTime(), origin, axis );
 		rotation.SetVec( axis[2] );
 		rotation.SetAngle( -steerAngle );
 		animator.SetJointAxis( steeringWheelJoint, JOINTMOD_WORLD, rotation.ToMat3() );
@@ -2217,7 +2217,7 @@ void idAFEntity_VehicleSixWheels::Think( void ) {
 			if ( force == 0.0f ) {
 				velocity = wheels[i]->GetLinearVelocity() * wheels[i]->GetWorldAxis()[0];
 			}
-			wheelAngles[i] += velocity * MS2SEC( GameLocal()->msec ) / wheelRadius;
+			wheelAngles[i] += velocity * MS2SEC( GameLocal()->GetMSec() ) / wheelRadius;
 			// give the wheel joint an additional rotation about the wheel axis
 			rotation.SetAngle( RAD2DEG( wheelAngles[i] ) );
 			axis = af.GetPhysics()->GetAxis( 0 );
@@ -2226,13 +2226,13 @@ void idAFEntity_VehicleSixWheels::Think( void ) {
 		}
 
 		// spawn dust particle effects
-		if ( force != 0.0f && !( GameLocal()->framenum & 7 ) ) {
+		if ( force != 0.0f && !( GameLocal()->GetFrameNum() & 7 ) ) {
 			int numContacts;
 			idAFConstraint_Contact *contacts[2];
 			for ( i = 0; i < 6; i++ ) {
 				numContacts = af.GetPhysics()->GetBodyContactConstraints( wheels[i]->GetClipModel()->GetId(), contacts, 2 );
 				for ( int j = 0; j < numContacts; j++ ) {
-					GameLocal()->smokeParticles->EmitSmoke( dustSmoke, GameLocal()->time, GameLocal()->random.RandomFloat(), contacts[j]->GetContact().point, contacts[j]->GetContact().normal.ToMat3() );
+					GameLocal()->smokeParticles->EmitSmoke( dustSmoke, GameLocal()->GetTime(), GameLocal()->random.RandomFloat(), contacts[j]->GetContact().point, contacts[j]->GetContact().normal.ToMat3() );
 				}
 			}
 		}
@@ -2380,7 +2380,7 @@ void idAFEntity_SteamPipe::Think( void ) {
 		steamDir.y = GameLocal()->random.CRandomFloat() * steamForce;
 		steamDir.z = steamUpForce;
 		force.SetForce( steamDir );
-		force.Evaluate( GameLocal()->time );
+		force.Evaluate( GameLocal()->GetTime() );
 		//gameRenderWorld->DebugArrow( colorWhite, af.GetPhysics()->GetOrigin( steamBody ), af.GetPhysics()->GetOrigin( steamBody ) - 10.0f * steamDir, 4 );
 	}
 

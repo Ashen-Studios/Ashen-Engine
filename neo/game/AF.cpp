@@ -118,7 +118,7 @@ void idAF::Restore( idRestoreGame *savefile ) {
 	if ( self ) {
 		if ( isActive ) {
 			// clear all animations
-			animator->ClearAllAnims( GameLocal()->time, 0 );
+			animator->ClearAllAnims( GameLocal()->GetTime(), 0 );
 			animator->ClearAllJoints();
 
 			// switch to articulated figure physics
@@ -179,7 +179,7 @@ bool idAF::UpdateAnimation( void ) {
 		origin = ( bodyOrigin - jointMods[i].jointBodyOrigin * axis - renderOrigin ) * renderAxis.Transpose();
 		animator->SetAFPoseJointMod( jointMods[i].jointHandle, jointMods[i].jointMod, axis, origin );
 	}
-	animator->FinishAFPose( modifiedAnim, GetBounds().Expand( POSE_BOUNDS_EXPANSION ), GameLocal()->time );
+	animator->FinishAFPose( modifiedAnim, GetBounds().Expand( POSE_BOUNDS_EXPANSION ), GameLocal()->GetTime() );
 	animator->SetAFPoseBlendWeight( 1.0f );
 
 	return true;
@@ -412,7 +412,7 @@ idAF::GetImpactInfo
 ================
 */
 void idAF::GetImpactInfo( idEntity *ent, int id, const idVec3 &point, impactInfo_t *info ) {
-	SetupPose( self, GameLocal()->time );
+	SetupPose( self, GameLocal()->GetTime() );
 	physicsObj.GetImpactInfo( BodyForClipModelId( id ), point, info );
 }
 
@@ -422,7 +422,7 @@ idAF::ApplyImpulse
 ================
 */
 void idAF::ApplyImpulse( idEntity *ent, int id, const idVec3 &point, const idVec3 &impulse ) {
-	SetupPose( self, GameLocal()->time );
+	SetupPose( self, GameLocal()->GetTime() );
 	physicsObj.ApplyImpulse( BodyForClipModelId( id ), point, impulse );
 }
 
@@ -432,7 +432,7 @@ idAF::AddForce
 ================
 */
 void idAF::AddForce( idEntity *ent, int id, const idVec3 &point, const idVec3 &force ) {
-	SetupPose( self, GameLocal()->time );
+	SetupPose( self, GameLocal()->GetTime() );
 	physicsObj.AddForce( BodyForClipModelId( id ), point, force );
 }
 
@@ -943,7 +943,7 @@ void idAF::Start( void ) {
 		return;
 	}
 	// clear all animations
-	animator->ClearAllAnims( GameLocal()->time, 0 );
+	animator->ClearAllAnims( GameLocal()->GetTime(), 0 );
 	animator->ClearAllJoints();
 	// switch to articulated figure physics
 	self->SetPhysics( &physicsObj );
@@ -1009,14 +1009,14 @@ void idAF::StartFromCurrentPose( int inheritVelocityTime ) {
 		physicsObj.PutToRest();
 
 		// set the pose for some time back
-		SetupPose( self, GameLocal()->time - inheritVelocityTime );
+		SetupPose( self, GameLocal()->GetTime() - inheritVelocityTime );
 
 		// change the pose for the current time and set velocities
-		ChangePose( self, GameLocal()->time );
+		ChangePose( self, GameLocal()->GetTime() );
 	}
 	else {
 		// transform the articulated figure to reflect the current animation pose
-		SetupPose( self, GameLocal()->time );
+		SetupPose( self, GameLocal()->GetTime() );
 	}
 
 	physicsObj.UpdateClipModels();
@@ -1212,7 +1212,7 @@ void idAF::AddBindConstraints( void ) {
 				GameLocal()->Warning( "idAF::AddBindConstraints: joint '%s' not found", jointName.c_str() );
 			}
 
-			animator->GetJointTransform( joint, GameLocal()->time, origin, axis );
+			animator->GetJointTransform( joint, GameLocal()->GetTime(), origin, axis );
 			c->SetAnchor( renderOrigin + origin * renderAxis );
 		}
 		else if ( type.Icmp( "universal" ) == 0 ) {
@@ -1226,7 +1226,7 @@ void idAF::AddBindConstraints( void ) {
 			if ( joint == INVALID_JOINT ) {
 				GameLocal()->Warning( "idAF::AddBindConstraints: joint '%s' not found", jointName.c_str() );
 			}
-			animator->GetJointTransform( joint, GameLocal()->time, origin, axis );
+			animator->GetJointTransform( joint, GameLocal()->GetTime(), origin, axis );
 			c->SetAnchor( renderOrigin + origin * renderAxis );
 			c->SetShafts( idVec3( 0, 0, 1 ), idVec3( 0, 0, -1 ) );
 		}

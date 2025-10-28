@@ -270,30 +270,30 @@ bool idMoveable::Collide( const trace_t &collision, const idVec3 &velocity ) {
 	idEntity *ent;
 
 	v = -( velocity * collision.c.normal );
-	if ( v > BOUNCE_SOUND_MIN_VELOCITY && GameLocal()->time > nextSoundTime ) {
+	if ( v > BOUNCE_SOUND_MIN_VELOCITY && GameLocal()->GetTime() > nextSoundTime ) {
 		f = v > BOUNCE_SOUND_MAX_VELOCITY ? 1.0f : idMath::Sqrt( v - BOUNCE_SOUND_MIN_VELOCITY ) * ( 1.0f / idMath::Sqrt( BOUNCE_SOUND_MAX_VELOCITY - BOUNCE_SOUND_MIN_VELOCITY ) );
 		if ( StartSound( "snd_bounce", SND_CHANNEL_ANY, 0, false, NULL ) ) {
 			// don't set the volume unless there is a bounce sound as it overrides the entire channel
 			// which causes footsteps on ai's to not honor their shader parms
 			SetSoundVolume( f );
 		}
-		nextSoundTime = GameLocal()->time + 500;
+		nextSoundTime = GameLocal()->GetTime() + 500;
 	}
 
-	if ( canDamage && damage.Length() && GameLocal()->time > nextDamageTime ) {
+	if ( canDamage && damage.Length() && GameLocal()->GetTime() > nextDamageTime ) {
 		ent = GameLocal()->entities[ collision.c.entityNum ];
 		if ( ent && v > minDamageVelocity ) {
 			f = v > maxDamageVelocity ? 1.0f : idMath::Sqrt( v - minDamageVelocity ) * ( 1.0f / idMath::Sqrt( maxDamageVelocity - minDamageVelocity ) );
 			dir = velocity;
 			dir.NormalizeFast();
 			ent->Damage( this, GetPhysics()->GetClipModel()->GetOwner(), dir, damage, f, INVALID_JOINT );
-			nextDamageTime = GameLocal()->time + 1000;
+			nextDamageTime = GameLocal()->GetTime() + 1000;
 		}
 	}
 
-	if ( fxCollide.Length() && GameLocal()->time > nextCollideFxTime ) {
+	if ( fxCollide.Length() && GameLocal()->GetTime() > nextCollideFxTime ) {
 		idEntityFx::StartFx( fxCollide, &collision.c.point, NULL, this, false );
-		nextCollideFxTime = GameLocal()->time + 3500;
+		nextCollideFxTime = GameLocal()->GetTime() + 3500;
 	}
 
 	return false;
@@ -388,12 +388,12 @@ idMoveable::FollowInitialSplinePath
 */
 bool idMoveable::FollowInitialSplinePath( void ) {
 	if ( initialSpline != NULL ) {
-		if ( GameLocal()->time < initialSpline->GetTime( initialSpline->GetNumValues() - 1 ) ) {
-			idVec3 splinePos = initialSpline->GetCurrentValue( GameLocal()->time );
+		if ( GameLocal()->GetTime() < initialSpline->GetTime( initialSpline->GetNumValues() - 1 ) ) {
+			idVec3 splinePos = initialSpline->GetCurrentValue( GameLocal()->GetTime() );
 			idVec3 linearVelocity = ( splinePos - physicsObj.GetOrigin() ) * USERCMD_HZ;
 			physicsObj.SetLinearVelocity( linearVelocity );
 
-			idVec3 splineDir = initialSpline->GetCurrentFirstDerivative( GameLocal()->time );
+			idVec3 splineDir = initialSpline->GetCurrentFirstDerivative( GameLocal()->GetTime() );
 			idVec3 dir = initialSplineDir * physicsObj.GetAxis();
 			idVec3 angularVelocity = dir.Cross( splineDir );
 			angularVelocity.Normalize();
@@ -501,7 +501,7 @@ void idMoveable::Event_Activate( idEntity *activator ) {
 		PostEventSec( &EV_SetAngularVelocity, delay, init_avelocity );
 	}
 
-	InitInitialSpline( GameLocal()->time );
+	InitInitialSpline( GameLocal()->GetTime() );
 }
 
 /*
@@ -841,7 +841,7 @@ void idExplodingBarrel::Think( void ) {
 	if ( lightDefHandle >= 0 ){
 		if ( state == BURNING ) {
 			// ramp the color up over 250 ms
-			float pct = (GameLocal()->time - lightTime) / 250.f;
+			float pct = (GameLocal()->GetTime() - lightTime) / 250.f;
 			if ( pct > 1.0f ) {
 				pct = 1.0f;
 			}
@@ -853,7 +853,7 @@ void idExplodingBarrel::Think( void ) {
 			light.shaderParms[ SHADERPARM_ALPHA ] = pct;
 			gameRenderWorld->UpdateLightDef( lightDefHandle, &light );
 		} else {
-			if ( GameLocal()->time - lightTime > 250 ) {
+			if ( GameLocal()->GetTime() - lightTime > 250 ) {
 				gameRenderWorld->FreeLightDef( lightDefHandle );
 				lightDefHandle = -1;
 			}
@@ -991,7 +991,7 @@ void idExplodingBarrel::Killed( idEntity *inflictor, idEntity *attacker, int dam
 			byte		msgBuf[MAX_EVENT_PARAM_SIZE];
 
 			msg.Init( msgBuf, sizeof( msgBuf ) );
-			msg.WriteLong( GameLocal()->time );
+			msg.WriteLong( GameLocal()->GetTime() );
 			ServerSendEvent( EVENT_EXPLODE, &msg, false, -1 );
 		}
 	}
@@ -1034,7 +1034,7 @@ void idExplodingBarrel::Killed( idEntity *inflictor, idEntity *attacker, int dam
 			debris = static_cast<idDebris *>(ent);
 			debris->Create( this, physicsObj.GetOrigin(), dir.ToMat3() );
 			debris->Launch();
-			debris->GetRenderEntity()->shaderParms[ SHADERPARM_TIME_OF_DEATH ] = ( GameLocal()->time + 1500 ) * 0.001f;
+			debris->GetRenderEntity()->shaderParms[ SHADERPARM_TIME_OF_DEATH ] = ( GameLocal()->GetTime() + 1500 ) * 0.001f;
 			debris->UpdateVisuals();
 
 		}

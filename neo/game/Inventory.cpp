@@ -111,7 +111,7 @@ void idInventory::GivePowerUp( idPlayer *player, int powerup, int msec ) {
 		msec = def->dict.GetInt( "time" ) * 1000;
 	}
 	powerups |= 1 << powerup;
-	powerupEndTime[ powerup ] = GameLocal()->time + msec;
+	powerupEndTime[ powerup ] = GameLocal()->GetTime() + msec;
 }
 
 /*
@@ -733,10 +733,10 @@ bool idInventory::Give( idPlayer *owner, const idDict &spawnArgs, const char *st
 						assert( !GameLocal()->isClient );
 						*idealWeapon = i;
 					}
-					if ( owner->hud && updateHud && lastGiveTime + 1000 < GameLocal()->time ) {
+					if ( owner->hud && updateHud && lastGiveTime + 1000 < GameLocal()->GetTime() ) {
 						owner->hud->SetStateInt( "newWeapon", i );
 						owner->hud->HandleNamedEvent( "newWeapon" );
-						lastGiveTime = GameLocal()->time;
+						lastGiveTime = GameLocal()->GetTime();
 					}
 					weaponPulse = true;
 					weapons |= ( 1 << i );
@@ -830,7 +830,7 @@ bool idInventory::UseAmmo( ammo_t type, int amount ) {
 	// take an ammo away if not infinite
 	if ( ammo[ type ] >= 0 ) {
 		ammo[ type ] -= amount;
-		ammoPredictTime = GameLocal()->time; // mp client: we predict this. mark time so we're not confused by snapshots
+		ammoPredictTime = GameLocal()->GetTime(); // mp client: we predict this. mark time so we're not confused by snapshots
 	}
 
 	return true;
@@ -844,13 +844,13 @@ idInventory::UpdateArmor
 void idInventory::UpdateArmor( void ) {
 	if ( deplete_armor != 0.0f && deplete_armor < armor ) {
 		if ( !nextArmorDepleteTime ) {
-			nextArmorDepleteTime = GameLocal()->time + deplete_rate * 1000;
-		} else if ( GameLocal()->time > nextArmorDepleteTime ) {
+			nextArmorDepleteTime = GameLocal()->GetTime() + deplete_rate * 1000;
+		} else if ( GameLocal()->GetTime() > nextArmorDepleteTime ) {
 			armor -= deplete_ammount;
 			if ( armor < deplete_armor ) {
 				armor = deplete_armor;
 			}
-			nextArmorDepleteTime = GameLocal()->time + deplete_rate * 1000;
+			nextArmorDepleteTime = GameLocal()->GetTime() + deplete_rate * 1000;
 		}
 	}
 }

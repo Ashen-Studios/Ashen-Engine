@@ -720,7 +720,7 @@ idPhysics_RigidBody::Rest
 ================
 */
 void idPhysics_RigidBody::Rest( void ) {
-	current.atRest = GameLocal()->time;
+	current.atRest = GameLocal()->GetTime();
 	current.i.linearMomentum.Zero();
 	current.i.angularMomentum.Zero();
 	self->BecomeInactive( TH_PHYSICS );
@@ -909,7 +909,7 @@ bool idPhysics_RigidBody::Evaluate( int timeStepMSec, int endTimeMSec ) {
 	if ( collided ) {
 		// apply collision impulse
 		if ( CollisionImpulse( collision, impulse ) ) {
-			current.atRest = GameLocal()->time;
+			current.atRest = GameLocal()->GetTime();
 		}
 	}
 
@@ -1011,7 +1011,7 @@ idPhysics_RigidBody::GetTime
 ================
 */
 int idPhysics_RigidBody::GetTime( void ) const {
-	return GameLocal()->time;
+	return GameLocal()->GetTime();
 }
 
 /*
